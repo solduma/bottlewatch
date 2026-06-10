@@ -87,6 +87,17 @@ _RETRYABLE_EXCEPTIONS: tuple[type[BaseException], ...] = (
 )
 
 
+# Per-run counter of Form 4 filings skipped because their XML was
+# unparseable. EDGAR has a non-trivial share of structurally-broken
+# filings (mismatched tags, truncated elements) — these are
+# upstream data-quality issues, not our code's fault. We log one
+# INFO line at the end of each fetch() run with the count instead
+# of flooding the log with one WARNING per filing. The counter
+# resets at the start of every fetch() call.
+_unparseable_xml_count: int = 0
+_first_unparseable_accession: str | None = None
+
+
 class _SECHardError(Exception):
     """Raised for non-retryable 4xx responses (bad accession URL, etc.)."""
 
@@ -146,6 +157,13 @@ class SECInsiderAdapter(Adapter):
         sleep, this run takes ~80-90s — a progress indicator is
         the only way the user can tell the process is alive.
         """
+        # Reset the per-run "unparseable XML" counter. The
+        # aggregate is logged at INFO at the end of this method
+        # so a noisy EDGAR accession from one filer doesn't
+        # drown the log.
+        global _unparseable_xml_count, _first_unparseable_accession
+        _unparseable_xml_count = 0
+        _first_unparseable_accession = None
         self._load_universe_cik_map()
         signals: list[RawSignal] = []
         # Per-ticker history of P-code buys, keyed on the
@@ -256,6 +274,17 @@ class SECInsiderAdapter(Adapter):
                     # Already fired; skip
                     continue
                 signals.append(self._build_signal(ticker, day, count))
+
+        if _unparseable_xml_count:
+            # Aggregate log so EDGAR's data-quality noise doesn't
+            # drown the orchestrator log. The first accession is
+            # the most useful for debugging.
+            _LOGGER.info(
+                "sec_insider: %d Form 4 filings skipped due to unparseable XML (first: %s). "
+                "These are upstream EDGAR data-quality issues, not code bugs.",
+                _unparseable_xml_count,
+                _first_unparseable_accession,
+            )
 
         return signals
 
@@ -455,8 +484,18 @@ class SECInsiderAdapter(Adapter):
         try:
             parsed = self._parse_form4_xml(text)
         except ET.ParseError as exc:
-            _LOGGER.warning(
-                "sec_insider: malformed Form 4 XML, accession=%s: %s",
+            # EDGAR has a non-trivial share of structurally-broken
+            # filings (mismatched tags, truncated elements) — these
+            # are upstream data-quality issues, not our code's
+            # fault. Log at DEBUG and increment a per-run counter;
+            # the orchestrator gets a single INFO summary line.
+            global _unparseable_xml_count, _first_unparseable_accession
+            _unparseable_xml_count += 1
+            if _first_unparseable_accession is None:
+                _first_unparseable_accession = accession
+            _LOGGER.debug(
+                "sec_insider: unparseable Form 4 XML (run count: %d), accession=%s: %s",
+                _unparseable_xml_count,
                 accession,
                 exc,
             )
@@ -618,11 +657,13 @@ class SECInsiderAdapter(Adapter):
         Returns a dict with `transaction_code`, `transaction_date`
         (as ISO string), and `insider_cik` (the reporting
         person's own CIK — used for distinct-insider dedup).
-        Returns None if the filing has derivative activity only
-        (no `<nonDerivativeTransaction>`) — per spec §2, those
-        are filtered, so the caller should skip without warning.
-        Raises if the XML is structurally invalid (no transaction
-        of any kind, or no usable code+date).
+        Returns None when the filing is *not* relevant to cluster
+        detection (derivative-only, holdings-only, all-F/M/S
+        non-derivative transactions, "no longer subject to
+        Section 16" — all expected EDGAR edge cases that the
+        spec §2 filter excludes). Raises only on genuinely
+        anomalous empty filings (no transactions, no holdings,
+        no remarks — upstream data quality issues).
 
         The real SEC schema has evolved:
         - X0401 (older): `<transactionCode>P</transactionCode>` directly
@@ -709,11 +750,17 @@ class SECInsiderAdapter(Adapter):
             # remarks — genuinely anomalous. This XML has no
             # transaction data at all.
             raise ValueError("no non-derivative or derivative transaction element found")
-        # We iterated nonDerivativeTransaction elements but
-        # none had a usable code+date (e.g. all were
-        # footnotes-only). Rare in practice; raise so the caller
-        # logs and skips.
-        raise ValueError("no nonDerivativeTransaction element found")
+        if has_ndt:
+            # We iterated nonDerivativeTransaction elements but
+            # none had a usable code+date (e.g. all were
+            # withholding/option-exercise codes that we filter
+            # per spec §2). Common in practice; not a warning.
+            # The caller's `parsed is None` branch handles it.
+            return None
+        # Unreachable: has_dt must be True here (we passed the
+        # `not has_ndt and not has_dt` guard). Keep the
+        # defensive raise as a backstop for parser drift.
+        raise ValueError("unreachable: non-derivative transactions absent but no other branch matched")
 
     # -- signal construction ---------------------------------------------------
 

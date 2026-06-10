@@ -406,7 +406,7 @@ def test_non_us_ticker_emit_no_signal(
 
 
 # ---------------------------------------------------------------------------
-# Malformed XML is skipped with a warning, not raised
+# Malformed XML is skipped silently (debug-level + per-run aggregate)
 # ---------------------------------------------------------------------------
 
 
@@ -414,8 +414,14 @@ def test_malformed_form4_xml_is_skipped_with_warning(
     adapter: SECInsiderAdapter, caplog: pytest.LogCaptureFixture
 ) -> None:
     """EDGAR returns one good Form 4 and one with malformed XML.
-    The malformed one is logged and skipped; the good one counts
-    toward the cluster. The fetch() call still completes normally.
+    The malformed one is skipped; the good one counts toward the
+    cluster. The fetch() call still completes normally.
+
+    Per the 2026-06-09 fix, the per-filing malformed-XML log is
+    demoted to DEBUG (EDGAR has a non-trivial share of structurally
+    broken filings) and aggregated to a single INFO line at the
+    end of the run. This test asserts both the per-filing DEBUG
+    record and the run-level INFO summary.
     """
     accession_numbers = ["0000320193-26-000001", "0000320193-26-000002", "0000320193-26-000003"]
 
@@ -436,7 +442,7 @@ def test_malformed_form4_xml_is_skipped_with_warning(
                 200, text=_form4_xml(transaction_code="P")
             )
 
-        with caplog.at_level("WARNING"):
+        with caplog.at_level("DEBUG", logger="bottlewatch.app.ingest.sec_insider"):
             signals = adapter.fetch(date(2026, 5, 1), date(2026, 5, 31))
 
     # 2 P-codes remain (1 was malformed, skipped). Below threshold
@@ -446,7 +452,16 @@ def test_malformed_form4_xml_is_skipped_with_warning(
         for s in signals
         if s.source == "sec_insider"
     )
-    assert any("malformed" in r.message.lower() or "skip" in r.message.lower() for r in caplog.records)
+    # Per-filing debug log carries the parser-error message.
+    debug_records = [r for r in caplog.records if r.levelname == "DEBUG"]
+    assert any("unparseable" in r.message.lower() for r in debug_records), (
+        f"expected DEBUG log with 'unparseable' for the malformed XML; got: {[r.message for r in caplog.records]}"
+    )
+    # Per-run INFO aggregate: "1 Form 4 filings skipped due to unparseable XML"
+    info_records = [r for r in caplog.records if r.levelname == "INFO"]
+    assert any("skipped due to unparseable xml" in r.message.lower() for r in info_records), (
+        f"expected INFO aggregate log; got: {[r.message for r in info_records]}"
+    )
 
 
 # ---------------------------------------------------------------------------
