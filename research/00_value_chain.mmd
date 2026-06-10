@@ -1,0 +1,203 @@
+%% bottlewatch value chain DAG
+%% Phase 1 / M0 research deliverable
+%% Two parallel upstream tracks (silicon + power) converge at the data center
+%% shell, then flow downstream to inference. Supplier-of-supplier annotations
+%% are encoded as separate leaf nodes (one tier back) so the bird's-eye view
+%% stays readable. Parsed by a small custom parser into 00_value_chain.json
+%% consumed by React Flow on the /map page.
+%%
+%% 16 main nodes + supplier leaves. 4 sectors: Hardware (H), Infrastructure (I),
+%% Materials (M), Downstream (D).
+
+flowchart TB
+    %% ============== SILICON TRACK ==============
+    RAW["<b>raw inputs</b><br/>oil, gas, mining, water, fuel cycle<br/><i>MaterialsSector</i>"]
+    MAT["<b>semiconductor materials</b><br/>photoresist, wafers, gases, CMP<br/><i>MaterialsSector</i>"]
+    FEE["<b>front-end equipment</b><br/>litho, etch, deposition, CMP, metrology<br/><i>HardwareSector</i>"]
+    FAB["<b>advanced-node fabs</b><br/>3nm/2nm logic, leading-edge foundry<br/><i>HardwareSector</i>"]
+    PKG["<b>advanced packaging</b><br/>CoWoS, SoIC, 2.5D/3D, substrates<br/><i>HardwareSector</i>"]
+    HBM["<b>HBM memory</b><br/>HBM3E/HBM4 stacks, TSV, base DRAM<br/><i>HardwareSector</i>"]
+    NET["<b>networking & interconnect</b><br/>800G/1.6T switches, optical, NICs<br/><i>HardwareSector</i>"]
+    SIL["<b>GPU / ASIC silicon</b><br/>training & inference accelerators<br/><i>HardwareSector</i>"]
+    SYS["<b>systems OEM/ODM</b><br/>servers, sleds, chassis, PSUs<br/><i>HardwareSector</i>"]
+    RACK["<b>rack-scale integration</b><br/>NVL72, MGX, CDU, busbars, BMC<br/><i>HardwareSector</i>"]
+
+    %% ============== POWER TRACK ==============
+    FUEL["<b>fuel & power inputs</b><br/>gas, uranium, copper, rare earths<br/><i>InfrastructureSector</i>"]
+    GEN["<b>power generation OEM</b><br/>gas turbines, SMR, wind, solar, T&D gen<br/><i>InfrastructureSector</i>"]
+    TND["<b>transformers & switchgear</b><br/>LPT, distribution transformers, GIS<br/><i>InfrastructureSector</i>"]
+    UTIL["<b>T&D utilities</b><br/>investor-owned + IPPs + ISOs<br/><i>InfrastructureSector</i>"]
+
+    %% ============== CONVERGENCE + DOWNSTREAM ==============
+    SHELL["<b>data center shell</b><br/>colo REITs + hyperscaler self-build<br/><i>InfrastructureSector</i>"]
+    COOL["<b>cooling & water</b><br/>chillers, CDUs, pumps, treatment<br/><i>InfrastructureSector</i>"]
+    INF["<b>inference at scale</b><br/>hyperscalers, neoclouds, enterprise<br/><i>DownstreamSector</i>"]
+
+    %% ============== MAIN SPINE: SILICON ==============
+    RAW  --> MAT
+    MAT  --> FEE
+    FEE  --> FAB
+    FAB  --> PKG
+    FAB  --> HBM
+    PKG  --> SIL
+    HBM  --> SIL
+    NET  --> SIL
+    SIL  --> SYS
+    SYS  --> RACK
+
+    %% ============== MAIN SPINE: POWER ==============
+    FUEL --> GEN
+    GEN  --> TND
+    TND  --> UTIL
+
+    %% ============== CONVERGENCE AT DC ==============
+    RACK --> SHELL
+    NET  --> SHELL
+    UTIL --> SHELL
+    COOL --> SHELL
+    RACK --> COOL
+    SHELL --> INF
+
+    %% ============== SUPPLIER-OF-SUPPLIER LEAVES ==============
+    %% raw inputs suppliers
+    RAW_OIL(["oil & gas: XOM, CVX, OXY, EOG, EQNR, Shell, BP"])
+    RAW_MINE(["mining: FCX, SCCO, MP, USA Rare Earth, Albemarle"])
+    RAW_NUC(["nuclear fuel cycle: CCJ, KAP, BWXT, Centrus"])
+    RAW_H2O(["water utilities: AWK, WMS, Veolia, Suez"])
+    RAW --> RAW_OIL
+    RAW --> RAW_MINE
+    RAW --> RAW_NUC
+    RAW --> RAW_H2O
+
+    %% semiconductor materials suppliers
+    MAT_GAS(["process gases: Linde, Air Liquide, Air Products"])
+    MAT_SIC(["silicon wafers: Shin-Etsu, SUMCO, GlobalWafers"])
+    MAT_PHO(["photoresist: JSR, Shin-Etsu, TOK, DuPont"])
+    MAT_CMP(["CMP slurries: CMC, Versum/Entegris, Fujimi"])
+    MAT --> MAT_GAS
+    MAT --> MAT_SIC
+    MAT --> MAT_PHO
+    MAT --> MAT_CMP
+
+    %% front-end equipment suppliers
+    FEE_OPT(["optical components: Carl Zeiss, Gigaphoton, TRUMPF"])
+    FEE_ROB(["vacuum robotics: Kawasaki HI, Yaskawa, Brooks"])
+    FEE_PRC(["vacuum pumps: Edwards, Atlas Copco, Pfeiffer"])
+    FEE --> FEE_OPT
+    FEE --> FEE_ROB
+    FEE --> FEE_PRC
+
+    %% advanced fabs suppliers
+    FAB_UTIL(["utilities at fab: water + grid power (TSMC ~9% TW water)"])
+    FAB_CHEM(["process chemicals: Dow, DuPont, BASF, Mitsui"])
+    FAB --> FAB_UTIL
+    FAB --> FAB_CHEM
+
+    %% advanced packaging suppliers
+    PKG_SUB(["ABF substrates: Ibiden, Shinko, Unimicron, AT&S"])
+    PKG_UBM(["UBM / bonding wire: Tanaka, MKE"])
+    PKG --> PKG_SUB
+    PKG --> PKG_UBM
+
+    %% HBM suppliers
+    HBM_DRAM(["DRAM platform: shared w/ DDR5 (Samsung, hynix, Micron)"])
+    HBM_TSV(["TSV equipment: ASMPT, Kulicke & Soffa, Hanmi"])
+    HBM --> HBM_DRAM
+    HBM --> HBM_TSV
+
+    %% networking suppliers
+    NET_OPT(["optical transceivers: Coherent, Lumentum, Innolight, Eoptolink"])
+    NET_PCB(["high-speed PCB: Unimicron, Ibiden, Shinko, AT&S"])
+    NET_SW(["switch ASICs: Broadcom, Marvell, Cisco Silicon One"])
+    NET --> NET_OPT
+    NET --> NET_PCB
+    NET --> NET_SW
+
+    %% GPU/ASIC silicon suppliers
+    SIL_PWR(["on-die power delivery: Monolithic Power, Renesas, TI, Onsemi"])
+    SIL_IP(["IP cores / EDA: Arm, Synopsys, Cadence, SiFive"])
+    SIL --> SIL_PWR
+    SIL --> SIL_IP
+
+    %% systems OEM/ODM suppliers
+    SYS_PSU(["PSUs: Delta, Lite-On, FSP, Advanced Energy"])
+    SYS_CHAS(["chassis: Foxconn, Wiwynn, Inventec, Quanta"])
+    SYS --> SYS_PSU
+    SYS --> SYS_CHAS
+
+    %% rack-scale integration suppliers
+    RACK_CDU(["CDUs: CoolIT, Vertiv, Boyd, Asetek, Schneider"])
+    RACK_BUS(["busbars / power shelves: Eaton, Schneider, ABB, Vertiv"])
+    RACK --> RACK_CDU
+    RACK --> RACK_BUS
+
+    %% data center shell suppliers
+    SHELL_LAND(["land / tower REITs: AMT, CCI, American Tower"])
+    SHELL_FIB(["dark fiber: Lumen, Zayo, Crown Castle, Equinix Fabric"])
+    SHELL_REIT(["colo REITs: EQIX, DLR, AMT, IRM, CCI"])
+    SHELL --> SHELL_LAND
+    SHELL --> SHELL_FIB
+    SHELL --> SHELL_REIT
+
+    %% cooling/water suppliers
+    COOL_CHIL(["chillers: Trane, Carrier, Johnson Controls"])
+    COOL_PUMP(["pumps: Flowserve, Xylem, Mueller, Roper"])
+    COOL_CHEM(["water treatment: Ecolab, Solenis, Veolia, Pentair"])
+    COOL --> COOL_CHIL
+    COOL --> COOL_PUMP
+    COOL --> COOL_CHEM
+
+    %% power generation OEM suppliers
+    GEN_NUC(["SMR / AP1000: Westinghouse, BWXT, Holtec, NuScale, X-energy"])
+    GEN_GAS(["gas turbines: GEV, Siemens Energy, Mitsubishi HI"])
+    GEN_WIND(["wind OEMs: Vestas, GEV, Siemens Gamesa, Goldwind"])
+    GEN_SOLAR(["solar + inverters: First Solar, Jinko, Trina, Enphase, Array"])
+    GEN_RE(["rare earths: MP Materials, USA Rare Earth, Lynas"])
+    GEN --> GEN_NUC
+    GEN --> GEN_GAS
+    GEN --> GEN_WIND
+    GEN --> GEN_SOLAR
+    GEN --> GEN_RE
+
+    %% transformers & switchgear suppliers
+    TND_STEEL(["electrical steel: Cleveland-Cliffs, AK Steel/Cliffs, Posco"])
+    TND_CU(["copper: FCX, SCCO, Aurubis"])
+    TND_INS(["insulation: 3M, DuPont, Weidmann"])
+    TND --> TND_STEEL
+    TND --> TND_CU
+    TND --> TND_INS
+
+    %% T&D utilities suppliers
+    UTIL_REG(["regulators: FERC, state PUCs, ISO/RTOs (PJM, ERCOT, CAISO)"])
+    UTIL --> UTIL_REG
+
+    %% fuel & power inputs suppliers
+    FUEL_OG(["upstream O&G: XOM, CVX, OXY, EOG, EQNR, Shell, BP"])
+    FUEL_UR(["uranium: CCJ, KAP, Cameco, Energy Fuels, Denison"])
+    FUEL_MINE(["mining: FCX, SCCO, MP, Albemarle, Pilbara"])
+    FUEL_REN(["renewable dev: NEE, ENPH, BEP, Brookfield Renewable"])
+    FUEL --> FUEL_OG
+    FUEL --> FUEL_UR
+    FUEL --> FUEL_MINE
+    FUEL --> FUEL_REN
+
+    %% inference suppliers
+    INF_NEOCLOUD(["neoclouds: CRDO, NBIS, plus private (CoreWeave, Lambda)"])
+    INF_ENT(["enterprise SaaS: M365, Workspace, Adobe, Salesforce"])
+    INF --> INF_NEOCLOUD
+    INF --> INF_ENT
+
+    %% ============== STYLING ==============
+    classDef mat   fill:#e8f4f8,stroke:#1f4e79,color:#0b2545
+    classDef sil   fill:#fff2cc,stroke:#bf8f00,color:#5a4500
+    classDef pwr   fill:#d5e8d4,stroke:#82b366,color:#234d20
+    classDef dc    fill:#f8cecc,stroke:#b85450,color:#5a1d1a
+    classDef inf   fill:#e1d5e7,stroke:#9673a6,color:#3b2750
+    classDef sup   fill:#f5f5f5,stroke:#999,stroke-dasharray: 4 2,color:#444
+
+    class RAW,MAT mat
+    class FEE,FAB,PKG,HBM,NET,SIL,SYS,RACK sil
+    class FUEL,GEN,TND,UTIL,SHELL,COOL pwr
+    class INF inf
+
+    class RAW_OIL,RAW_MINE,RAW_NUC,RAW_H2O,MAT_GAS,MAT_SIC,MAT_PHO,MAT_CMP,FEE_OPT,FEE_ROB,FEE_PRC,FAB_UTIL,FAB_CHEM,PKG_SUB,PKG_UBM,HBM_DRAM,HBM_TSV,NET_OPT,NET_PCB,NET_SW,SIL_PWR,SIL_IP,SYS_PSU,SYS_CHAS,RACK_CDU,RACK_BUS,SHELL_LAND,SHELL_FIB,SHELL_REIT,COOL_CHIL,COOL_PUMP,COOL_CHEM,GEN_NUC,GEN_GAS,GEN_WIND,GEN_SOLAR,GEN_RE,TND_STEEL,TND_CU,TND_INS,UTIL_REG,FUEL_OG,FUEL_UR,FUEL_MINE,FUEL_REN,INF_NEOCLOUD,INF_ENT sup

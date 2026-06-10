@@ -1,0 +1,63 @@
+{
+  "_comment": "Per-segment constants for the 4 sub-scores that are NOT computed from the signals table in M2. The 5th sub-score (capacity_tightness) is computed by src/bottlewatch/app/score/extractors.py. Values are mid-points of the 2024-2025 ranges in research/04_scoring_methodology.md §2.3 (HHI) and §2.4 (regulatory friction rubric). M2 stopgap: v1.1 will derive geo_concentration from the ontology (research/05_ontology/instances.ttl) via SPARQL HHI, and demand_signal from FRED + EDGAR once those adapters land.",
+  "advanced_node_fabs": {
+    "lead_time_growth": 0.85,
+    "geo_concentration": 0.65,
+    "regulatory_friction": 0.67,
+    "demand_signal": 0.90
+  },
+  "advanced_packaging": {
+    "lead_time_growth": 0.95,
+    "geo_concentration": 0.85,
+    "regulatory_friction": 0.33,
+    "demand_signal": 0.90
+  },
+  "cooling_water": {
+    "lead_time_growth": 0.40,
+    "geo_concentration": 0.30,
+    "regulatory_friction": 0.00,
+    "demand_signal": 0.70
+  },
+  "data_center_shell": {
+    "lead_time_growth": 0.70,
+    "geo_concentration": 0.25,
+    "regulatory_friction": 0.67,
+    "demand_signal": 0.95
+  },
+  "gpu_asic_silicon": {
+    "lead_time_growth": 0.60,
+    "geo_concentration": 0.55,
+    "regulatory_friction": 0.33,
+    "demand_signal": 0.90
+  },
+  "hbm_memory": {
+    "lead_time_growth": 0.85,
+    "geo_concentration": 0.55,
+    "regulatory_friction": 0.33,
+    "demand_signal": 0.90
+  },
+  "networking_interconnect": {
+    "lead_time_growth": 0.50,
+    "geo_concentration": 0.40,
+    "regulatory_friction": 0.33,
+    "demand_signal": 0.80
+  },
+  "power_generation_oem": {
+    "lead_time_growth": 0.80,
+    "geo_concentration": 0.35,
+    "regulatory_friction": 0.67,
+    "demand_signal": 0.85
+  },
+  "systems_rack_scale": {
+    "lead_time_growth": 0.55,
+    "geo_concentration": 0.45,
+    "regulatory_friction": 0.33,
+    "demand_signal": 0.80
+  },
+  "transformers_tnd": {
+    "lead_time_growth": 0.85,
+    "geo_concentration": 0.35,
+    "regulatory_friction": 0.67,
+    "demand_signal": 0.80
+  }
+}

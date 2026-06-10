@@ -1,0 +1,400 @@
+<?xml version="1.0"?>
+<!--
+  bottlewatch.owl - TBox (schema) for the bottlewatch ontology.
+
+  Namespace:  http://bottlewatch.org/ontology#
+  Instances live in research/05_ontology/instances.ttl and share this namespace
+  (we keep one namespace for simplicity; the data: prefix below is used to
+  declare the ontology IRI itself, not for individuals).
+
+  Authored for Protégé 5.x. The companion builder
+  (src/bottlewatch/jobs/build_ontology.py) writes the ABox into instances.ttl
+  from research/02_universe.csv + research/00_value_chain.json.
+
+  Aim: ~50 axioms. The structure follows docs/plans/2026-06-03-bottlewatch-v1.md
+  section 10.1.
+-->
+<rdf:RDF
+    xmlns="http://bottlewatch.org/ontology#"
+    xml:base="http://bottlewatch.org/ontology"
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+    xmlns:owl="http://www.w3.org/2002/07/owl#"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+    xmlns:dc="http://purl.org/dc/elements/1.1/">
+
+    <owl:Ontology rdf:about="http://bottlewatch.org/ontology">
+        <dc:title>bottlewatch ontology</dc:title>
+        <dc:description>Schema for the AI supply-chain investment dashboard. Companion to research/02_universe.csv and research/00_value_chain.json.</dc:description>
+    </owl:Ontology>
+
+    <!-- ============================================================== -->
+    <!-- TOP-LEVEL CLASSES                                                -->
+    <!-- ============================================================== -->
+
+    <owl:Class rdf:about="#Sector"/>
+    <owl:Class rdf:about="#Role"/>
+
+    <!-- Company is instance-only; no subclasses. -->
+    <owl:Class rdf:about="#Company"/>
+
+    <owl:Class rdf:about="#GeographicRegion"/>
+    <owl:Class rdf:about="#Commodity"/>
+    <owl:Class rdf:about="#GovernmentBody"/>
+
+    <!-- ============================================================== -->
+    <!-- SECTORS                                                          -->
+    <!-- ============================================================== -->
+
+    <owl:Class rdf:about="#HardwareSector">
+        <rdfs:subClassOf rdf:resource="#Sector"/>
+    </owl:Class>
+    <owl:Class rdf:about="#InfrastructureSector">
+        <rdfs:subClassOf rdf:resource="#Sector"/>
+    </owl:Class>
+    <owl:Class rdf:about="#MaterialsSector">
+        <rdfs:subClassOf rdf:resource="#Sector"/>
+    </owl:Class>
+    <owl:Class rdf:about="#DownstreamSector">
+        <rdfs:subClassOf rdf:resource="#Sector"/>
+    </owl:Class>
+
+    <!-- ============================================================== -->
+    <!-- ROLES - Manufacturer subtree                                     -->
+    <!-- ============================================================== -->
+
+    <owl:Class rdf:about="#Manufacturer">
+        <rdfs:subClassOf rdf:resource="#Role"/>
+    </owl:Class>
+    <owl:Class rdf:about="#Foundry">
+        <rdfs:subClassOf rdf:resource="#Manufacturer"/>
+    </owl:Class>
+    <owl:Class rdf:about="#IDM">
+        <rdfs:subClassOf rdf:resource="#Manufacturer"/>
+    </owl:Class>
+    <owl:Class rdf:about="#FablessDesigner">
+        <rdfs:subClassOf rdf:resource="#Manufacturer"/>
+    </owl:Class>
+    <owl:Class rdf:about="#OSAT">
+        <rdfs:subClassOf rdf:resource="#Manufacturer"/>
+    </owl:Class>
+    <owl:Class rdf:about="#EquipmentMaker">
+        <rdfs:subClassOf rdf:resource="#Manufacturer"/>
+    </owl:Class>
+    <owl:Class rdf:about="#MaterialsSupplier">
+        <rdfs:subClassOf rdf:resource="#Manufacturer"/>
+    </owl:Class>
+    <owl:Class rdf:about="#PowerEquipmentOEM">
+        <rdfs:subClassOf rdf:resource="#Manufacturer"/>
+    </owl:Class>
+    <owl:Class rdf:about="#ElectricalEquipmentMaker">
+        <rdfs:subClassOf rdf:resource="#Manufacturer"/>
+    </owl:Class>
+
+    <!-- FablessDesigner specializations -->
+    <owl:Class rdf:about="#GPUDesigner">
+        <rdfs:subClassOf rdf:resource="#FablessDesigner"/>
+    </owl:Class>
+    <owl:Class rdf:about="#NetworkingSiliconDesigner">
+        <rdfs:subClassOf rdf:resource="#FablessDesigner"/>
+    </owl:Class>
+    <owl:Class rdf:about="#ASICDesigner">
+        <rdfs:subClassOf rdf:resource="#FablessDesigner"/>
+    </owl:Class>
+
+    <!-- ============================================================== -->
+    <!-- ROLES - InfrastructureOperator subtree                           -->
+    <!-- ============================================================== -->
+
+    <owl:Class rdf:about="#InfrastructureOperator">
+        <rdfs:subClassOf rdf:resource="#Role"/>
+    </owl:Class>
+    <owl:Class rdf:about="#Utility">
+        <rdfs:subClassOf rdf:resource="#InfrastructureOperator"/>
+    </owl:Class>
+    <owl:Class rdf:about="#IDCOperator">
+        <rdfs:subClassOf rdf:resource="#InfrastructureOperator"/>
+    </owl:Class>
+    <owl:Class rdf:about="#WaterUtility">
+        <rdfs:subClassOf rdf:resource="#InfrastructureOperator"/>
+    </owl:Class>
+
+    <!-- SelfBuildIDCOperator is a multiple-inheritance node:
+         it is both an IDCOperator and a Hyperscaler. The reasoner will
+         infer that any instance is therefore also both parents. -->
+    <owl:Class rdf:about="#SelfBuildIDCOperator">
+        <rdfs:subClassOf rdf:resource="#IDCOperator"/>
+        <rdfs:subClassOf rdf:resource="#Hyperscaler"/>
+    </owl:Class>
+
+    <!-- ============================================================== -->
+    <!-- ROLES - Integrator subtree                                       -->
+    <!-- ============================================================== -->
+
+    <owl:Class rdf:about="#Integrator">
+        <rdfs:subClassOf rdf:resource="#Role"/>
+    </owl:Class>
+    <owl:Class rdf:about="#SystemOEM">
+        <rdfs:subClassOf rdf:resource="#Integrator"/>
+    </owl:Class>
+    <owl:Class rdf:about="#ODM">
+        <rdfs:subClassOf rdf:resource="#Integrator"/>
+    </owl:Class>
+    <owl:Class rdf:about="#RackIntegrator">
+        <rdfs:subClassOf rdf:resource="#Integrator"/>
+    </owl:Class>
+
+    <!-- ============================================================== -->
+    <!-- ROLES - DownstreamConsumer subtree                               -->
+    <!-- ============================================================== -->
+
+    <owl:Class rdf:about="#DownstreamConsumer">
+        <rdfs:subClassOf rdf:resource="#Role"/>
+    </owl:Class>
+    <owl:Class rdf:about="#Hyperscaler">
+        <rdfs:subClassOf rdf:resource="#DownstreamConsumer"/>
+    </owl:Class>
+    <owl:Class rdf:about="#Neocloud">
+        <rdfs:subClassOf rdf:resource="#DownstreamConsumer"/>
+    </owl:Class>
+    <owl:Class rdf:about="#EnterpriseSaaSConsumer">
+        <rdfs:subClassOf rdf:resource="#DownstreamConsumer"/>
+    </owl:Class>
+
+    <!-- ============================================================== -->
+    <!-- OBJECT PROPERTIES                                                 -->
+    <!-- ============================================================== -->
+
+    <owl:ObjectProperty rdf:about="#supplies">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#TransitiveProperty"/>
+        <rdfs:domain rdf:resource="#Role"/>
+        <rdfs:range rdf:resource="#Role"/>
+    </owl:ObjectProperty>
+
+    <owl:ObjectProperty rdf:about="#suppliesCommodity">
+        <rdfs:domain rdf:resource="#Role"/>
+        <rdfs:range rdf:resource="#Commodity"/>
+    </owl:ObjectProperty>
+
+    <owl:ObjectProperty rdf:about="#dependsOnCommodity">
+        <rdfs:domain rdf:resource="#Role"/>
+        <rdfs:range rdf:resource="#Commodity"/>
+    </owl:ObjectProperty>
+
+    <owl:ObjectProperty rdf:about="#playsRole">
+        <rdfs:domain rdf:resource="#Company"/>
+        <rdfs:range rdf:resource="#Role"/>
+    </owl:ObjectProperty>
+
+    <owl:ObjectProperty rdf:about="#headquarteredIn">
+        <rdfs:domain rdf:resource="#Company"/>
+        <rdfs:range rdf:resource="#GeographicRegion"/>
+    </owl:ObjectProperty>
+
+    <owl:ObjectProperty rdf:about="#operatesIn">
+        <rdfs:domain rdf:resource="#Role"/>
+        <rdfs:range rdf:resource="#GeographicRegion"/>
+    </owl:ObjectProperty>
+
+    <owl:ObjectProperty rdf:about="#hasExposureTo">
+        <rdfs:domain rdf:resource="#Company"/>
+        <rdfs:range rdf:resource="#Role"/>
+    </owl:ObjectProperty>
+
+    <owl:ObjectProperty rdf:about="#competesWith">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#SymmetricProperty"/>
+        <rdfs:domain rdf:resource="#Company"/>
+        <rdfs:range rdf:resource="#Company"/>
+    </owl:ObjectProperty>
+
+    <owl:ObjectProperty rdf:about="#isAlternativeTo">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#SymmetricProperty"/>
+        <rdfs:domain rdf:resource="#Role"/>
+        <rdfs:range rdf:resource="#Role"/>
+    </owl:ObjectProperty>
+
+    <owl:ObjectProperty rdf:about="#regulates">
+        <rdfs:domain rdf:resource="#GovernmentBody"/>
+        <rdfs:range rdf:resource="#Role"/>
+    </owl:ObjectProperty>
+
+    <owl:FunctionalProperty rdf:about="#hasTicker">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
+        <rdfs:domain rdf:resource="#Company"/>
+        <rdfs:range rdf:resource="xsd:string"/>
+    </owl:FunctionalProperty>
+
+    <!-- ============================================================== -->
+    <!-- DATATYPE PROPERTIES                                              -->
+    <!-- ============================================================== -->
+
+    <owl:DatatypeProperty rdf:about="#hasExchange">
+        <rdfs:domain rdf:resource="#Company"/>
+        <rdfs:range rdf:resource="xsd:string"/>
+    </owl:DatatypeProperty>
+    <owl:DatatypeProperty rdf:about="#hasCurrency">
+        <rdfs:domain rdf:resource="#Company"/>
+        <rdfs:range rdf:resource="xsd:string"/>
+    </owl:DatatypeProperty>
+    <owl:DatatypeProperty rdf:about="#hasMarketCap">
+        <rdfs:domain rdf:resource="#Company"/>
+        <rdfs:range rdf:resource="xsd:decimal"/>
+    </owl:DatatypeProperty>
+    <owl:DatatypeProperty rdf:about="#hasCurrencyHedge">
+        <rdfs:domain rdf:resource="#Company"/>
+        <rdfs:range rdf:resource="xsd:string"/>
+    </owl:DatatypeProperty>
+    <owl:DatatypeProperty rdf:about="#isPublic">
+        <rdfs:domain rdf:resource="#Company"/>
+        <rdfs:range rdf:resource="xsd:boolean"/>
+    </owl:DatatypeProperty>
+    <owl:DatatypeProperty rdf:about="#isLargeOrMidCap">
+        <rdfs:domain rdf:resource="#Company"/>
+        <rdfs:range rdf:resource="xsd:boolean"/>
+    </owl:DatatypeProperty>
+    <owl:DatatypeProperty rdf:about="#hasExposurePct">
+        <rdfs:domain rdf:resource="#Company"/>
+        <rdfs:range rdf:resource="xsd:decimal"/>
+    </owl:DatatypeProperty>
+
+    <!-- hasRoleExposure: per-(company, role) exposure. The Company-level
+         hasExposurePct above is the (typically max) aggregate retained for
+         legacy queries; hasRoleExposure is the reified form so that a
+         conglomerate like TSMC can carry 70% Foundry + 30% OSAT exposure
+         without one number swallowing the other. Range is 0-1; the legacy
+         0-100 hasExposurePct is left intact for backward-compat. -->
+    <owl:DatatypeProperty rdf:about="#hasRoleExposure">
+        <rdfs:domain rdf:resource="#Role"/>
+        <rdfs:range rdf:resource="xsd:decimal"/>
+    </owl:DatatypeProperty>
+
+    <!-- ============================================================== -->
+    <!-- GEOGRAPHIC REGION INDIVIDUALS (TBox-level so ABox can reference) -->
+    <!-- ============================================================== -->
+
+    <owl:NamedIndividual rdf:about="#NorthAmerica">
+        <rdf:type rdf:resource="#GeographicRegion"/>
+    </owl:NamedIndividual>
+    <owl:NamedIndividual rdf:about="#Europe">
+        <rdf:type rdf:resource="#GeographicRegion"/>
+    </owl:NamedIndividual>
+    <owl:NamedIndividual rdf:about="#GreaterChina">
+        <rdf:type rdf:resource="#GeographicRegion"/>
+    </owl:NamedIndividual>
+    <owl:NamedIndividual rdf:about="#Japan">
+        <rdf:type rdf:resource="#GeographicRegion"/>
+    </owl:NamedIndividual>
+    <owl:NamedIndividual rdf:about="#Korea">
+        <rdf:type rdf:resource="#GeographicRegion"/>
+    </owl:NamedIndividual>
+    <owl:NamedIndividual rdf:about="#Taiwan">
+        <rdf:type rdf:resource="#GeographicRegion"/>
+    </owl:NamedIndividual>
+    <owl:NamedIndividual rdf:about="#SoutheastAsia">
+        <rdf:type rdf:resource="#GeographicRegion"/>
+    </owl:NamedIndividual>
+    <owl:NamedIndividual rdf:about="#MiddleEast">
+        <rdf:type rdf:resource="#GeographicRegion"/>
+    </owl:NamedIndividual>
+
+    <!-- ============================================================== -->
+    <!-- COMMODITY ENUMERATION                                            -->
+    <!--                                                                  -->
+    <!-- The Commodity class is defined as a CLOSED enumeration via      -->
+    <!-- owl:equivalentClass + owl:oneOf. The reasoner will reject any  -->
+    <!-- ABox individual asserted to be of type #Commodity that is not   -->
+    <!-- one of the 11 individuals listed below. This is the schema     -->
+    <!-- enforcer the build_ontology.py job relies on to catch typos     -->
+    <!-- (e.g. misspelled "PhotorisistChemicals") at load time rather    -->
+    <!-- than at query time.                                              -->
+    <!--                                                                  -->
+    <!-- To add a commodity later: append the NamedIndividual below and -->
+    <!-- add it to the oneOf list. Do not skip the oneOf update.        -->
+    <!-- ============================================================== -->
+
+    <owl:Class rdf:about="#Commodity">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:oneOf rdf:parseType="Collection">
+                    <owl:NamedIndividual rdf:about="#Helium"/>
+                    <owl:NamedIndividual rdf:about="#Neon"/>
+                    <owl:NamedIndividual rdf:about="#ProcessGases"/>
+                    <owl:NamedIndividual rdf:about="#UltraPureWater"/>
+                    <owl:NamedIndividual rdf:about="#ElectricalSteel"/>
+                    <owl:NamedIndividual rdf:about="#Copper"/>
+                    <owl:NamedIndividual rdf:about="#Uranium"/>
+                    <owl:NamedIndividual rdf:about="#NaturalGas"/>
+                    <owl:NamedIndividual rdf:about="#Lithium"/>
+                    <owl:NamedIndividual rdf:about="#RareEarths"/>
+                    <owl:NamedIndividual rdf:about="#PhotoresistChemicals"/>
+                </owl:oneOf>
+            </owl:Class>
+        </owl:equivalentClass>
+    </owl:Class>
+
+    <owl:NamedIndividual rdf:about="#Helium">
+        <rdf:type rdf:resource="#Commodity"/>
+    </owl:NamedIndividual>
+    <owl:NamedIndividual rdf:about="#Neon">
+        <rdf:type rdf:resource="#Commodity"/>
+    </owl:NamedIndividual>
+    <owl:NamedIndividual rdf:about="#ProcessGases">
+        <rdf:type rdf:resource="#Commodity"/>
+    </owl:NamedIndividual>
+    <owl:NamedIndividual rdf:about="#UltraPureWater">
+        <rdf:type rdf:resource="#Commodity"/>
+    </owl:NamedIndividual>
+    <owl:NamedIndividual rdf:about="#ElectricalSteel">
+        <rdf:type rdf:resource="#Commodity"/>
+    </owl:NamedIndividual>
+    <owl:NamedIndividual rdf:about="#Copper">
+        <rdf:type rdf:resource="#Commodity"/>
+    </owl:NamedIndividual>
+    <owl:NamedIndividual rdf:about="#Uranium">
+        <rdf:type rdf:resource="#Commodity"/>
+    </owl:NamedIndividual>
+    <owl:NamedIndividual rdf:about="#NaturalGas">
+        <rdf:type rdf:resource="#Commodity"/>
+    </owl:NamedIndividual>
+    <owl:NamedIndividual rdf:about="#Lithium">
+        <rdf:type rdf:resource="#Commodity"/>
+    </owl:NamedIndividual>
+    <owl:NamedIndividual rdf:about="#RareEarths">
+        <rdf:type rdf:resource="#Commodity"/>
+    </owl:NamedIndividual>
+    <owl:NamedIndividual rdf:about="#PhotoresistChemicals">
+        <rdf:type rdf:resource="#Commodity"/>
+    </owl:NamedIndividual>
+
+    <!-- ============================================================== -->
+    <!-- GOVERNMENT BODY INDIVIDUALS                                      -->
+    <!-- ============================================================== -->
+
+    <owl:NamedIndividual rdf:about="#FERC">
+        <rdf:type rdf:resource="#GovernmentBody"/>
+    </owl:NamedIndividual>
+    <owl:NamedIndividual rdf:about="#BIS">
+        <rdf:type rdf:resource="#GovernmentBody"/>
+    </owl:NamedIndividual>
+    <owl:NamedIndividual rdf:about="#EU_Commission">
+        <rdf:type rdf:resource="#GovernmentBody"/>
+    </owl:NamedIndividual>
+
+    <!-- ============================================================== -->
+    <!-- CLASS RESTRICTIONS                                               -->
+    <!-- ============================================================== -->
+
+    <!-- Fabless designers do not run their own fabs, so they depend on
+         third-party process-gas supply (a proxy for fab access). The
+         restriction is illustrative; not all Manufacturer subclasses have
+         it. -->
+    <owl:Class rdf:about="#FablessDesigner">
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="#dependsOnCommodity"/>
+                <owl:someValuesFrom rdf:resource="#ProcessGases"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+
+</rdf:RDF>

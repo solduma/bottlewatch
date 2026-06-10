@@ -1,0 +1,689 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bottlewatch — User Manual</title>
+<style>
+  :root {
+    --fg: #1a1a1a;
+    --fg-muted: #555;
+    --bg: #fafafa;
+    --bg-card: #ffffff;
+    --accent: #0b6e4f;
+    --accent-soft: #e6f3ee;
+    --rule: #e3e3e3;
+    --code-bg: #f3f3f1;
+    --code-fg: #2a2a2a;
+    --warn-bg: #fff5e6;
+    --warn-fg: #7a4a00;
+    --info-bg: #eef4fb;
+    --info-fg: #1a4a7a;
+    --max-w: 820px;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.55;
+    color: var(--fg);
+    background: var(--bg);
+  }
+  .wrap { max-width: var(--max-w); margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+  header {
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 1.25rem;
+    margin-bottom: 2rem;
+  }
+  h1 { margin: 0 0 0.25rem; font-size: 2rem; letter-spacing: -0.01em; }
+  header .lede { color: var(--fg-muted); margin: 0; }
+  header .meta { color: var(--fg-muted); font-size: 0.85rem; margin-top: 0.5rem; }
+  h2 {
+    font-size: 1.4rem;
+    margin: 2.5rem 0 0.75rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--rule);
+  }
+  h2:first-of-type { border-top: none; margin-top: 1rem; }
+  h3 { font-size: 1.1rem; margin: 1.5rem 0 0.5rem; }
+  p, li { font-size: 0.95rem; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code {
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+    font-size: 0.88em;
+    background: var(--code-bg);
+    color: var(--code-fg);
+    padding: 0.1em 0.35em;
+    border-radius: 3px;
+  }
+  pre {
+    background: var(--code-bg);
+    color: var(--code-fg);
+    padding: 0.85rem 1rem;
+    border-radius: 6px;
+    overflow-x: auto;
+    font-size: 0.85rem;
+    line-height: 1.45;
+  }
+  pre code { background: none; padding: 0; }
+  .toc {
+    background: var(--bg-card);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    padding: 1rem 1.25rem;
+    margin: 1.5rem 0 2rem;
+  }
+  .toc h2 { font-size: 1rem; margin: 0 0 0.5rem; border: none; padding: 0; }
+  .toc ol { margin: 0.25rem 0 0; padding-left: 1.25rem; }
+  .toc li { margin: 0.15rem 0; }
+  .callout {
+    border-left: 4px solid var(--accent);
+    background: var(--accent-soft);
+    padding: 0.75rem 1rem;
+    border-radius: 0 4px 4px 0;
+    margin: 1rem 0;
+    font-size: 0.92rem;
+  }
+  .callout.warn { border-color: #b07200; background: var(--warn-bg); color: var(--warn-fg); }
+  .callout.info { border-color: #4a7ab0; background: var(--info-bg); color: var(--info-fg); }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0 1.25rem;
+    font-size: 0.9rem;
+  }
+  th, td {
+    text-align: left;
+    padding: 0.5rem 0.6rem;
+    border-bottom: 1px solid var(--rule);
+    vertical-align: top;
+  }
+  th { background: var(--bg-card); font-weight: 600; }
+  tr:hover td { background: #fcfcfc; }
+  dl { margin: 0.5rem 0 1rem; }
+  dt { font-weight: 600; margin-top: 0.6rem; }
+  dd { margin: 0.15rem 0 0 1.25rem; color: var(--fg-muted); }
+  ul, ol { padding-left: 1.4rem; }
+  li { margin: 0.2rem 0; }
+  .term { font-weight: 600; }
+  footer {
+    margin-top: 3rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--rule);
+    color: var(--fg-muted);
+    font-size: 0.8rem;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>Bottlewatch — User Manual</h1>
+  <p class="lede">A two-tier dashboard for a solo investor monitoring the AI supply chain.</p>
+  <p class="meta">Audience: the operator. Last verified against the <code>main</code> branch on 2026-06-06.</p>
+</header>
+
+<nav class="toc">
+  <h2>Contents</h2>
+  <ol>
+    <li><a href="#overview">What Bottlewatch does</a></li>
+    <li><a href="#install">Install &amp; first run</a></li>
+    <li><a href="#daily-ops">Daily operation</a></li>
+    <li><a href="#read-dashboard">Reading the dashboard</a></li>
+    <li><a href="#api">Reading the API directly</a></li>
+    <li><a href="#scoring">Research &amp; scoring model</a></li>
+    <li><a href="#troubleshoot">Troubleshooting</a></li>
+  </ol>
+</nav>
+
+<h2 id="overview">1. What Bottlewatch does</h2>
+
+<p>Bottlewatch tracks <strong>binding bottlenecks</strong> in the AI supply
+chain — the chokepoints where the next leg of capacity is hardest to add —
+and the public companies whose share prices move first when those
+chokepoints tighten or break.</p>
+
+<p>The thesis is straightforward: a static &ldquo;what&rsquo;s tight right now&rdquo;
+scoreboard is consensus-priced by the time you see it. Edge lives in
+<strong>predicting trajectory</strong> — which bottlenecks are <em>emerging</em>
+(long, before consensus catches up), which are <em>peaking</em> (momentum
+long or trim), and which are <em>resolving</em> (short or skip; <strong>never
+long</strong>).</p>
+
+<p>The system has three surfaces you actually use day-to-day:</p>
+<ul>
+  <li>A <strong>web scoreboard</strong> — Next.js dashboard, served at
+    <code>http://localhost:3000</code> in development.</li>
+  <li>A <strong>REST API</strong> — FastAPI service at
+    <code>http://localhost:8000/api/v1/</code>.</li>
+  <li>Two <strong>launchd jobs</strong> that keep the data fresh
+    (daily at 04:00 and 04:30).</li>
+</ul>
+
+<p>Everything else — the ontology, the scoring seed, the segment briefs — is
+build-time material. You don&rsquo;t need to read it to use the dashboard,
+but <a href="#scoring">section 6</a> explains how the numbers get
+computed.</p>
+
+<h2 id="install">2. Install &amp; first run</h2>
+
+<h3>2.1 Prerequisites</h3>
+<ul>
+  <li><strong>macOS</strong> (the launchd jobs are macOS-specific; the rest
+    of the toolchain runs anywhere Python 3.13 does).</li>
+  <li><strong>uv</strong> — the Python package manager. Install with
+    <code>curl -LsSf https://astral.sh/uv/install.sh | sh</code>.</li>
+  <li><strong>Node 20+ / pnpm</strong> — for the dashboard.
+    <code>brew install node pnpm</code>.</li>
+  <li><strong>API keys</strong> for the data sources you want live (see
+    <a href="#api-keys">2.4</a>).</li>
+</ul>
+
+<h3>2.2 Install the package</h3>
+
+<pre><code>cd /Users/iljoyoo/workspace/bottlewatch
+make sync          # uv sync — installs the package + dev group
+make install-hooks # enables the .env pre-commit guard
+</code></pre>
+
+<p>The pre-commit hook refuses to stage any file named <code>.env</code>, so
+your API keys can&rsquo;t leak even if you forget to update
+<code>.gitignore</code> entries.</p>
+
+<h3 id="api-keys">2.3 Add your API keys</h3>
+
+<p>Copy the template and fill in the keys you have:</p>
+
+<pre><code>cp .env.example .env
+$EDITOR .env
+</code></pre>
+
+<p>Keys in priority order:</p>
+<table>
+  <thead>
+    <tr><th>Var</th><th>What it enables</th><th>Required?</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>EIA_API_KEY</code></td><td>Power generation, capacity, electricity, and 860M planned-additions ingests</td><td>Strongly recommended</td></tr>
+    <tr><td><code>FRED_API_KEY</code></td><td>Transformer PPI, power demand macro overlays</td><td>Recommended</td></tr>
+    <tr><td><code>COMTRADE_API_KEY</code></td><td>HBM / transformer trade-flow ingest</td><td>Optional</td></tr>
+  </tbody>
+</table>
+
+<p>All three are free. Without a key, the corresponding adapter logs a
+warning and is skipped; the rest of the system runs fine on the
+remaining sources. URLs to register: <a href="https://www.eia.gov/opendata/register.php">EIA</a>,
+<a href="https://fredaccount.stlouisfed.org/apikeys">FRED</a>,
+<a href="https://comtradeplus.un.org/">Comtrade</a>.</p>
+
+<h3>2.4 Build the ontology &amp; run a one-shot refresh</h3>
+
+<pre><code>make research    # ontology + validate-ontology — verifies the ABox builds
+make ingest      # one-shot data refresh into data/processed/bottlewatch.db
+</code></pre>
+
+<p>The first ingest downloads several hundred MB of EIA capacity tables,
+so do it on a wired connection. Subsequent daily runs take a few
+minutes.</p>
+
+<h3>2.5 Start the API &amp; the dashboard</h3>
+
+<p>Two terminals:</p>
+
+<pre><code>make api         # uvicorn at http://127.0.0.1:8000
+make web         # pnpm dev at http://localhost:3000
+</code></pre>
+
+<p>Open the dashboard. You should see the scoreboard populated with the
+eleven segments. If the dashboard says &ldquo;no data&rdquo; for a segment, the
+ingest hasn&rsquo;t completed yet for that source — see
+<a href="#troubleshoot">Troubleshooting</a>.</p>
+
+<h3>2.6 Schedule the daily refresh</h3>
+
+<pre><code>make schedule
+</code></pre>
+
+<p>This installs two launchd agents:</p>
+<table>
+  <thead>
+    <tr><th>Agent</th><th>Runs</th><th>Command</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>com.bottlewatch.refresh</code></td><td>04:00 daily</td><td><code>make ingest</code></td></tr>
+    <tr><td><code>com.bottlewatch.recompute</code></td><td>04:30 daily</td><td><code>make recompute</code></td></tr>
+  </tbody>
+</table>
+
+<p>Both write structured JSONL output to
+<code>data/cache/refresh.log</code>. Refresh pulls the latest data;
+recompute rebuilds the score table from the updated signals.</p>
+
+<p>To remove: <code>make unschedule</code>. To check status:
+<code>launchctl list | grep bottlewatch</code>.</p>
+
+<div class="callout">
+  The installer templates the project path into the plist so the
+  same repo can be installed from any absolute location. If you
+  ever move the directory, re-run <code>make schedule</code> to
+  repoint the agents.
+</div>
+
+<h2 id="daily-ops">3. Daily operation</h2>
+
+<h3>3.1 The day-to-day flow</h3>
+
+<p>You don&rsquo;t need to touch anything on a normal day. At 04:00, the
+refresh job pulls new data. At 04:30, the recompute job rebuilds
+scores. By 05:00 the dashboard is showing fresh numbers.</p>
+
+<p>When you sit down to look at it:</p>
+<ol>
+  <li>Open the scoreboard. Skim the <strong>regime</strong> column for any
+    segment that changed overnight — the dashboard highlights delta
+    badges (arrow icons) when a regime flipped since you last
+    looked.</li>
+  <li>For any flagged segment, click through to the per-segment view.
+    That view shows the five sub-scores, the 6-month momentum
+    (<code>B'</code>), and the underlying signals that drove the
+    change.</li>
+  <li>Check the <strong>conviction basket</strong>. The
+    <a href="#screener">screener endpoint</a> returns the
+    near/med/long baskets the model currently thinks are investable.
+    The hard guard (no RESOLVING in the long basket) is
+    non-overridable in the model — see <a href="#guard">section 6.4</a>.</li>
+  <li>Read or write <strong>thesis notes</strong> on any segment where you
+    disagree with the regime call. The note is auditable: it shows up
+    in the UI next to the guard, so future-you remembers why you
+    overrode (or didn&rsquo;t).</li>
+</ol>
+
+<h3>3.2 Backfilling</h3>
+
+<p>If you want scores further back than the last 6 months (the
+momentum window), use the backfill command:</p>
+
+<pre><code>make backfill
+</code></pre>
+
+<p>This calls <code>bottlewatch-recompute --backfill-since 2024-01-01</code>
+and rebuilds the score history from the start of 2024. Run it once
+on a new install; rerun it only if you add a new signal source whose
+historical depth covers more than the live DB has.</p>
+
+<h3>3.3 What lives where</h3>
+
+<table>
+  <thead>
+    <tr><th>Path</th><th>What</th><th>Gitignored?</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>data/raw/</code></td><td>Immutable dumps from each source</td><td>Yes</td></tr>
+    <tr><td><code>data/processed/bottlewatch.db</code></td><td>SQLite — the runtime source of truth</td><td>Yes</td></tr>
+    <tr><td><code>data/cache/refresh.log</code></td><td>JSONL refresh + recompute output</td><td>Yes</td></tr>
+    <tr><td><code>research/</code></td><td>Build-time inputs (CSV, briefs, ontology) — edit these to recalibrate</td><td>No</td></tr>
+  </tbody>
+</table>
+
+<div class="callout warn">
+  <strong>Never</strong> edit <code>data/processed/bottlewatch.db</code>
+  directly. The next <code>make ingest</code> will overwrite it.
+  Recalibrate the model by editing the
+  <a href="#scoring">research/</a> inputs and running
+  <code>make research</code> + <code>make recompute</code>.
+</div>
+
+<h2 id="read-dashboard">4. Reading the dashboard</h2>
+
+<h3>4.1 The scoreboard</h3>
+
+<p>One row per segment. The columns are:</p>
+<dl>
+  <dt>Segment</dt>
+  <dd>The supply-chain stage. Eleven of them — advanced-node fabs, advanced
+    packaging, HBM, transformers, cooling, etc. See
+    <code>research/01_segments/</code> for the full list and what each
+    covers.</dd>
+
+  <dt>Score (B)</dt>
+  <dd>A 0-100 tightness level for the selected horizon. Higher = tighter
+    bottleneck. Computed from five sub-scores weighted by horizon; see
+    <a href="#formula">section 6.1</a>.</dd>
+
+  <dt>Momentum (B&prime;)</dt>
+  <dd>The 6-month change in <code>B</code>, in the same units. Positive =
+    tightening; negative = easing. Drives the regime call when combined
+    with <code>B</code>.</dd>
+
+  <dt>Regime</dt>
+  <dd>One of six labels — see <a href="#regimes">section 6.3</a>. The
+    short basket only considers RESOLVING; the long basket excludes
+    RESOLVING outright.</dd>
+
+  <dt>ETA</dt>
+  <dd>Directional resolution estimate: <code>&lt;12mo</code>,
+    <code>12-24mo</code>, or <code>&gt;24mo</code>. Driven by the named
+    capacity additions in <code>research/06_capacity_ledger.md</code>
+    (manual ledger today; automated in v1.1).</dd>
+</dl>
+
+<h3>4.2 The horizon toggle</h3>
+
+<p>Three buttons at the top of the scoreboard: <strong>near</strong>,
+<strong>med</strong>, <strong>long</strong>. Each has a different
+weight vector for the five sub-scores:</p>
+<table>
+  <thead>
+    <tr><th>Horizon</th><th>Window</th><th>What dominates</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>near</code></td><td>~3-6 months</td><td>Lead times, current capacity tightness, today&rsquo;s announcements</td></tr>
+    <tr><td><code>med</code></td><td>~12-18 months</td><td>Capacity additions, fab build-outs, demand growth</td></tr>
+    <tr><td><code>long</code></td><td>~24-36 months</td><td>Geographic concentration, regulatory friction, structural demand</td></tr>
+  </tbody>
+</table>
+
+<p>The same <code>B</code> value can mean very different things across
+horizons. A segment scoring 75 in the <code>near</code> horizon is a
+crisis today; a 75 in the <code>long</code> horizon is a thesis that
+takes two years to play out.</p>
+
+<h3>4.3 The conviction basket</h3>
+
+<p>For each horizon, the <strong>screener</strong> view returns the
+top-3 to top-5 segments ranked by <code>exposure_pct &times; B</code> on
+the public tickers in <code>research/02_universe.csv</code>. The
+ordering is the model&rsquo;s current best estimate of which segments
+have the highest risk-adjusted directional move per invested dollar.</p>
+
+<div class="callout info">
+  The conviction basket is a starting point, not a buy list. It tells
+  you which segments deserve the most attention. Within each
+  segment, picking the specific ticker still requires reading the
+  brief and the recent signals.
+</div>
+
+<h3>4.4 Thesis notes</h3>
+
+<p>On any segment, the pencil icon opens a markdown editor. Notes you
+write here are stored verbatim in the <code>thesis</code> table and
+appear in three places:</p>
+<ol>
+  <li>Inline on the per-segment view, dated and timestamped.</li>
+  <li>Attached to the conviction-basket row when the guard would
+    fire (i.e., when the segment is RESOLVING but you&rsquo;ve argued it&rsquo;s
+    not).</li>
+  <li>Surfaced in the <a href="#api-thesis"><code>/api/v1/thesis</code></a>
+    endpoint for the screener UI.</li>
+</ol>
+
+<p>Notes are <strong>the audit trail</strong> for any future model
+refinement. When the M4 backtest lands, the notes are the seed for
+figuring out which regime calls were correct in hindsight.</p>
+
+<h2 id="api">5. Reading the API directly</h2>
+
+<p>The dashboard is a thin layer over the API. When the dashboard
+doesn&rsquo;t show what you need, hit the API directly. All endpoints are
+under <code>http://localhost:8000/api/v1/</code> and return JSON.</p>
+
+<table>
+  <thead>
+    <tr><th>Method</th><th>Path</th><th>What you get</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>GET</td><td><code>/health</code></td><td>DB connectivity, last-score timestamp, total signals. <em>First thing to check.</em></td></tr>
+    <tr><td>GET</td><td><code>/segments</code></td><td>List of all segments with the latest score, regime, and ETA per horizon.</td></tr>
+    <tr><td>GET</td><td><code>/segments/{slug}</code></td><td>One segment, full detail: sub-scores, recent signals, ETA, thesis notes.</td></tr>
+    <tr><td>GET</td><td><code>/segments/{slug}?horizon=near</code></td><td>Same, scoped to one horizon (also: <code>med</code>, <code>long</code>).</td></tr>
+    <tr><td>GET</td><td><code>/signals?segment=...&amp;limit=50</code></td><td>The raw underlying signals driving a segment&rsquo;s score. <em>The proof layer.</em></td></tr>
+    <tr><td>GET</td><td><code>/scores/regime?horizon=near</code></td><td>2x2 quadrant payload, one row per segment, scoped to one horizon.</td></tr>
+    <tr><td>GET</td><td><code>/scores/history?segment=hbm-memory&amp;horizon=near</code></td><td>Per-segment <code>B</code> and <code>B'</code> time series for charting.</td></tr>
+    <tr><td>GET</td><td><code>/tickers</code></td><td>Investable universe — one row per (ticker, segment) pair, annotated with current regime.</td></tr>
+    <tr><td>GET</td><td><code>/tickers/{ticker}</code></td><td>One ticker: segments it&rsquo;s exposed to, regimes, exposures.</td></tr>
+    <tr><td>GET</td><td><code>/screener?side=long&amp;horizon=near</code></td><td>Conviction basket for the long side. <em>Hard guard: RESOLVING excluded.</em> Also <code>side=short</code>, <code>horizon=med|long</code>.</td></tr>
+    <tr><td>GET</td><td><code>/map</code></td><td>The value-chain DAG as JSON, annotated with current regime per node. Feed to any graph viz.</td></tr>
+    <tr><td>GET</td><td><code>/eta</code></td><td>Resolution ETA per segment with confidence (<code>low</code> / <code>medium</code> / <code>high</code>).</td></tr>
+    <tr><td>GET/POST/DELETE</td><td><code>/thesis?segment=...</code></td><td>Read, write, or delete thesis notes for a segment.</td></tr>
+  </tbody>
+</table>
+
+<h3>5.1 Health check</h3>
+
+<pre><code>curl -s http://localhost:8000/api/v1/health | jq
+# { "db_ok": true, "last_score_at": "2026-06-06T04:31:12Z", "signals_count": 147832 }
+</code></pre>
+
+<p>If <code>db_ok</code> is <code>false</code>, the API is up but the DB
+isn&rsquo;t. Check <code>data/processed/bottlewatch.db</code> exists and
+that <code>make ingest</code> has been run at least once.</p>
+
+<h3>5.2 The screener (conviction basket)</h3>
+
+<pre><code>curl -s 'http://localhost:8000/api/v1/screener?side=long&amp;horizon=near' | jq
+</code></pre>
+
+<p>Returns an ordered list of segments. The hard guard is enforced
+server-side: even if your dashboard somehow misses the regime
+filtering, the screener will refuse to return a RESOLVING segment on
+the long side. Short side, by contrast, <em>prefers</em> RESOLVING
+segments ranked by <code>B &times; |B'|</code>.</p>
+
+<h3>5.3 Writing a thesis note (programmatically)</h3>
+
+<pre><code>curl -s -X POST http://localhost:8000/api/v1/thesis?segment=hbm-memory \
+  -H 'content-type: application/json' \
+  -d '{"body_md": "HBM4 ramp is faster than the model assumes. SK hynix M15X line online May 2026."}'
+</code></pre>
+
+<p>The body is plain markdown. The frontend editor is a TipTap
+instance that round-trips through markdown on save.</p>
+
+<h2 id="scoring">6. Research &amp; scoring model</h2>
+
+<p>This section explains the model. You don&rsquo;t need to know it to use
+the dashboard, but you do need to know it to recalibrate, and you
+absolutely need to know it before you act on a regime call.</p>
+
+<h3 id="formula">6.1 The formula</h3>
+
+<p>For each segment <code>s</code> and horizon <code>h</code>:</p>
+
+<pre><code>B(s, h) = 100 &times; sum_i  w_i(h) &times; normalize_5y(s_i)
+</code></pre>
+
+<p>Where <code>s_i</code> is a raw sub-score, <code>normalize_5y</code>
+maps it to [0, 1] over a 5-year rolling min/max band, and
+<code>w_i(h)</code> is the horizon weight for sub-score <code>i</code>
+(weights sum to 1.0 per horizon).</p>
+
+<p>The five sub-scores:</p>
+<dl>
+  <dt><code>lead_time_growth</code></dt>
+  <dd>How fast quoted lead times are rising year-over-year. Pulled from
+    SEC 10-K capacity language for the named players.</dd>
+
+  <dt><code>capacity_tightness</code></dt>
+  <dd>Utilization vs. nameplate for the named capacity pools. The only
+    sub-score computed from the live <code>signals</code> table; the
+    rest are seeded from <code>research/scoring_seed.json</code>.</dd>
+
+  <dt><code>geo_concentration</code></dt>
+  <dd>HHI of the supplier-of-supplier pool for the segment. v1.1 will
+    compute this from the ontology ABox via SPARQL; M2 uses a
+    hand-coded value per segment.</dd>
+
+  <dt><code>regulatory_friction</code></dt>
+  <dd>Permitting / export-control / CHIPS-Act friction for adding
+    capacity in the relevant jurisdictions. Hand-coded rubric.</dd>
+
+  <dt><code>demand_signal</code></dt>
+  <dd>Year-over-year growth in downstream demand, normalized. FRED PPI
+    for transformers, EIA electricity growth for power, etc.</dd>
+</dl>
+
+<p>The formula&rsquo;s three properties you can lean on:</p>
+<ol>
+  <li><strong>Bounded:</strong> <code>B &isin; [0, 100]</code> always. A 78
+    in HBM and a 78 in transformers mean the same thing.</li>
+  <li><strong>Horizon-aware:</strong> the same raw inputs can produce
+    very different <code>B</code> values across horizons because the
+    weight vector shifts.</li>
+  <li><strong>Auditable:</strong> every score decomposes into five
+    numbers, and every signal has a source citation in
+    <code>research/</code>. Drill from a score to a sub-score to a
+    signal to a 10-K excerpt.</li>
+</ol>
+
+<h3>6.2 Momentum (<code>B'</code>)</h3>
+
+<p><code>B'</code> is the 6-month backward change in <code>B</code>, in
+the same units. It is the second axis of the regime classification.
+A high <code>B</code> tells you the bottleneck is tight; <code>B'</code>
+tells you whether it&rsquo;s getting tighter or easing. Without momentum,
+you can&rsquo;t tell PEAKING from PEAKED from RESOLVING — they all have
+high <code>B</code>.</p>
+
+<h3 id="regimes">6.3 The six regimes</h3>
+
+<p>Regimes are the actionable output. They are computed from
+<code>(B, B')</code> against the cell table in
+<code>research/06_regime_thresholds.json</code>:</p>
+<table>
+  <thead>
+    <tr><th>Regime</th><th>What it means</th><th>Action bias</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><strong>EMERGING</strong></td><td>Tightening from a low base — <code>B</code> is rising fast</td><td>Proactive long, before consensus catches up</td></tr>
+    <tr><td><strong>PEAKING</strong></td><td>High <code>B</code>, <code>B'</code> &gt; 0 — still tightening, near the top</td><td>Momentum long, or trim existing</td></tr>
+    <tr><td><strong>PEAKED</strong></td><td>High <code>B</code>, <code>B'</code> &asymp; 0 — at the top, not yet easing</td><td>Hold; consider trim into strength</td></tr>
+    <tr><td><strong>RESOLVING</strong></td><td>High <code>B</code>, <code>B'</code> &lt; 0 — easing from a high base</td><td>Short, or skip. <strong>Never long.</strong></td></tr>
+    <tr><td><strong>STABLE</strong></td><td>Moderate <code>B</code>, low <code>B'</code></td><td>Skip — no edge</td></tr>
+    <tr><td><strong>RESOLVING_FROM_LOW</strong></td><td>Low <code>B</code>, large negative <code>B'</code> — was never a bottleneck, is becoming less of one</td><td>Skip / short</td></tr>
+  </tbody>
+</table>
+
+<div class="callout warn">
+  The <code>no_data_threshold</code> in
+  <code>06_regime_thresholds.json</code> (default <code>0.4</code>) is
+  the data-completeness fraction below which a segment is marked
+  <code>NO_DATA</code> rather than receiving any of the six
+  regimes. NO_DATA segments are excluded from the screener — they
+  are not investable on the model&rsquo;s evidence.
+</div>
+
+<h3 id="guard">6.4 The hard guard</h3>
+
+<p>The conviction basket enforces one non-overridable rule: <strong>no
+RESOLVING segment on the long side</strong>. The rule exists because the
+asymmetry is too clean to ignore. If a bottleneck is easing
+(<code>B'</code> &lt; 0, high <code>B</code>), the segment&rsquo;s pricing
+power is structurally declining — even if the absolute tightness
+looks attractive today. Going long RESOLVING is fighting the
+trajectory, not the level.</p>
+
+<p>The guard is implemented in
+<code>src/bottlewatch/app/api/screener.py</code>. There is no
+override flag. If you disagree with a RESOLVING call, write a thesis
+note — it appears in the UI next to the guard line so future-you
+sees the disagreement, and the M4 backtest can grade whether the
+disagreement was right.</p>
+
+<h3>6.5 The value chain DAG</h3>
+
+<p>The dashboard&rsquo;s &ldquo;map&rdquo; view shows the value chain as a
+directed acyclic graph, with each node colored by its current
+regime. The DAG is the source of one specific insight: bottlenecks
+<strong>travel along edges</strong>. A power segment with high
+<code>B</code> alone is in a different situation from one with high
+<code>B</code> and named capacity additions (GEV HA-class turbines,
+Three Mile Island restart, SMR commissioning) ramping 12-18 months
+out. The first is PEAKING; the second is PEAKED. The map&rsquo;s job is
+to make the supplier-of-supplier edges legible enough that the
+regime call cites specific capacity additions, not vibes.</p>
+
+<h3>6.6 Where to recalibrate</h3>
+
+<p>The model&rsquo;s parameters live in three places:</p>
+<table>
+  <thead>
+    <tr><th>File</th><th>What it controls</th><th>When to edit</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>research/scoring_seed.json</code></td><td>Hand-coded sub-score values per segment</td><td>When a structural assumption changes (e.g., a new fab is announced)</td></tr>
+    <tr><td><code>research/06_regime_thresholds.json</code></td><td>Regime cell boundaries</td><td>Rarely. M4 backtest may shift the <code>B</code>=70 boundary.</td></tr>
+    <tr><td><code>research/02_universe.csv</code></td><td>Tickers, segments, <code>exposure_pct</code></td><td>When a new public company joins a supply chain stage</td></tr>
+  </tbody>
+</table>
+
+<p>After any change, run <code>make recompute</code> to rebuild the
+score table. The M4 backtest will measure whether the calibration
+actually improved regime-call accuracy against 12-18 months of
+hindsight.</p>
+
+<h2 id="troubleshoot">7. Troubleshooting</h2>
+
+<h3>&ldquo;No data&rdquo; for a segment in the dashboard</h3>
+<p>Check <code>curl http://localhost:8000/api/v1/health</code>. If
+<code>signals_count</code> is low, that source&rsquo;s ingest hasn&rsquo;t
+populated the table yet. Tail <code>data/cache/refresh.log</code> for
+errors. Common causes: missing API key, rate-limited source,
+network-bloked environment.</p>
+
+<h3>Refresh job is failing overnight</h3>
+<ol>
+  <li>Check the log: <code>tail -f data/cache/refresh.log</code> in
+    JSON-pretty mode (<code>jq</code> helps).</li>
+  <li>Check the agent status: <code>launchctl list | grep bottlewatch</code>.</li>
+  <li>Run the job manually: <code>make ingest</code> and watch the
+    output. The orchestrator logs a structured error per source on
+    failure; the others continue.</li>
+</ol>
+
+<h3>Scoreboard regime flipped overnight and I disagree</h3>
+<ol>
+  <li>Open the per-segment view and read the recent signals. The
+    <code>B'</code> arrow will show you which sub-score drove the
+    flip.</li>
+  <li>If the data is right and you still disagree, that&rsquo;s a
+    model call, not a bug. Write a thesis note. The M4 backtest will
+    surface the disagreement.</li>
+  <li>If the data is wrong (e.g., a stale 10-K figure, a misparsed
+    EIA series), the right fix is in the adapter, not the
+    threshold. File it as a bug in the project, and adjust
+    <code>scoring_seed.json</code> as a temporary patch.</li>
+</ol>
+
+<h3>API is up but <code>db_ok</code> is false</h3>
+<p>SQLite file is missing or locked. The default path is
+<code>data/processed/bottlewatch.db</code> relative to the project
+root. <code>ls -la</code> it. If it&rsquo;s missing, run
+<code>make ingest</code>. If it&rsquo;s locked, find the process:
+<code>lsof data/processed/bottlewatch.db</code>.</p>
+
+<h3>Pre-commit hook blocks a commit</h3>
+<p>You tried to stage a <code>.env</code> file. Move the secrets
+to your shell environment or to <code>.env</code> outside the
+repo, and stage only the code change. The hook is
+non-overridable by design.</p>
+
+<h3>I need to add a new data source</h3>
+<p>That&rsquo;s a developer task, not an operator task. The
+end-to-end procedure lives in the developer manual (TBD). The
+short version: write an adapter under
+<code>src/bottlewatch/app/ingest/</code>, register it in
+<code>jobs/refresh_daily.py</code>, add a column to
+<code>app/score/extractors.py</code> if the source feeds a new
+sub-score, and add tests under <code>src/bottlewatch/tests/</code>.</p>
+
+<footer>
+  Bottlewatch v0.2.0 — private; not for distribution. This manual
+  describes the operator-facing surface; for code-level docs, see
+  the module docstrings under <code>src/bottlewatch/</code>.
+</footer>
+
+</div>
+</body>
+</html>

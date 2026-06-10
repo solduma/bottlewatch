@@ -1,0 +1,71 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "bottlewatch"
+version = "0.2.0"
+description = "Two-tier dashboard for solo investor monitoring the AI supply chain"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "rdflib>=7.0",
+    "owlready2>=0.46",
+    "httpx>=0.27",
+    "tenacity>=8.2",
+    "polars>=0.20",
+    "fastexcel>=0.7",  # polars XLSX backend for 860M planned-additions ingest
+    "sqlalchemy>=2.0",
+    "alembic>=1.13",
+    "pydantic-settings>=2.0",
+    "fastapi>=0.115",  # M2 web framework
+    "uvicorn[standard]>=0.30",  # M2 ASGI server (httptools + uvloop extras)
+    "psycopg[binary]>=3.2",  # Postgres adapter (v1.1 cutover target)
+    "beautifulsoup4>=4.12",  # 10-K/10-Q HTML stripping for sec_edgar capacity keyword extraction
+]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.7",
+    "pyright>=1.1",
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",  # async test runner for the M2 API tests
+    "respx>=0.21",
+    "pytest-cov>=5.0",
+    "xlsxwriter>=3.0",  # polars XLSX writer backend (test fixtures for 860M)
+]
+
+[project.scripts]
+bottlewatch-build      = "bottlewatch.jobs.build_ontology:main"
+bottlewatch-validate   = "bottlewatch.jobs.validate_ontology:main"
+bottlewatch-refresh    = "bottlewatch.jobs.refresh_daily:main"
+bottlewatch-recompute  = "bottlewatch.jobs.recompute_scores:main"
+bottlewatch-backtest   = "bottlewatch.jobs.backtest:main"
+bottlewatch-map-mermaid = "bottlewatch.jobs.map_mermaid:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/bottlewatch"]
+
+[tool.ruff]
+line-length = 120
+exclude = [".venv", "__pycache__", ".pytest_cache", "*.ipynb", ".ipynb_checkpoints"]
+
+[tool.pyright]
+exclude = [".venv", "__pycache__", ".pytest_cache"]
+reportUnknownParameterType = "warning"
+reportUnannotatedClassAttribute = "warning"
+reportMissingParameterType = "warning"
+
+[tool.bottlewatch]
+# Minimum line-coverage % enforced by `make test`. Operators can raise
+# this as the M1 surface stabilizes; v1 ships at 90.
+coverage_threshold = 80
+
+[tool.pytest.ini_options]
+testpaths = ["src/bottlewatch/tests"]
+addopts = "-q"
+asyncio_mode = "auto"
+filterwarnings = [
+    # owlready2 emits a deprecation warning for the rdflib plugin
+    "ignore::DeprecationWarning:owlready2",
+]

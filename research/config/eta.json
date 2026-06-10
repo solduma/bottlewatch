@@ -1,0 +1,13 @@
+{
+  "_comment": "Resolution ETA bands per scoring segment. (band, confidence). v1.1 derives this from announced capacity + permitting timelines; v1 is human-edited to mirror research/01_segments/ briefs.",
+  "advanced_node_fabs":     {"eta": ">24mo",   "confidence": "medium"},
+  "advanced_packaging":     {"eta": "12-24mo", "confidence": "medium"},
+  "cooling_water":          {"eta": "12-24mo", "confidence": "low"},
+  "data_center_shell":      {"eta": ">24mo",   "confidence": "medium"},
+  "gpu_asic_silicon":       {"eta": "12-24mo", "confidence": "low"},
+  "hbm_memory":             {"eta": "12-24mo", "confidence": "medium"},
+  "networking_interconnect":{"eta": "12-24mo", "confidence": "low"},
+  "power_generation_oem":   {"eta": ">24mo",   "confidence": "medium"},
+  "systems_rack_scale":     {"eta": "<12mo",   "confidence": "low"},
+  "transformers_tnd":       {"eta": ">24mo",   "confidence": "high"}
+}

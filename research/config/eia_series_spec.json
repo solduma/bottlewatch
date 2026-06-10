@@ -1,0 +1,19 @@
+[
+  {
+    "series_id": "ELEC.GEN.ALL-US-99.A",
+    "segment": "power_generation_oem",
+    "signal_name": "net_gen_twh",
+    "unit": "TWh",
+    "geography": "US",
+    "value_column": "generation"
+  },
+  {
+    "series_id": "ELEC.SALES.TX-RES.M",
+    "segment": "data_center_shell",
+    "subsegment": "ercot_residential_load_proxy",
+    "signal_name": "retail_sales_mwh",
+    "unit": "MWh",
+    "geography": "US-TX",
+    "value_column": "sales"
+  }
+]

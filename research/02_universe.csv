@@ -1,0 +1,132 @@
+ticker,exchange,name,segment,subsegment,exposure_pct,market_cap_bucket,mcap_usd,currency_hedge,notes
+TSM,NYSE,TSMC,advanced_node_fabs,foundry_lead_node,90,mega,1100000000000,USD,TWSE:2330 is primary listing (TWD dual-class); TSM ADR; 90% of N2/N3 revenue from advanced node + advanced packaging; regimerisk: advanced_node_fabs PEAKING in 2026 (N2 demand > supply), PEAKED in 2027-2028 (Arizona + Kumamoto ramp) — see 04_scoring_methodology.md §7.6
+2330.TW,TWSE,Taiwan Semiconductor Manufacturing Co,advanced_node_fabs,foundry_lead_node,95,mega,1100000000000,unhedged,Local TWSE primary listing; FX exposure TWD vs USD via 6M forward; regimerisk: advanced_node_fabs PEAKING (2026), PEAKED (2027-2028)
+NVDA,NASDAQ,NVIDIA,gpu_asic_silicon,datacenter_gpu,95,mega,4500000000000,USD,Datacenter >88% of revenue; AI accelerator monopoly (Blackwell + Rubin); regimerisk: gpu_asic_silicon STABLE (allocation market persists; not RESOLVING — supply growth tracks demand)
+AMD,NASDAQ,Advanced Micro Devices,gpu_asic_silicon,datacenter_gpu,55,mega,330000000000,USD,MI300/MI350 + EPYC; client/gaming dilute to ~55%; regimerisk: gpu_asic_silicon STABLE (NVDA share steady; AMD #2 not closing the gap)
+GOOG,NASDAQ,Alphabet,gpu_asic_silicon,custom_asic_tpu,30,mega,2100000000000,USD,TPU v6/v7 (Trillium/Ironwood) only scale non-NVDA accelerator; exposure = TPU spend share of capex
+META,NASDAQ,Meta Platforms,gpu_asic_silicon,custom_asic_mtia,30,mega,1500000000000,USD,MTIA ASIC + massive GPU buildout; exposure = AI capex share
+AMZN,NASDAQ,Amazon,gpu_asic_silicon,custom_asic_trainium,40,mega,2200000000000,USD,AWS Trainium/Inferentia/Graviton; AWS AI capex share
+MU,NASDAQ,Micron Technology,hbm_memory,hbm_dram,75,large,170000000000,USD,HBM segment ~$15-20B FY26E; HBM3E sold out 2026; HBM4 ramping 2026-2027; regimerisk: hbm_memory PEAKING (2026, sold out), ETA 12-24mo (M15X + Samsung catch-up)
+000660.KS,KRX,SK hynix,hbm_memory,hbm_dram,85,large,95500000000,unhedged,Local KRX primary; HBM leader ~52-57% share; HBM3E + HBM4; regimerisk: hbm_memory PEAKING (HBM3E sold out 2026); ETA 12-24mo (Samsung HBM4 catch-up + Micron ramp)
+005930.KS,KRX,Samsung Electronics,hbm_memory,hbm_dram,30,mega,416000000000,USD proxy: SOXX,KEP ADR alt; HBM ~20-24% market share; 30% = memory + foundry AI; regimerisk: hbm_memory PEAKING (NVIDIA HBM4 qualification gap; ramp catch-up candidate)
+AVGO,NASDAQ,Broadcom,gpu_asic_silicon,custom_asic_xpu,50,mega,1100000000000,USD,Custom ASIC (Google TPU/Meta MTIA/ByteDance) ~60% share; Tomahawk/Jericho Ethernet; VMware dilutes; regimerisk: gpu_asic_silicon STABLE (custom ASIC demand persistent)
+MRVL,NASDAQ,Marvell Technology,gpu_asic_silicon,custom_asic_xpu,60,mid,65000000000,USD,Custom ASIC (AWS Trainium 2/3) ~20% share; data center rev +88% YoY 2026
+ALAB,NASDAQ,Astera Labs,networking_interconnect,retimer_cxl,90,mid,25000000000,USD,Pure-play AI fabric connectivity (retimers/AECs/PCIe/CXL); regimerisk: networking_interconnect EMERGING (1.6T transceiver ramp 2026, demand ahead of supply)
+ANET,NASDAQ,Arista Networks,networking_interconnect,ethernet_switch,80,mega,150000000000,USD,800G/1.6T Ethernet switch leader; ~80% hyperscale/AI; regimerisk: networking_interconnect EMERGING (UEC adoption + 1.6T build)
+CSCO,NASDAQ,Cisco Systems,networking_interconnect,ethernet_switch,30,mega,290000000000,USD,Silicon One + Nexus; AI networking <15% of rev; ~30% incl. Splunk
+COHR,NASDAQ,Coherent,networking_interconnect,optical_transceiver,70,mid,15000000000,USD,800G/1.6T transceivers; 200G/lane VCSEL/EML; regimerisk: networking_interconnect EMERGING (1.6T yield ramp + CPO)
+LITE,NASDAQ,Lumentum,networking_interconnect,optical_transceiver,55,mid,7000000000,USD,800G/1.6T + InP/SiPh; Cloud Light acquisition
+300394.SZ,SZSE,Tianfu Communication,networking_interconnect,optical_transceiver,50,mid,8000000000,manual FX 6M,800G/1.6T transceivers; major Chinese hyperscaler supplier
+INFN,NASDAQ,Infinera,networking_interconnect,optical_transceiver,55,mid,2500000000,USD,Optical transport + 1.6T pluggables; 55% AI/cloud DCI
+ASML,NASDAQ,ASML Holding,gpu_asic_silicon,front_end_equipment,100,mega,290000000000,USD,Monopoly EUV + High-NA EUV; 100% advanced node; regimerisk: front_end_equipment STABLE (sole-source EUV; long cycle, not near a peak)
+AMAT,NASDAQ,Applied Materials,gpu_asic_silicon,front_end_equipment,55,large,150000000000,USD,Deposition/etch/inspection; 55% AI/semi mix
+LRCX,NASDAQ,Lam Research,gpu_asic_silicon,front_end_equipment,75,large,130000000000,USD,Plasma etch monopoly for advanced nodes + 3D NAND; regimerisk: front_end_equipment STABLE (sole-source etch; long cycle)
+KLAC,NASDAQ,KLA Corporation,gpu_asic_silicon,front_end_equipment,80,large,120000000000,USD,Process control monopoly for sub-7nm; regimerisk: front_end_equipment STABLE
+8035.TSE,TSE,Tokyo Electron,gpu_asic_silicon,front_end_equipment,75,large,125000000000,USD proxy: SOXX,Coater/developer monopoly for EUV; TOELY ADR
+6857.TSE,TSE,Advantest,gpu_asic_silicon,test_equipment,80,large,90000000000,USD proxy: SOXX,SoC + HBM test monopoly (with Teradyne); ATEYY ADR; regimerisk: test_equipment PEAKING (HBM stack test demand)
+TER,NASDAQ,Teradyne,gpu_asic_silicon,test_equipment,55,mid,22000000000,USD,SoC + HBM test; 55% AI; regimerisk: test_equipment PEAKING
+ASMV,OTCQX,ASMPT,advanced_packaging,osat_pkg,80,mid,4500000000,manual FX 6M,Thermocompression bonding monopoly for HBM stacking; HK:0522; regimerisk: advanced_packaging RESOLVING — TSMC CoWoS ramp 90k+ wafers/mo by mid-2026 (see 04_scoring_methodology.md §7.6) — long-basket HARD GUARD fires
+3711.TW,TWSE,ASE Technology Holding,advanced_packaging,osat_pkg,60,large,25000000000,USD proxy: SOXX,~60% rev from advanced packaging + test for AI/HBM; regimerisk: advanced_packaging RESOLVING — long-basket HARD GUARD fires
+AMKR,NASDAQ,Amkor Technology,advanced_packaging,osat_pkg,80,mid,15000000000,USD,2.5D/3D advanced packaging (TSMC Arizona partnership); regimerisk: advanced_packaging RESOLVING — long-basket HARD GUARD fires
+MPWR,NASDAQ,Monolithic Power Systems,advanced_packaging,power_delivery,75,large,45000000000,USD,On-package power delivery for AI GPUs/HBM; regimerisk: power_delivery EMERGING (800V HVDC transition; Rubin-era design wins)
+ON,NASDAQ,onsemi,power_generation_oem,power_semi,40,mid,25000000000,USD,SiC power for data center + EV; 40% AI/DC; regimerisk: power_semi PEAKING (SiC capacity tight); ETA 12-24mo (ON + IFNNY expansion)
+IFNNY,OTCQX,Infineon Technologies,gpu_asic_silicon,power_semi,30,large,55000000000,manual FX 6M,Power semis + auto MCU; 30% AI/DC; FRA:IFX
+ENTG,NASDAQ,Entegris,advanced_packaging,process_materials,60,mid,18000000000,USD,Filtration/chemicals/materials for advanced nodes; regimerisk: advanced_packaging process_materials RESOLVING — long-basket HARD GUARD fires
+SHECY,OTCQX,Shin-Etsu Chemical,gpu_asic_silicon,semi_materials,40,mega,80000000000,USD proxy: SOXX,Silicon wafer monopoly; 40% AI/semi
+4063.TSE,TSE,Shin-Etsu Chemical (local),gpu_asic_silicon,semi_materials,45,mega,80000000000,manual FX 6M,Local TSE listing; primary; FX hedged
+3436.TSE,TSE,Sumco,gpu_asic_silicon,semi_materials,70,mid,7500000000,USD proxy: SOXX,300mm wafer #2; 70% AI exposure
+DUFPY,OTCQX,DuPont de Nemours,advanced_packaging,semi_materials,30,large,35000000000,USD,Photoresists + advanced materials; ~30% AI
+DOW,NYSE,Dow Inc,advanced_packaging,process_chemicals,20,mid,28000000000,USD,Industrial chemicals; ~20% AI
+LIN,NASDAQ,Linde plc,power_generation_oem,industrial_gases,30,mega,210000000000,USD,Industrial gases incl. helium-3/neon for fabs; 30% AI/semi
+APD,NYSE,Air Products & Chemicals,power_generation_oem,industrial_gases,30,large,65000000000,USD,Hydrogen + industrial gas; 30% AI/semi
+HON,NASDAQ,Honeywell International,power_generation_oem,process_solutions,35,large,140000000000,USD,Process solutions (UOP) + automation; ~35% data center/AI
+GEV,NYSE,GE Vernova,power_generation_oem,gas_turbine_oem,85,large,160000000000,USD,Gas power + grid + wind; 85% AI-driven; $124B backlog; 24-36mo lead time; regimerisk: power_generation_oem PEAKING (record backlog); ETA >24mo (turbine fab buildout multi-year)
+ENR,OTCQX,Siemens Energy,power_generation_oem,gas_turbine_oem,75,large,140000000000,manual FX 6M,Gas turbine + grid; ~EUR125B backlog; 4-5yr lead time for US DC orders; regimerisk: power_generation_oem PEAKING; ETA >24mo
+ENR.DE,XETRA,Siemens Energy AG,power_generation_oem,gas_turbine_oem,80,large,140000000000,manual FX 6M,Local Frankfurt listing; EUR/USD 12M forward; regimerisk: power_generation_oem PEAKING; ETA >24mo
+7011.TSE,TSE,Mitsubishi Heavy Industries,power_generation_oem,gas_turbine_oem,40,large,35000000000,USD proxy: SOXX,Gas turbines + nuclear + defense; 40% AI/DC
+BWXT,NASDAQ,BWX Technologies,power_generation_oem,nuclear_smr,70,mid,13000000000,USD,SMR + naval nuclear; 70% AI/DC
+CCJ,NYSE,Cameco,power_generation_oem,nuclear_fuel,90,mid,30000000000,USD,Leading uranium producer; 90% of revenue from uranium; regimerisk: nuclear_fuel PEAKING (HALEU + utility demand); ETA >24mo (Centrus + Cameco production ramp)
+DNN,AMEX,Denison Mines,power_generation_oem,nuclear_fuel,95,small,3000000000,USD,Pure-play uranium; 95% uranium exposure
+NXE,NYSE,NexGen Energy,power_generation_oem,nuclear_fuel,90,small,5500000000,USD,Pure-play uranium development (Arrow deposit)
+HUBB,NYSE,Hubbell Incorporated,transformers_tnd,transformers_tnd,80,large,25000000000,USD,Transformers + switchgear + utility products; ~80% AI/grid; regimerisk: transformers_tnd PEAKING (LPT 128-200wk lead times); ETA 12-24mo (Hitachi + GEV + ETN capacity expansion 2026-2027)
+ETN,NYSE,Eaton Corporation,transformers_tnd,transformers_tnd,75,mega,180000000000,USD,Power management (UPS, switchgear, busways); ~75% DC/utility; regimerisk: transformers_tnd PEAKING; ETA 12-24mo
+SU,NYSE,Schneider Electric,transformers_tnd,electrical_distribution,55,large,200000000000,manual FX 6M,Energy management + cooling + DCIM; 55% AI/DC; regimerisk: transformers_tnd PEAKING; ETA 12-24mo
+SU.PA,EPA,Schneider Electric SE,transformers_tnd,electrical_distribution,60,large,200000000000,manual FX 6M,Local Paris listing; EUR/USD 12M forward; regimerisk: transformers_tnd PEAKING; ETA 12-24mo
+SU.PA,EPA,Schneider Electric SE,cooling_water,chillers_cdu,15,large,200000000000,manual FX 6M,Same co; cooling is sub-segment of integrated DCPI
+VRT,NYSE,Vertiv Holdings,cooling_water,chillers_cdu,75,large,120000000000,USD,Pure-play DC power + thermal (UPS, CDU, Liebert); 75% AI hyperscale; regimerisk: cooling_water PEAKING (CDU 3-6mo, chiller 50-80wk lead times); ETA 12-24mo (Vertiv + TT capacity expansion)
+TT,NYSE,Trane Technologies,cooling_water,chillers_cdu,50,mega,100000000000,USD,Chillers + HVAC for DCs; 50% AI/DC; regimerisk: cooling_water PEAKING; ETA 12-24mo
+PH,NYSE,Parker Hannifin,cooling_water,industrial_fluid,30,large,100000000000,USD,Motion/control; 30% AI/DC (pumps/heat exchangers)
+XYL,NYSE,Xylem,cooling_water,water_utility,30,mid,40000000000,USD,Water pumps + smart metering; 30% DC water
+ECL,NYSE,Ecolab,cooling_water,water_chemistry,25,large,80000000000,USD,Water chemistry for DC cooling; ~25% AI/DC
+WTS,NYSE,Watts Water Technologies,cooling_water,water_utility,20,small,7000000000,USD,Water systems; 20% DC
+FE,NYSE,FirstEnergy,power_generation_oem,tnd_utility,25,mid,28000000000,USD,T&D utility OH/PA/NJ; 25% AI/DC load growth
+NEE,NYSE,NextEra Energy,power_generation_oem,regulated_utility,30,mega,160000000000,USD,Largest US utility; ~30% data center load growth
+DUK,NYSE,Duke Energy,power_generation_oem,regulated_utility,25,mega,90000000000,USD,Carolinas + FL; 25% data center load growth
+SO,NYSE,Southern Company,power_generation_oem,regulated_utility,25,large,100000000000,USD,GA/AL; 25% data center load growth (Meta Atlanta project)
+AEP,NYSE,American Electric Power,power_generation_oem,regulated_utility,20,mid,50000000000,USD,Multi-state; 20% data center exposure
+CEG,NASDAQ,Constellation Energy,power_generation_oem,nuclear_power,95,large,150000000000,USD,Nuclear pure-play; $16.4B Meta deal 2025 + 20yr Microsoft deal; regimerisk: nuclear_power PEAKING (PPA demand strong); ETA >24mo (SMR not in service until 2030+)
+VST,NYSE,Vistra Corp,power_generation_oem,ipp_nuclear,75,large,90000000000,USD,IPP nuclear + gas + battery; ~75% AI/DC
+TLN,NYSE,Talen Energy,power_generation_oem,ipp_nuclear,90,small,8000000000,USD,Susquehanna nuclear + AWS behind-the-meter deal; 90% AI
+NRG,NYSE,NRG Energy,power_generation_oem,ipp_gas,40,mid,20000000000,USD,IPP gas + retail; 40% AI DC
+PEG,NYSE,Public Service Enterprise Group,power_generation_oem,ipp_nuclear,70,large,40000000000,USD,NJ utility + nuclear; 70% AI/DC
+IBE.MC,BME,Iberdrola,power_generation_oem,regulated_utility,20,mega,110000000000,manual FX 6M,Spain/global renewables; 20% data center; EUR/USD 6M forward
+EQIX,NASDAQ,Equinix,data_center_shell,colocation,100,large,80000000000,USD,Pure-play colocation REIT; $80B EV; 100% IDC; regimerisk: data_center_shell PEAKING (33% AI bookings Q3'25; pre-lease record); ETA >24mo (power-constrained)
+DLR,NYSE,Digital Realty Trust,data_center_shell,colocation,100,large,53000000000,USD,Pure-play colocation REIT; 100% IDC; regimerisk: data_center_shell PEAKING (+75% YoY leasing); ETA >24mo
+AMT,NYSE,American Tower,data_center_shell,tower_ma,30,mega,100000000000,USD,Primarily cell towers; ~30% DC (CoreSite)
+CCI,NYSE,Crown Castle,data_center_shell,tower_ma,10,mid,40000000000,USD,Fiber + towers; small DC exposure
+IRM,NYSE,Iron Mountain,data_center_shell,storage_colocation,30,large,30000000000,USD,Records + ALR DC expansion; 30% data center
+SMCI,NASDAQ,Super Micro Computer,systems_rack_scale,system_oem,90,mid,30000000000,USD,AI server pure-play; 90% revenue AI/accelerator; regimerisk: systems_rack_scale STABLE (rack-scale integration faces power + transformer + advanced packaging gates)
+DELL,NYSE,Dell Technologies,systems_rack_scale,system_oem,40,mid,80000000000,USD,PowerEdge + AI Factory with NVIDIA; 40% AI
+HPE,NYSE,Hewlett Packard Enterprise,systems_rack_scale,system_oem,40,mid,30000000000,USD,ProLiant + Cray + Aruba; 40% AI server
+2382.TW,TWSE,Quanta Computer,systems_rack_scale,odm_server,85,large,39000000000,manual FX 6M,ODM leader for AI racks (GB300/VR200); 85% AI; regimerisk: systems_rack_scale STABLE
+2317.TW,TWSE,Hon Hai (Foxconn),systems_rack_scale,odm_server,40,mega,150000000000,manual FX 6M,World's largest EMS; 40% AI server
+3231.TW,TWSE,Wistron,systems_rack_scale,odm_server,60,large,15000000000,manual FX 6M,AI server ODM; 60% AI; FY25 record
+4938.TW,TWSE,Wiwynn,systems_rack_scale,odm_server,75,mid,8000000000,manual FX 6M,White-box server ODM; 75% AI
+CRDO,NASDAQ,CoreWeave,systems_rack_scale,neocloud_inference,95,mid,40000000000,USD,Neocloud pure-play; 95% AI GPU cloud; regimerisk: systems_rack_scale STABLE (capacity buildout tracks GPU supply)
+NBIS,OTCQX,Nebius Group,systems_rack_scale,neocloud_inference,90,small,15000000000,USD,Neocloud (Helsinki/Israel/US); 90% AI
+IREN,OTCQX,Iren Ltd,systems_rack_scale,neocloud_inference,75,small,3000000000,USD,BTC mining + AI/HPC pivot; 75% AI/HPC
+APLD,OTCQX,Applied Digital,systems_rack_scale,neocloud_inference,85,small,3000000000,USD,AI cloud/HPC hosting; 85% AI
+CORZ,OTCQX,Core Scientific,systems_rack_scale,neocloud_inference,75,small,2500000000,USD,BTC-to-AI transition; 75% AI
+BTDR,NYSE,Bitdeer Technologies,systems_rack_scale,neocloud_inference,50,small,2000000000,USD,BTC mining + AI cloud; 50% AI
+NXDT,NYSE,NexGen Cloud,systems_rack_scale,neocloud_inference,90,small,2500000000,USD,Neocloud; 90% AI
+MSFT,NASDAQ,Microsoft,systems_rack_scale,self_build_idc,30,mega,3500000000000,USD,Self-build IDC + Azure AI; 30% AI capex share
+GOOGL,NASDAQ,Alphabet Class A,systems_rack_scale,self_build_idc,30,mega,2100000000000,USD,Self-build IDC + Google Cloud; 30% AI capex
+META,NASDAQ,Meta,systems_rack_scale,self_build_idc,50,mega,1500000000000,USD,Self-build IDC; 50% 2026 capex AI-related
+AMZN,NASDAQ,Amazon,systems_rack_scale,self_build_idc,55,mega,2200000000000,USD,AWS self-build + colocation; 55% AWS capex = AI
+BABA,NYSE,Alibaba,systems_rack_scale,self_build_idc,30,large,250000000000,USD proxy: KWEB,Chinese hyperscaler; ~30% AI capex
+9988.HK,HKEX,Alibaba Group,systems_rack_scale,self_build_idc,30,large,250000000000,manual FX 6M,Local HK listing; HKD/USD 6M forward
+TCEHY,OTCQX,Tencent,systems_rack_scale,self_build_idc,20,large,500000000000,USD proxy: KWEB,Chinese hyperscaler; 20% AI capex
+700.HK,HKEX,Tencent,systems_rack_scale,self_build_idc,20,large,500000000000,manual FX 6M,Local HK listing
+REXR,NYSE,Rexford Industrial Realty,data_center_shell,industrial_reit,30,mid,13000000000,USD,LA/SoCal industrial REIT with data center adjacency
+CLF,NYSE,Cleveland-Cliffs,transformers_tnd,electrical_steel,40,mid,8000000000,USD,GOES (grain-oriented electrical steel) ~20% mix; 40% AI/grid; regimerisk: transformers_tnd PEAKING (GOES single US producer + Section 232); ETA 12-24mo
+NUE,NYSE,Nucor,transformers_tnd,electrical_steel,10,mid,35000000000,USD,Steel mini-mill; 10% AI/grid
+FCX,NYSE,Freeport-McMoRan,transformers_tnd,copper,30,large,60000000000,USD,World's largest copper; 30% electrification; regimerisk: copper PEAKING (electrification + grid); ETA >24mo (mine ramp multi-year)
+SCCO,NYSE,Southern Copper,transformers_tnd,copper,30,large,80000000000,USD,Pure copper; 30% electrification
+MP,NYSE,MP Materials,transformers_tnd,rare_earths,40,mid,8000000000,USD,US rare earth mining + magnets; 40% AI/electrification; regimerisk: rare_earths EMERGING (single US NdFeB producer; MP ramp 2026-2027)
+6503.TSE,TSE,Mitsubishi Electric,transformers_tnd,transformers_tnd,35,large,40000000000,USD proxy: SOXX,Power systems (T&D) + factory automation; 35% AI/grid
+8031.TSE,TSE,Mitsui & Co,transformers_tnd,transformers_tnd,20,large,40000000000,USD proxy: SOXX,Trading house with transformer/electrical exposure; 20% AI/grid
+6501.TSE,TSE,Hitachi,transformers_tnd,transformers_tnd,40,large,90000000000,USD proxy: SOXX,Hitachi Energy (grid + transformers) + rail + semis; 40% AI/grid
+HTHIY,OTCQX,Hitachi (ADR),transformers_tnd,transformers_tnd,45,large,90000000000,USD proxy: SOXX,ADR alternative
+1801.HK,HKEX,Tianjin Tianhai Investment,cooling_water,chillers_cdu,40,mid,2000000000,manual FX 6M,Chinese chiller/CDU specialist; 40% AI/DC
+ACN,NYSE,Accenture,systems_rack_scale,it_services,15,mega,200000000000,USD,IT services; 15% AI infra consulting
+PLTR,NASDAQ,Palantir,systems_rack_scale,ai_software,20,mega,200000000000,USD,AI software platform; 20% exposure to infra capex as customer signal
+OXY,NYSE,Occidental Petroleum,power_generation_oem,ccs,15,mid,50000000000,USD,Stratos DAC + 1PointFive CCS; 15% AI-adjacent
+XOM,NYSE,ExxonMobil,power_generation_oem,fuel_inputs,5,mega,500000000000,USD,Global oil major; 5% CCS + DC gas
+CVX,NYSE,Chevron,power_generation_oem,fuel_inputs,5,mega,280000000000,USD,Global oil major; minor DC gas
+6933.TYO,TSE,Yokogawa Electric,power_generation_oem,industrial_automation,10,mid,9000000000,USD proxy: SOXX,Industrial automation for fabs; 10% AI
+ENTRA.OL,OSLO,Entra ASA,data_center_shell,colocation,100,mid,5000000000,manual FX 6M,Norway colocation (data centers); small Nordic player
+ACLS,NASDAQ,Axcelis Technologies,gpu_asic_silicon,ion_implant,70,small,2500000000,USD,Ion implant for SiC + advanced nodes; 70% AI/power-semi
+MKSI,NASDAQ,MKS Instruments,gpu_asic_silicon,process_equipment,55,mid,12000000000,USD,RF/photonic subsystems; 55% AI/semi
+AEHR,NASDAQ,Aehr Test Systems,gpu_asic_silicon,test_equipment,80,small,2000000000,USD,Wafer-level burn-in for SiC + HBM; 80% AI; regimerisk: test_equipment PEAKING
+UCTT,NASDAQ,Ultra Clean Holdings,gpu_asic_silicon,process_gas,55,small,2500000000,USD,Gas delivery subsystems for fabs; 55% AI
+RMBS,NASDAQ,Rambus,networking_interconnect,ddr_phy,60,mid,9000000000,USD,DDR5/PCIe PHY IP; 60% AI/HBM server exposure; regimerisk: networking_interconnect EMERGING (HBM4 PHY attach)
+NVMI,NASDAQ,Nova Ltd,gpu_asic_silicon,metrology,70,mid,5000000000,USD,Optical metrology; 70% AI/advanced node
+ONTO,NASDAQ,Onto Innovation,gpu_asic_silicon,metrology,65,mid,8000000000,USD,Macro defect + metrology; 65% AI
+FORM,NASDAQ,FormFactor,advanced_packaging,probe_test,60,mid,4500000000,USD,Probe cards for HBM/advanced packaging; 60% AI; regimerisk: advanced_packaging RESOLVING — long-basket HARD GUARD fires
+PLAB,NASDAQ,Photronics,gpu_asic_silicon,photomasks,55,mid,2000000000,USD,Photomasks for sub-7nm; 55% AI
+ATKR,NASDAQ,Atkore,transformers_tnd,cable_conduit,15,mid,6000000000,USD,Cable/conduit for grid + DC; 15% AI/grid
+NVT,NASDAQ,nVent Electric,transformers_tnd,enclosures,30,mid,18000000000,USD,Enclosures + liquid cooling hookups; 30% DC
+EMR,NYSE,Emerson Electric,transformers_tnd,industrial_automation,20,mega,80000000000,USD,Process automation + Aspen Tech; 20% DC
+ROK,NASDAQ,Rockwell Automation,power_generation_oem,industrial_automation,15,mid,35000000000,USD,Factory automation; 15% DC
+AQN,NYSE,Algonquin Power,power_generation_oem,regulated_utility,20,small,5000000000,USD,Canadian utility w/ US data center growth; 20% DC
+BIP,NYSE,Brookfield Infrastructure,power_generation_oem,infrastructure,15,mid,15000000000,USD,Data center + utility; 15% direct
