@@ -112,8 +112,9 @@ SPARQL, web-UI sparklines.
   refresh on `launchd`. ✅
 - **M4** — Backtest scores against 12-18mo hindsight; refine weights;
   Postgres cutover if perf demands. ✅
-- **M5** — Sparkline charts, automate `transformers_tnd` from FRED,
-  geo-concentration from the SPARQL ontology.
+- **M5** — Sparkline charts (batched score history API + UI), FRED
+  `A35SNO` for `transformers_tnd.demand_signal`, ontology-derived
+  HHI for all 10 segments' `geo_concentration`. ✅
 
 ## License
 
