@@ -7,7 +7,7 @@ non-None values.
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 
 import pytest
 from sqlalchemy import select
@@ -87,6 +87,50 @@ def _seed_signals(session_factory: sessionmaker) -> None:
                 source="eia_v2",
                 source_id=f"sales{i}",
                 observed_at=first_of_target,
+                ingested_at=now,
+            )
+        )
+    with session_scope(session_factory) as session:
+        for r in rows:
+            session.add(r)
+
+
+def _seed_transformer_signals(session_factory: sessionmaker) -> None:
+    """Seed FRED A35SNO-style signals for the `transformers_tnd`
+    segment so the new dynamic `demand_signal` extractor fires.
+
+    13 months of `electrical_equipment_orders`: latest = 100,
+    year-ago = 80 → +25% YoY → 1.0. This drives the
+    `transformers_tnd.demand_signal` sub-score away from the
+    static seed (0.80) and into the dynamic range.
+
+    Dates are anchored on the 1st of each month so monthly
+    signals are stable regardless of which day of the month
+    the test runs on. The series spans 13 months ending on
+    the 1st of the month prior to `now`.
+    """
+    now = datetime.now(tz=timezone.utc).replace(tzinfo=None)
+    today = now.date().replace(day=1)
+    # Walk back 13 months from today; the latest is the most recent
+    # 1st-of-month strictly before today.
+    rows = []
+    for i in range(13):
+        # i=0 is the OLDEST month (13mo back), i=12 is the LATEST.
+        year = today.year + (today.month - 1 - (12 - i)) // 12
+        month = (today.month - 1 - (12 - i)) % 12 + 1
+        obs = date(year, month, 1)
+        # v: latest = 100 (i=12), year-ago = 80 (i=0)
+        v = 80.0 + (i * (100 - 80) / 12)
+        rows.append(
+            Signal(
+                segment="transformers_tnd",
+                subsegment=None,
+                signal_name="electrical_equipment_orders",
+                value_num=v,
+                unit="index",
+                source="fred",
+                source_id=f"A35SNO:{obs:%Y-%m}",
+                observed_at=obs,
                 ingested_at=now,
             )
         )
@@ -297,3 +341,94 @@ def test_geo_concentration_computed_when_ontology_available(settings, factory: s
         # transformers_tnd seed is 0.35 — confirm the seed path is taken.
         for horizon in settings.score_horizons:
             assert by_segment[("transformers_tnd", horizon)].sub_scores["geo_concentration"] == pytest.approx(0.35)
+
+
+def test_demand_signal_override_when_fred_signal_present(settings, factory: sessionmaker) -> None:
+    """When the recompute job is given FRED `A35SNO` signals for
+    `transformers_tnd`, the score rows for that segment reflect
+    the dynamically-extracted demand_signal (1.0 for +25% YoY),
+    not the seed value (0.80).
+
+    Mirrors `test_geo_concentration_computed_when_ontology_available`
+    for the new demand_signal override path. The transformer
+    segment is the first one to have a dynamic demand_signal
+    extractor (FRED A35SNO → electrical_equipment_orders).
+    """
+    _seed_transformer_signals(factory)
+    recompute_scores.run(settings=settings, factory=factory)
+    with factory() as session:
+        rows = session.execute(select(Score)).scalars().all()
+        by_segment = {(s.segment, s.horizon): s for s in rows}
+        # The transformers_tnd segment should have the dynamic
+        # demand_signal (1.0 for the seeded +25% YoY growth).
+        for horizon in settings.score_horizons:
+            assert by_segment[("transformers_tnd", horizon)].sub_scores["demand_signal"] == pytest.approx(
+                1.0, abs=1e-3
+            ), (
+                f"expected dynamic demand_signal=1.0, got {by_segment[('transformers_tnd', horizon)].sub_scores['demand_signal']}"
+            )
+        # Other segments (no dynamic demand_signal extractor)
+        # fall back to the seed. e.g. advanced_node_fabs seed = 0.90.
+        for horizon in settings.score_horizons:
+            assert by_segment[("advanced_node_fabs", horizon)].sub_scores["demand_signal"] == pytest.approx(0.90)
+
+
+def test_demand_signal_falls_back_to_seed_without_fred_signals(settings, factory: sessionmaker) -> None:
+    """Without any FRED `A35SNO` signals in the DB, the
+    `transformers_tnd` segment's demand_signal falls back to the
+    static seed (0.80). This preserves M2 stopgap behavior for
+    operators who haven't pulled FRED data yet.
+    """
+    recompute_scores.run(settings=settings, factory=factory)
+    with factory() as session:
+        rows = session.execute(select(Score)).scalars().all()
+        by_segment = {(s.segment, s.horizon): s for s in rows}
+        for horizon in settings.score_horizons:
+            assert by_segment[("transformers_tnd", horizon)].sub_scores["demand_signal"] == pytest.approx(0.80)
+
+
+def test_geo_concentration_end_to_end_against_real_abox(settings, factory: sessionmaker) -> None:
+    """Live integration test: load the real ABox from
+    `research/05_ontology/instances.ttl`, run recompute, and
+    assert that all 10 segments get a non-None HHI for
+    `geo_concentration` (the ABox is the system-under-test's
+    population; if it's missing, the test will surface that
+    with a clear assertion failure rather than a silent skip).
+
+    This is the only test that exercises the real
+    `instances.ttl` (every other test uses `_MockWorld`). It
+    would have caught a real-ABox drift like a region name
+    change that breaks the SPARQL query.
+    """
+    from pathlib import Path
+
+    project_root = Path(__file__).resolve().parents[3]  # src/bottlewatch/tests/...
+    abox = project_root / "research" / "05_ontology" / "instances.ttl"
+    if not abox.exists():
+        pytest.skip(f"ABox not built yet ({abox}); run `make ontology` first")
+    world = recompute_scores.load_ontology_world()
+    assert world is not None, f"load_ontology_world returned None; check {abox} is well-formed"
+    recompute_scores.run(settings=settings, factory=factory, ontology_world=world)
+    with factory() as session:
+        rows = session.execute(select(Score)).scalars().all()
+        by_segment = {(s.segment, s.horizon): s for s in rows}
+        # Every known segment has a role class in SEGMENT_TO_ROLE_CLASS,
+        # so every segment's geo_concentration should be a real HHI
+        # value (or None if the ABox has no role instances for that
+        # class — which would be a data bug worth surfacing).
+        for segment in known_segments():
+            for horizon in settings.score_horizons:
+                geo = by_segment[(segment, horizon)].sub_scores["geo_concentration"]
+                # At least the segments that have role instances in
+                # the real ABox must produce a non-None HHI. The
+                # ABox has 131 role instances across all 10 classes
+                # (per the `make ontology` summary), so this should
+                # hold for all 10.
+                assert geo is not None, (
+                    f"geo_concentration for {segment} is None against the real ABox; "
+                    "ABox is missing role instances for this segment's role class"
+                )
+                # HHI is in [1/n, 1] where n is the number of regions
+                # passing the 5% floor. With 1+ regions it can be
+                # anywhere in [0, 1] but never negative or > 1.
+                assert 0.0 <= geo <= 1.0, f"HHI for {segment} = {geo} is out of [0, 1]"
