@@ -145,6 +145,7 @@ def compute_segment_score(
     now: datetime,
     geo_concentration: float | None = None,
     demand_signal: float | None = None,
+    lead_time_growth: float | None = None,
 ) -> ScoreResult:
     """Compute B(s, h) and the regime per the methodology.
 
@@ -169,6 +170,12 @@ def compute_segment_score(
             `A35SNO` manufacturers' new orders for electrical
             equipment). When not None, replaces the seed value.
             Same fallback semantics as `geo_concentration`.
+        lead_time_growth: dynamically-extracted lead_time_growth
+            override (currently only `transformers_tnd` has one —
+            FRED `WPU1321` producer price index for transformers).
+            When not None, replaces the seed value. Same
+            fallback semantics as `geo_concentration` and
+            `demand_signal`.
     """
     if horizon not in _WEIGHTS:
         raise ValueError(f"unknown horizon: {horizon!r}; expected one of {HORIZONS}")
@@ -177,7 +184,7 @@ def compute_segment_score(
     computed_capacity = extractors.capacity_tightness(segment, list(signals))
 
     sub_scores: dict[str, float | None] = {
-        "lead_time_growth": research["lead_time_growth"],
+        "lead_time_growth": (lead_time_growth if lead_time_growth is not None else research["lead_time_growth"]),
         "capacity_tightness": computed_capacity,
         "geo_concentration": (geo_concentration if geo_concentration is not None else research["geo_concentration"]),
         "regulatory_friction": research["regulatory_friction"],

@@ -387,6 +387,88 @@ def test_demand_signal_falls_back_to_seed_without_fred_signals(settings, factory
             assert by_segment[("transformers_tnd", horizon)].sub_scores["demand_signal"] == pytest.approx(0.80)
 
 
+def _seed_transformer_ppi_signals(session_factory: sessionmaker) -> None:
+    """Seed FRED WPU1321-style signals for the `transformers_tnd`
+    segment so the new dynamic `lead_time_growth` extractor fires.
+
+    2 months of `ppi_transformers`: latest = 250 (a 2026-Q1
+    reading, mid-band; band is [80, 350]). This drives the
+    `transformers_tnd.lead_time_growth` sub-score away from the
+    static seed (0.85) and into the dynamic range
+    (250 - 80) / (350 - 80) = 0.63.
+    """
+    now = datetime.now(tz=timezone.utc).replace(tzinfo=None)
+    today = now.date().replace(day=1)
+    rows = [
+        Signal(
+            segment="transformers_tnd",
+            subsegment=None,
+            signal_name="ppi_transformers",
+            value_num=200.0,
+            unit="index",
+            source="fred",
+            source_id="WPU1321:2025-12",
+            observed_at=today - timedelta(days=30),
+            ingested_at=now,
+        ),
+        Signal(
+            segment="transformers_tnd",
+            subsegment=None,
+            signal_name="ppi_transformers",
+            value_num=250.0,
+            unit="index",
+            source="fred",
+            source_id="WPU1321:2026-01",
+            observed_at=today,
+            ingested_at=now,
+        ),
+    ]
+    with session_scope(session_factory) as session:
+        session.add_all(rows)
+
+
+def test_lead_time_growth_override_when_fred_signal_present(settings, factory: sessionmaker) -> None:
+    """When the recompute job is given FRED `WPU1321` signals for
+    `transformers_tnd`, the score rows for that segment reflect
+    the dynamically-extracted lead_time_growth (~0.63 for
+    PPI=250, with band [80, 350]), not the seed value (0.85).
+
+    Mirrors `test_demand_signal_override_when_fred_signal_present`
+    and `test_geo_concentration_computed_when_ontology_available`
+    for the third dynamic-override path.
+    """
+    _seed_transformer_ppi_signals(factory)
+    recompute_scores.run(settings=settings, factory=factory)
+    with factory() as session:
+        rows = session.execute(select(Score)).scalars().all()
+        by_segment = {(s.segment, s.horizon): s for s in rows}
+        for horizon in settings.score_horizons:
+            assert by_segment[("transformers_tnd", horizon)].sub_scores["lead_time_growth"] == pytest.approx(
+                0.63, abs=1e-2
+            ), (
+                f"expected dynamic lead_time_growth=0.63, "
+                f"got {by_segment[('transformers_tnd', horizon)].sub_scores['lead_time_growth']}"
+            )
+        # Other segments (no dynamic lead_time_growth extractor)
+        # fall back to the seed. e.g. advanced_node_fabs seed = 0.85.
+        for horizon in settings.score_horizons:
+            assert by_segment[("advanced_node_fabs", horizon)].sub_scores["lead_time_growth"] == pytest.approx(0.85)
+
+
+def test_lead_time_growth_falls_back_to_seed_without_fred_signals(settings, factory: sessionmaker) -> None:
+    """Without any FRED `WPU1321` signals in the DB, the
+    `transformers_tnd` segment's lead_time_growth falls back to
+    the static seed (0.85). This preserves M2 stopgap behavior
+    for operators who haven't pulled FRED data yet.
+    """
+    recompute_scores.run(settings=settings, factory=factory)
+    with factory() as session:
+        rows = session.execute(select(Score)).scalars().all()
+        by_segment = {(s.segment, s.horizon): s for s in rows}
+        for horizon in settings.score_horizons:
+            assert by_segment[("transformers_tnd", horizon)].sub_scores["lead_time_growth"] == pytest.approx(0.85)
+
+
 def test_geo_concentration_end_to_end_against_real_abox(settings, factory: sessionmaker) -> None:
     """Live integration test: load the real ABox from
     `research/05_ontology/instances.ttl`, run recompute, and

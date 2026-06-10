@@ -77,6 +77,25 @@ def demand_signal(segment: str, signals: Iterable[SignalLike]) -> float | None:
             return None
 
 
+def lead_time_growth(segment: str, signals: Iterable[SignalLike]) -> float | None:
+    """Dispatch to the per-segment lead_time_growth extractor.
+    Returns a value in [0, 1] or None if the segment has no
+    dynamic lead_time_growth in the current data set.
+
+    Only `transformers_tnd` has a dynamic lead_time_growth in v1
+    (FRED `WPU1321` = Producer Price Index for power and
+    distribution transformers; high absolute PPI level correlates
+    with tight lead times per industry trade press). The
+    recompute job wires this through the same `lead_time_growth=`
+    override parameter as `geo_concentration=` and `demand_signal=`.
+    """
+    match segment:
+        case "transformers_tnd":
+            return _transformer_lead_time_growth(list(signals))
+        case _:
+            return None
+
+
 def _transformer_demand_signal(signals: list[SignalLike]) -> float | None:
     """Use FRED `A35SNO` (electrical equipment new orders) YoY
     growth as a proxy for upstream demand pull on transformers.
@@ -135,6 +154,49 @@ def _transformer_tightness(signals: list[SignalLike]) -> float | None:
     if yoy >= 0.30:
         return 1.0
     return 0.4 + (yoy / 0.30) * 0.6
+
+
+def _transformer_lead_time_growth(signals: list[SignalLike]) -> float | None:
+    """Map the FRED `WPU1321` (transformer PPI) absolute level to
+    a [0, 1] lead-time-growth tightness score.
+
+    The methodology calls for YoY change in quoted lead times
+    (methodology §2.1) but we don't have a free, structured
+    lead-time-quote feed. WPU1321 (Producer Price Index for
+    power and distribution transformers) is the closest direct
+    proxy: trade press consistently cites PPI absolute level as
+    the upstream driver of quoted lead times (high PPI = tight
+    market = long lead times). The relationship is not
+    perfectly linear, but it's a faithful directional signal.
+
+    The band is set from the historical WPU1321 range:
+    - 80 (deep recession; 2010 baseline) -> 0.0
+    - 350 (current 2024-2026 peak) -> 1.0
+    - Midpoint 215 (steady-state demand) -> 0.5
+
+    On recalibration: re-fit the band from FRED's WPU1321
+    time-series once a year; the 5-yr min/max is the spec.
+
+    Returns None if fewer than 2 observations are present
+    (need at least 1 data point to compute "current level").
+    """
+    values: list[tuple[object, float]] = []
+    for s in signals:
+        if s.signal_name == "ppi_transformers" and s.value_num is not None:
+            values.append((s.observed_at, s.value_num))
+    if len(values) < 2:
+        return None
+    values.sort(key=lambda x: _to_date(x[0]))
+    latest = values[-1][1]
+    # The M5 band. WPU1321 historical min is ~80 (2010);
+    # current 2024-2026 readings are 340-360.
+    _BAND_MIN = 80.0
+    _BAND_MAX = 350.0
+    if latest <= _BAND_MIN:
+        return 0.0
+    if latest >= _BAND_MAX:
+        return 1.0
+    return (latest - _BAND_MIN) / (_BAND_MAX - _BAND_MIN)
 
 
 def _power_tightness(signals: list[SignalLike]) -> float | None:

@@ -113,8 +113,12 @@ SPARQL, web-UI sparklines.
 - **M4** — Backtest scores against 12-18mo hindsight; refine weights;
   Postgres cutover if perf demands. ✅
 - **M5** — Sparkline charts (batched score history API + UI), FRED
-  `A35SNO` for `transformers_tnd.demand_signal`, ontology-derived
-  HHI for all 10 segments' `geo_concentration`. ✅
+  `A35SNO` for `transformers_tnd.demand_signal`, FRED `WPU1321`
+  for `transformers_tnd.lead_time_growth`, ontology-derived
+  HHI for all 10 segments' `geo_concentration`. Plus: 7th regime
+  cell to fill the lower-right gap (30 ≤ B < 70, B' ≤ −15 →
+  RESOLVING) and quiet-form-4 log noise via per-run DEBUG+INFO
+  aggregation. ✅
 
 ## License
 

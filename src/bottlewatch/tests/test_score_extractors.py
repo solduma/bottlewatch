@@ -20,6 +20,7 @@ from bottlewatch.app.score.extractors import (
     capacity_tightness,
     demand_signal,
     geo_concentration,
+    lead_time_growth,
 )
 
 
@@ -192,6 +193,79 @@ def test_unknown_segment_demand_signal_returns_none() -> None:
     signals = [_Row("electrical_equipment_orders", 100.0, _add_months(base, i)) for i in range(13)]
     assert demand_signal("advanced_node_fabs", signals) is None
     assert demand_signal("hbm_memory", signals) is None
+
+
+# ---------------------------------------------------------------------------
+# transformers_tnd lead_time_growth (FRED `WPU1321` — transformer PPI
+# absolute level as a lead-time-growth proxy)
+# ---------------------------------------------------------------------------
+
+
+def test_transformer_lead_time_growth_at_band_max() -> None:
+    """PPI at the band max (350) -> 1.0 (extreme tightness)."""
+    base = date(2025, 1, 1)
+    signals = [_Row("ppi_transformers", 350.0, _add_months(base, i)) for i in range(2)]
+    assert lead_time_growth("transformers_tnd", signals) == 1.0
+
+
+def test_transformer_lead_time_growth_at_band_min() -> None:
+    """PPI at the band min (80) -> 0.0 (deep recession baseline)."""
+    base = date(2025, 1, 1)
+    signals = [_Row("ppi_transformers", 80.0, _add_months(base, i)) for i in range(2)]
+    assert lead_time_growth("transformers_tnd", signals) == 0.0
+
+
+def test_transformer_lead_time_growth_midpoint() -> None:
+    """PPI at 215 (midpoint of [80, 350]) -> 0.5."""
+    base = date(2025, 1, 1)
+    signals = [_Row("ppi_transformers", 215.0, _add_months(base, i)) for i in range(2)]
+    assert lead_time_growth("transformers_tnd", signals) == pytest.approx(0.5, abs=1e-6)
+
+
+def test_transformer_lead_time_growth_uses_latest_observation() -> None:
+    """Of multiple observations, use the most recent (sorted
+    ascending by observed_at). Oldest 80, newest 280 — should
+    return (280-80)/(350-80) ≈ 0.741.
+    """
+    signals = [
+        _Row("ppi_transformers", 80.0, date(2024, 1, 1)),
+        _Row("ppi_transformers", 150.0, date(2024, 6, 1)),
+        _Row("ppi_transformers", 280.0, date(2025, 1, 1)),
+    ]
+    expected = (280.0 - 80.0) / (350.0 - 80.0)
+    assert lead_time_growth("transformers_tnd", signals) == pytest.approx(expected, abs=1e-6)
+
+
+def test_transformer_lead_time_growth_clamps_above_max() -> None:
+    """PPI > 350 clamps to 1.0 (not extrapolated)."""
+    base = date(2025, 1, 1)
+    signals = [_Row("ppi_transformers", 400.0, _add_months(base, i)) for i in range(2)]
+    assert lead_time_growth("transformers_tnd", signals) == 1.0
+
+
+def test_transformer_lead_time_growth_clamps_below_min() -> None:
+    """PPI < 80 clamps to 0.0."""
+    base = date(2025, 1, 1)
+    signals = [_Row("ppi_transformers", 50.0, _add_months(base, i)) for i in range(2)]
+    assert lead_time_growth("transformers_tnd", signals) == 0.0
+
+
+def test_transformer_lead_time_growth_returns_none_for_short_history() -> None:
+    """Need >= 2 observations to compute the latest level."""
+    base = date(2025, 1, 1)
+    signals = [_Row("ppi_transformers", 215.0, base)]
+    assert lead_time_growth("transformers_tnd", signals) is None
+
+
+def test_unknown_segment_lead_time_growth_returns_none() -> None:
+    """Only `transformers_tnd` has a dynamic lead_time_growth in
+    v1. Other segments fall back to the static seed value via
+    `lead_time_growth=None` in the formula.
+    """
+    base = date(2025, 1, 1)
+    signals = [_Row("ppi_transformers", 250.0, _add_months(base, i)) for i in range(2)]
+    assert lead_time_growth("advanced_node_fabs", signals) is None
+    assert lead_time_growth("hbm_memory", signals) is None
 
 
 # ---------------------------------------------------------------------------

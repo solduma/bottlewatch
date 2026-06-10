@@ -272,3 +272,65 @@ def test_demand_signal_override_does_not_affect_other_subscores() -> None:
     )
     for name in ("lead_time_growth", "capacity_tightness", "geo_concentration", "regulatory_friction"):
         assert with_override.sub_scores[name] == without_override.sub_scores[name]
+
+
+def test_lead_time_growth_override_replaces_seed() -> None:
+    """Mirrors `test_geo_concentration_override_replaces_seed` and
+    `test_demand_signal_override_replaces_seed` for the
+    lead_time_growth sub-score. The recompute job pre-computes a
+    dynamic lead_time_growth from FRED `WPU1321` for
+    `transformers_tnd` and passes it as an override; the seed
+    value is the M2 stopgap.
+    """
+    now = datetime(2026, 6, 4, tzinfo=timezone.utc)
+    with_override = compute_segment_score(
+        "transformers_tnd",
+        "near",
+        now=now,
+        lead_time_growth=0.99,
+    )
+    without_override = compute_segment_score(
+        "transformers_tnd",
+        "near",
+        now=now,
+    )
+    assert with_override.sub_scores["lead_time_growth"] == 0.99
+    # Seed for transformers_tnd.lead_time_growth is the M2 stopgap
+    # value (0.85 per the v1 worked example).
+    assert without_override.sub_scores["lead_time_growth"] == pytest.approx(0.85)
+    # B should differ because the lead_time_growth weight (0.30
+    # for near horizon) is applied to a different value.
+    assert with_override.score != without_override.score
+
+
+def test_lead_time_growth_none_falls_back_to_seed() -> None:
+    """The default (None) preserves M2 stopgap behavior: the seed
+    value flows through to sub_scores when no dynamic
+    lead_time_growth extractor fires.
+    """
+    result = compute_segment_score(
+        "transformers_tnd",
+        "near",
+        now=datetime(2026, 6, 4, tzinfo=timezone.utc),
+    )
+    assert result.sub_scores["lead_time_growth"] == pytest.approx(0.85)
+
+
+def test_lead_time_growth_override_does_not_affect_other_subscores() -> None:
+    """Mirror of the geo_concentration and demand_signal
+    override-doesn't-leak tests for lead_time_growth.
+    """
+    now = datetime(2026, 6, 4, tzinfo=timezone.utc)
+    with_override = compute_segment_score(
+        "transformers_tnd",
+        "near",
+        now=now,
+        lead_time_growth=0.99,
+    )
+    without_override = compute_segment_score(
+        "transformers_tnd",
+        "near",
+        now=now,
+    )
+    for name in ("capacity_tightness", "geo_concentration", "regulatory_friction", "demand_signal"):
+        assert with_override.sub_scores[name] == without_override.sub_scores[name]

@@ -316,6 +316,25 @@ def _compute_demand_signal_by_segment(signals_by_segment: dict[str, list[Any]]) 
     return out
 
 
+def _compute_lead_time_by_segment(signals_by_segment: dict[str, list[Any]]) -> dict[str, float | None]:
+    """Pre-compute the dynamic `lead_time_growth` sub-score for
+    every known segment. Returns a dict segment -> score (or None
+    when the segment has no dynamic extractor in the current data
+    set).
+
+    Mirrors `_compute_geo_by_segment` and
+    `_compute_demand_signal_by_segment`. Currently only
+    `transformers_tnd` has a dynamic lead_time_growth (FRED
+    `WPU1321` transformer PPI absolute level). The other segments
+    fall back to the static seed value in `research_values`.
+    """
+    out: dict[str, float | None] = {}
+    for segment in known_segments():
+        seg_signals = signals_by_segment.get(segment, [])
+        out[segment] = extractors.lead_time_growth(segment, seg_signals)
+    return out
+
+
 def _load_score_history(factory: sessionmaker, until: datetime) -> dict[tuple[str, str], list[tuple[datetime, float]]]:
     """Read the trailing 7 months of score_history per (segment, horizon) relative to until."""
     cutoff = until - timedelta(days=210)  # 7 months
@@ -401,6 +420,11 @@ def run(
     # which falls back to the static seed value).
     demand_signal_by_segment = _compute_demand_signal_by_segment(signals_by_segment)
 
+    # Pre-compute per-segment dynamic `lead_time_growth` (FRED
+    # `WPU1321` for `transformers_tnd`; None for everything else,
+    # which falls back to the static seed value).
+    lead_time_by_segment = _compute_lead_time_by_segment(signals_by_segment)
+
     new_rows: list[dict[str, Any]] = []
     history_rows: list[dict[str, Any]] = []
     no_data_count = 0
@@ -418,6 +442,7 @@ def run(
                 now=naive_now,
                 geo_concentration=geo_by_segment.get(segment),
                 demand_signal=demand_signal_by_segment.get(segment),
+                lead_time_growth=lead_time_by_segment.get(segment),
             )
             if result.regime.value == "NO_DATA":
                 no_data_count += 1
