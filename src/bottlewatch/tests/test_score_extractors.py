@@ -10,6 +10,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import date
+import calendar
 from typing import Any, Optional
 
 import pytest
@@ -17,6 +18,7 @@ import pytest
 from bottlewatch.app.score.extractors import (
     _hhi_from_counts,
     capacity_tightness,
+    demand_signal,
     geo_concentration,
 )
 
@@ -26,6 +28,17 @@ class _Row:
     signal_name: str
     value_num: Optional[float]
     observed_at: date
+
+
+def _add_months(d: date, n: int) -> date:
+    """Add n months to a date, handling year rollover. Clamps the
+    day to the last valid day of the target month (so `date(2025, 1, 31)
+    + 1 month` lands on Feb 28, not raises).
+    """
+    year = d.year + (d.month - 1 + n) // 12
+    month = (d.month - 1 + n) % 12 + 1
+    last_day = calendar.monthrange(year, month)[1]
+    return date(year, month, min(d.day, last_day))
 
 
 def test_power_combines_forward_and_operating() -> None:
@@ -113,13 +126,72 @@ def test_data_center_shell_returns_none_for_short_history() -> None:
 
 
 def test_unknown_segment_returns_none() -> None:
-    # transformers_tnd has no extractor in M2.
+    # cooling_water has no capacity_tightness extractor in M2.
     signals = [_Row("capacity_mw", 100.0, date(2025, 1, 1))]
-    assert capacity_tightness("transformers_tnd", signals) is None
+    assert capacity_tightness("cooling_water", signals) is None
 
 
 def test_empty_signals_returns_none() -> None:
     assert capacity_tightness("power_generation_oem", []) is None
+
+
+# ---------------------------------------------------------------------------
+# transformers_tnd demand_signal (FRED `A35SNO` — manufacturers' new
+# orders for electrical equipment, a proxy for upstream demand pull)
+# ---------------------------------------------------------------------------
+
+
+def test_transformer_demand_signal_uses_yoy_growth() -> None:
+    """Per methodology §2.5, the demand_signal for transformers
+    is upstream demand pull. FRED `A35SNO` (manufacturers' new
+    orders for electrical equipment) is the closest direct
+    proxy we can pull from FRED; YoY growth is the dynamic
+    signal.
+    """
+    # 13 months: latest = 100, year-ago = 80 → +25% YoY → 1.0
+    base = date(2025, 1, 1)
+    signals = [_Row("electrical_equipment_orders", 80.0, base)]
+    for i in range(12):
+        v = 80.0 + ((i + 1) * (100 - 80) / 12)
+        signals.append(_Row("electrical_equipment_orders", v, _add_months(base, i + 1)))
+    assert demand_signal("transformers_tnd", signals) == 1.0
+
+
+def test_transformer_demand_signal_clamps_negative_yoy_to_zero() -> None:
+    """-10% YoY or worse maps to 0.0 (demand collapse)."""
+    base = date(2025, 1, 1)
+    signals = [_Row("electrical_equipment_orders", 100.0, base)]
+    for i in range(12):
+        # 100 → 80 linearly; -20% YoY → 0.0
+        v = 100.0 - ((i + 1) * 20 / 12)
+        signals.append(_Row("electrical_equipment_orders", v, _add_months(base, i + 1)))
+    assert demand_signal("transformers_tnd", signals) == 0.0
+
+
+def test_transformer_demand_signal_midpoint_is_zero_yoy() -> None:
+    """0% YoY growth → 0.286 (the (0 + 0.10) / 0.35 midpoint)."""
+    base = date(2025, 1, 1)
+    signals = [_Row("electrical_equipment_orders", 100.0, _add_months(base, i)) for i in range(13)]
+    # Values 100 throughout, latest = year-ago = 100, YoY = 0
+    assert demand_signal("transformers_tnd", signals) == pytest.approx(0.10 / 0.35)
+
+
+def test_transformer_demand_signal_returns_none_for_short_history() -> None:
+    """Need >= 13 months for a YoY delta."""
+    base = date(2025, 1, 1)
+    signals = [_Row("electrical_equipment_orders", 100.0, _add_months(base, i)) for i in range(6)]
+    assert demand_signal("transformers_tnd", signals) is None
+
+
+def test_unknown_segment_demand_signal_returns_none() -> None:
+    """Only `transformers_tnd` has a dynamic demand_signal in v1.
+    Other segments fall back to the static seed value via
+    `demand_signal=None` in the formula.
+    """
+    base = date(2025, 1, 1)
+    signals = [_Row("electrical_equipment_orders", 100.0, _add_months(base, i)) for i in range(13)]
+    assert demand_signal("advanced_node_fabs", signals) is None
+    assert demand_signal("hbm_memory", signals) is None
 
 
 # ---------------------------------------------------------------------------

@@ -58,6 +58,56 @@ def capacity_tightness(segment: str, signals: Iterable[SignalLike]) -> float | N
             return None
 
 
+def demand_signal(segment: str, signals: Iterable[SignalLike]) -> float | None:
+    """Dispatch to the per-segment demand_signal extractor. Returns
+    a value in [0, 1] or None if the segment has no dynamic
+    demand_signal in the current data set.
+
+    Mirrors `capacity_tightness`: only `transformers_tnd` has a
+    dynamic demand_signal in v1 (FRED `A35SNO`, manufacturers' new
+    orders for electrical equipment). Other segments fall back to
+    the static seed value in `research_values`. The recompute
+    job wires this through the same `demand_signal=` override
+    parameter as `geo_concentration=`.
+    """
+    match segment:
+        case "transformers_tnd":
+            return _transformer_demand_signal(list(signals))
+        case _:
+            return None
+
+
+def _transformer_demand_signal(signals: list[SignalLike]) -> float | None:
+    """Use FRED `A35SNO` (electrical equipment new orders) YoY
+    growth as a proxy for upstream demand pull on transformers.
+
+    Per methodology §2.5, the "true" demand_signal would be
+    hyperscaler capex YoY. FRED doesn't aggregate the Big Four's
+    capex, so we use the closest direct proxy: manufacturers'
+    new orders for the electrical equipment class that includes
+    transformers. A 0% YoY reads as 0.5 (median); +25% YoY reads
+    as 1.0 (max demand pull); -10% YoY reads as 0.0 (demand
+    collapse).
+    """
+    values: list[tuple[object, float]] = []
+    for s in signals:
+        if s.signal_name == "electrical_equipment_orders" and s.value_num is not None:
+            values.append((s.observed_at, s.value_num))
+    if len(values) < 13:
+        return None
+    values.sort(key=lambda x: _to_date(x[0]))
+    latest = values[-1][1]
+    year_ago = values[-13][1]
+    if year_ago <= 0:
+        return None
+    yoy = (latest - year_ago) / year_ago
+    if yoy <= -0.10:
+        return 0.0
+    if yoy >= 0.25:
+        return 1.0
+    return (yoy + 0.10) / 0.35
+
+
 def _transformer_tightness(signals: list[SignalLike]) -> float | None:
     """Use ppi_transformers growth as a proxy for T&D tightness.
 

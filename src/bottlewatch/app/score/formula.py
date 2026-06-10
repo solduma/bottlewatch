@@ -144,6 +144,7 @@ def compute_segment_score(
     first_computed_at: datetime | None = None,
     now: datetime,
     geo_concentration: float | None = None,
+    demand_signal: float | None = None,
 ) -> ScoreResult:
     """Compute B(s, h) and the regime per the methodology.
 
@@ -163,6 +164,11 @@ def compute_segment_score(
             recompute job pre-computes one HHI per segment from the
             ABox; passing None preserves the M2 stopgap behavior
             (seed-only) for tests that don't load the ontology.
+        demand_signal: dynamically-extracted demand_signal override
+            (currently only `transformers_tnd` has one — FRED
+            `A35SNO` manufacturers' new orders for electrical
+            equipment). When not None, replaces the seed value.
+            Same fallback semantics as `geo_concentration`.
     """
     if horizon not in _WEIGHTS:
         raise ValueError(f"unknown horizon: {horizon!r}; expected one of {HORIZONS}")
@@ -175,7 +181,7 @@ def compute_segment_score(
         "capacity_tightness": computed_capacity,
         "geo_concentration": (geo_concentration if geo_concentration is not None else research["geo_concentration"]),
         "regulatory_friction": research["regulatory_friction"],
-        "demand_signal": research["demand_signal"],
+        "demand_signal": (demand_signal if demand_signal is not None else research["demand_signal"]),
     }
     completeness = sum(1 for v in sub_scores.values() if v is not None) / len(sub_scores)
 

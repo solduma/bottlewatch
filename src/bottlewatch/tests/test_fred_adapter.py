@@ -82,7 +82,7 @@ def test_fred_registered_in_orchestrator() -> None:
 
 
 def test_series_spec_matches_research() -> None:
-    # Locked in: 4 series, with the segment/signal mapping from
+    # Locked in: 5 series, with the segment/signal mapping from
     # research/03_data_sources.md §4. A typo here would silently 404
     # against the real FRED API.
     as_tuples = {(s.series_id, s.segment, s.signal_name) for s in _SERIES_SPEC}
@@ -90,4 +90,12 @@ def test_series_spec_matches_research() -> None:
     assert ("TCU", "general_manufacturing", "capacity_utilization") in as_tuples
     assert ("WPU31132506", "semiconductors", "ppi_semis") in as_tuples
     assert ("WPU1321", "transformers_tnd", "ppi_transformers") in as_tuples
-    assert len(_SERIES_SPEC) == 4
+    # A35SNO = manufacturers' new orders for electrical equipment,
+    # appliances, and components. The upstream demand-pull proxy
+    # for the `transformers_tnd` segment (per methodology §2.5 —
+    # FRED doesn't aggregate hyperscaler capex; this is the
+    # closest direct proxy). Added 2026-06-10 to make the
+    # transformers_tnd segment's `demand_signal` sub-score
+    # dynamic instead of hand-curated from scoring_seed.json.
+    assert ("A35SNO", "transformers_tnd", "electrical_equipment_orders") in as_tuples
+    assert len(_SERIES_SPEC) == 5

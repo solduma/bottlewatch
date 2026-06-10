@@ -34,6 +34,15 @@ _SERIES_SPEC = [
     SeriesSpec("TCU", "general_manufacturing", "capacity_utilization", "percent"),
     SeriesSpec("WPU31132506", "semiconductors", "ppi_semis", "index"),
     SeriesSpec("WPU1321", "transformers_tnd", "ppi_transformers", "index"),
+    # A35SNO = "Manufacturers' New Orders: Electrical Equipment,
+    # Appliances and Components" (monthly, SA). This is the
+    # upstream demand-pull signal for `transformers_tnd` —
+    # methodology §2.5 calls for "hyperscaler capex YoY" as the
+    # demand_signal, but FRED doesn't aggregate the Big Four's
+    # capex. Manufacturers' new orders for the equipment class
+    # that includes transformers is a strong direct proxy.
+    # Verified against the FRED catalog 2026-06-10.
+    SeriesSpec("A35SNO", "transformers_tnd", "electrical_equipment_orders", "index"),
 ]
 
 

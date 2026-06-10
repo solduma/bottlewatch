@@ -214,3 +214,61 @@ def test_geo_concentration_override_does_not_affect_other_subscores() -> None:
     )
     for name in ("lead_time_growth", "capacity_tightness", "regulatory_friction", "demand_signal"):
         assert with_override.sub_scores[name] == without_override.sub_scores[name]
+
+
+def test_demand_signal_override_replaces_seed() -> None:
+    """Mirrors `test_geo_concentration_override_replaces_seed` for
+    the demand_signal sub-score. The recompute job pre-computes a
+    dynamic demand_signal from FRED `A35SNO` for `transformers_tnd`
+    and passes it as an override; the seed value is the M2 stopgap.
+    """
+    now = datetime(2026, 6, 4, tzinfo=timezone.utc)
+    with_override = compute_segment_score(
+        "transformers_tnd",
+        "near",
+        now=now,
+        demand_signal=0.99,
+    )
+    without_override = compute_segment_score(
+        "transformers_tnd",
+        "near",
+        now=now,
+    )
+    assert with_override.sub_scores["demand_signal"] == 0.99
+    assert without_override.sub_scores["demand_signal"] == pytest.approx(0.80)
+    # B should differ because the demand_signal weight (0.20 for
+    # near horizon) is applied to a different value.
+    assert with_override.score != without_override.score
+
+
+def test_demand_signal_none_falls_back_to_seed() -> None:
+    """The default (None) preserves M2 stopgap behavior: the seed
+    value flows through to sub_scores when no dynamic
+    demand_signal extractor fires.
+    """
+    result = compute_segment_score(
+        "transformers_tnd",
+        "near",
+        now=datetime(2026, 6, 4, tzinfo=timezone.utc),
+    )
+    assert result.sub_scores["demand_signal"] == pytest.approx(0.80)
+
+
+def test_demand_signal_override_does_not_affect_other_subscores() -> None:
+    """Mirror of `test_geo_concentration_override_does_not_affect_other_subscores`
+    for the demand_signal override.
+    """
+    now = datetime(2026, 6, 4, tzinfo=timezone.utc)
+    with_override = compute_segment_score(
+        "transformers_tnd",
+        "near",
+        now=now,
+        demand_signal=0.99,
+    )
+    without_override = compute_segment_score(
+        "transformers_tnd",
+        "near",
+        now=now,
+    )
+    for name in ("lead_time_growth", "capacity_tightness", "geo_concentration", "regulatory_friction"):
+        assert with_override.sub_scores[name] == without_override.sub_scores[name]

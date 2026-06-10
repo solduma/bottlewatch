@@ -299,6 +299,23 @@ def _compute_geo_by_segment(world: Any | None) -> dict[str, float | None]:
     return out
 
 
+def _compute_demand_signal_by_segment(signals_by_segment: dict[str, list[Any]]) -> dict[str, float | None]:
+    """Pre-compute the dynamic `demand_signal` sub-score for every
+    known segment. Returns a dict segment -> score (or None when
+    the segment has no dynamic extractor in the current data set).
+
+    Mirrors `_compute_geo_by_segment`. Currently only
+    `transformers_tnd` has a dynamic demand_signal (FRED `A35SNO`
+    electrical equipment new orders). The other segments fall
+    back to the static seed value in `research_values`.
+    """
+    out: dict[str, float | None] = {}
+    for segment in known_segments():
+        seg_signals = signals_by_segment.get(segment, [])
+        out[segment] = extractors.demand_signal(segment, seg_signals)
+    return out
+
+
 def _load_score_history(factory: sessionmaker, until: datetime) -> dict[tuple[str, str], list[tuple[datetime, float]]]:
     """Read the trailing 7 months of score_history per (segment, horizon) relative to until."""
     cutoff = until - timedelta(days=210)  # 7 months
@@ -379,6 +396,11 @@ def run(
     since = started - timedelta(days=_LOOKBACK_DAYS)
     signals_by_segment = _load_signals_by_segment(factory, since=since, until=started)
 
+    # Pre-compute per-segment dynamic `demand_signal` (FRED
+    # `A35SNO` for `transformers_tnd`; None for everything else,
+    # which falls back to the static seed value).
+    demand_signal_by_segment = _compute_demand_signal_by_segment(signals_by_segment)
+
     new_rows: list[dict[str, Any]] = []
     history_rows: list[dict[str, Any]] = []
     no_data_count = 0
@@ -395,6 +417,7 @@ def run(
                 first_computed_at=first_at,
                 now=naive_now,
                 geo_concentration=geo_by_segment.get(segment),
+                demand_signal=demand_signal_by_segment.get(segment),
             )
             if result.regime.value == "NO_DATA":
                 no_data_count += 1
