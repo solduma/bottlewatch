@@ -40,6 +40,15 @@ def test_resolving() -> None:
     assert r.fast_resolve is False
 
 
+def test_resolving_moderate() -> None:
+    # 30 <= B < 70, B' < -15 — the "RESOLVING-from-moderate" cell
+    # (added M2-v2 to fill the lower-right gap that previously
+    # fell through to STABLE).
+    r = classify(score=50, momentum=-20, data_completeness=1.0)
+    assert r.regime is Regime.RESOLVING
+    assert r.fast_resolve is False
+
+
 def test_resolving_fast_resolve() -> None:
     # B >= 70, B' < FAST_RESOLVE_THRESHOLD
     r = classify(score=80, momentum=FAST_RESOLVE_THRESHOLD - 1, data_completeness=1.0)
@@ -82,6 +91,7 @@ def test_no_data_when_score_is_none() -> None:
         (75, +10, Regime.PEAKED),
         (80, -10, Regime.RESOLVING),
         (50, +35, Regime.EMERGING),
+        (50, -20, Regime.RESOLVING),  # RESOLVING-from-moderate (M2-v2)
         (50, 0, Regime.STABLE),
         (20, -20, Regime.RESOLVING_FROM_LOW),
     ],
@@ -101,7 +111,7 @@ def test_thresholds_file_loads_with_expected_version() -> None:
     `version` in research/06_regime_thresholds.json AND update
     this test — that double-keyed lock is the cost of a JSON
     config you can edit without re-deploying Python."""
-    assert _THRESHOLDS_VERSION == "M2-v1"
+    assert _THRESHOLDS_VERSION == "M2-v2"
 
 
 def test_thresholds_file_has_all_seven_cells() -> None:
@@ -140,7 +150,15 @@ def test_classify_runs_against_published_calibration() -> None:
         (70, 0, Regime.PEAKED),  # lower bound of PEAKED (B'=0)
         (70, -1, Regime.RESOLVING),  # just below PEAKED
         (69, +30, Regime.EMERGING),  # just below B threshold
-        (30, -15, Regime.STABLE),  # RESOLVING_FROM_LOW lower bound
+        (
+            70,
+            -15,
+            Regime.RESOLVING,
+        ),  # RESOLVING cell edge: B=70 is the B>=70 RESOLVING cell, B'=-15 is the moderate cell upper
+        (69, -15, Regime.RESOLVING),  # RESOLVING-from-moderate (M2-v2)
+        (69, -16, Regime.RESOLVING),  # just into RESOLVING-from-moderate
+        (69, -14, Regime.STABLE),  # just above the moderate-RESOLVING B'=-15 boundary
+        (30, -15, Regime.RESOLVING),  # RESOLVING-from-moderate (M2-v2) — B=30 is the lower bound
         (29, -15, Regime.RESOLVING_FROM_LOW),  # B < 30
     ]
     for b, bp, expected in boundary_pairs:

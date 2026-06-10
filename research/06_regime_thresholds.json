@@ -1,6 +1,6 @@
 {
-  "_comment": "M2 calibration. The plan §7.2 documents (60, ±5) as the historical placeholder; this file is the canonical M2 source. The v1 plan's (60, ±5) was a placeholder pending M4 backtest calibration, and was refined to the values below after M2 review (2026-06-06). On recalibration: bump `version` and update `docs/plans/2026-06-03-bottlewatch-v1.md` §7.2 + `research/04_scoring_methodology.md` §7.6 to point here. Cell-matching convention: `b_prime_min` is inclusive (lower bound), `b_prime_max` is exclusive (upper bound) by default. For the lowest cell per side (e.g. RESOLVING_FROM_LOW's B' <= -15), set `b_prime_max_inclusive: true` to flip it. The cell order in `cells` is the order of the 6 cells in plan §7.6 (B >= 70 first); for ties on a boundary, the first cell in the list wins.",
-  "version": "M2-v1",
+  "_comment": "M2 calibration. The plan §7.2 documents (60, ±5) as the historical placeholder; this file is the canonical M2 source. The v1 plan's (60, ±5) was a placeholder pending M4 backtest calibration, and was refined to the values below after M2 review (2026-06-06). Bumped to M2-v2 on 2026-06-09: added a 7th cell to fill the lower-right gap (30 <= B < 70, B' < -15 -> RESOLVING). Without it, segments like power_generation_oem and data_center_shell at moderate B with strong negative momentum fell through to STABLE, which violates the hard guard's intent (the long basket should refuse them). On recalibration: bump `version` and update `docs/plans/2026-06-03-bottlewatch-v1.md` §7.2 + `research/04_scoring_methodology.md` §7.6 to point here. Cell-matching convention: `b_prime_min` is inclusive (lower bound), `b_prime_max` is exclusive (upper bound) by default. For the lowest cell per side (e.g. RESOLVING_FROM_LOW's B' <= -15), set `b_prime_max_inclusive: true` to flip it. The cell order in `cells` is the order of the cells in plan §7.6 (B >= 70 first); for ties on a boundary, the first cell in the list wins.",
+  "version": "M2-v2",
   "no_data_threshold": 0.4,
   "b_threshold": 70,
   "fast_resolve_momentum_max": -50.0,
@@ -9,6 +9,7 @@
     {"b_min": 70, "b_prime_min":   0, "b_prime_max":  20, "regime": "PEAKED"},
     {"b_min": 70, "b_prime_min": null, "b_prime_max":   0, "regime": "RESOLVING"},
     {"b_min":  0, "b_prime_min":  30, "b_prime_max": null, "regime": "EMERGING"},
+    {"b_min": 30, "b_prime_max": -15, "b_prime_max_inclusive": true, "b_max":  70, "regime": "RESOLVING"},
     {"b_min": 30, "b_prime_min": -15, "b_prime_max":  30, "regime": "STABLE"},
     {"b_min":  0, "b_prime_min": null, "b_prime_max": -15, "b_max": 30, "b_prime_max_inclusive": true, "regime": "RESOLVING_FROM_LOW"}
   ]

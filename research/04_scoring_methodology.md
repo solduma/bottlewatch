@@ -606,20 +606,27 @@ announced supply as moderating the structural risk).
 
 ---
 
-## 7.6 Regime mapping table (6 cells)
+## 7.6 Regime mapping table (7 cells)
 
 The regime is a function of two variables: the **level**
-`B(s, h)` and the **momentum** `B'(s, h)`. Six cells,
+`B(s, h)` and the **momentum** `B'(s, h)`. Seven cells,
 deterministic mapping, no opinionated input.
 
 | Regime | Definition | Plain-English read |
 |---|---|---|
 | **PEAKING** | `B ≥ 70` AND `B' ≥ +20` | Binding constraint, still getting worse — classic late-cycle trade |
 | **PEAKED** | `B ≥ 70` AND `0 ≤ B' < +20` | Binding, but the tightening has plateaued — late stage, watch the supply side |
-| **RESOLVING** | `B ≥ 70` AND `B' < 0` | Was tight, now loosening — supply catching up, demand cooling, or both |
+| **RESOLVING** (high) | `B ≥ 70` AND `B' < 0` | Was tight, now loosening — supply catching up, demand cooling, or both |
 | **EMERGING** | `B < 70` AND `B' ≥ +30` | Below the binding threshold but accelerating fast — early-cycle trade |
-| **STABLE** | `30 ≤ B < 70` AND `−15 ≤ B' < +30` | Tight but not extreme; the median segment most of the time |
+| **RESOLVING** (moderate) | `30 ≤ B < 70` AND `B' ≤ −15` | Moderate tightness with strongly negative momentum — was below the binding threshold, now losing it |
+| **STABLE** | `30 ≤ B < 70` AND `−15 < B' < +30` | Tight but not extreme; the median segment most of the time |
 | **RESOLVING-from-low** | `B < 30` AND `B' ≤ −15` | Was low, going lower — segment is structurally losing relevance |
+
+The two `RESOLVING` cells (high and moderate) share the same
+regime label because they share the same trade implication:
+a long basket should not include them (per the hard guard
+in §7.8), and a short basket ranks them by `B × |B'|`. The
+label is the trade signal, not the absolute level.
 
 **Source of truth for the calibration.** The thresholds above
 (`B = 70`, the `B'` bands, the `data_completeness` gate) are

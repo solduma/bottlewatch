@@ -1,27 +1,28 @@
 """Regime classification from (B, B') per methodology §7.6.
 
-The 6-cell table + the `NO_DATA` gate are read at import time from
+The 7-cell table + the `NO_DATA` gate are read at import time from
 `research/06_regime_thresholds.json` so the calibration is a
 single-file edit. The v1 plan documented (60, ±5) as a placeholder;
 the M2 calibration is (70, +20/0/+30/-15). See the JSON's
 `_comment` field and the methodology §7.6 for the rationale.
 
-Six cells from the level-and-momentum plane:
+Seven cells from the level-and-momentum plane:
 
     B >= 70 AND B' >= +20  → PEAKING
     B >= 70 AND 0 <= B' < 20 → PEAKED
     B >= 70 AND B' <  0    → RESOLVING  (fast_resolve if B' < -50)
     B <  70 AND B' >= +30  → EMERGING
-    30 <= B < 70 AND -15 <= B' < +30 → STABLE
+    30 <= B < 70 AND B' <= -15 → RESOLVING (moderate; M2-v2 — fills the lower-right gap)
+    30 <= B < 70 AND -15 < B' < +30 → STABLE
     B <  30 AND B' <= -15  → RESOLVING-from-low
 
-A 7th synthetic label, NO_DATA, is added for segments where the
+An 8th synthetic label, NO_DATA, is added for segments where the
 formula did not have enough information to compute a meaningful B
 (`data_completeness < no_data_threshold`). We still write a
 `scores` row so the scoreboard can render an honest "no data"
 badge.
 
-The 6-cell table is exhaustive; there is no fallthrough. The
+The 7-cell table is exhaustive; there is no fallthrough. The
 classifier is pure: `(B, B', data_completeness) -> Regime`.
 """
 
