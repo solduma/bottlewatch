@@ -7,6 +7,8 @@ from datetime import datetime
 from fastapi import APIRouter, HTTPException, Query, Request
 from pydantic import BaseModel
 
+from bottlewatch.app import segments_meta
+
 
 router = APIRouter(tags=["segments"])
 
@@ -15,6 +17,7 @@ VALID_HORIZONS = ("near", "med", "long")
 
 class SegmentScore(BaseModel):
     segment: str
+    name: str
     horizon: str
     score: float | None
     momentum: float | None
@@ -40,9 +43,19 @@ class SignalRow(BaseModel):
 
 class SegmentDetail(BaseModel):
     segment: str
+    name: str
     horizons: list[SegmentScore]
     sub_scores: dict[str, float | None]
     signals: list[SignalRow]
+
+
+def _row_with_name(d: dict) -> dict:
+    """Return a copy of `d` with a `name` field added.
+
+    Helper for the two endpoints below so the slug → name
+    lookup happens in one place.
+    """
+    return {**d, "name": segments_meta.display_name(d["segment"])}
 
 
 @router.get("/segments", response_model=list[SegmentScore])
@@ -61,7 +74,7 @@ def list_segments(
             detail=f"unknown horizon: {horizon!r}; expected one of {list(VALID_HORIZONS)}",
         )
     rows = list_segment_scores(request.app.state.session_factory, horizon=horizon)
-    return [SegmentScore(**r) for r in rows]
+    return [SegmentScore(**_row_with_name(r)) for r in rows]
 
 
 @router.get("/segments/{slug}", response_model=SegmentDetail)
@@ -73,7 +86,8 @@ def get_segment(slug: str, request: Request) -> SegmentDetail:
         raise HTTPException(status_code=404, detail=f"unknown segment: {slug}")
     return SegmentDetail(
         segment=detail["segment"],
-        horizons=[SegmentScore(**h) for h in detail["horizons"]],
+        name=segments_meta.display_name(detail["segment"]),
+        horizons=[SegmentScore(**_row_with_name(h)) for h in detail["horizons"]],
         sub_scores=detail["sub_scores"],
         signals=[SignalRow(**s) for s in detail["signals"]],
     )

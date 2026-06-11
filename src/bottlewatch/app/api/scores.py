@@ -30,9 +30,10 @@ def get_regime(
     ),
 ) -> list[SegmentScore]:
     from bottlewatch.app.api.services import list_segment_scores
+    from bottlewatch.app.api.segments import _row_with_name
 
     rows = list_segment_scores(request.app.state.session_factory, horizon=horizon)
-    return [SegmentScore(**r) for r in rows]
+    return [SegmentScore(**_row_with_name(r)) for r in rows]
 
 
 def _history_rows_for(factory, segment: str, horizon: str, cutoff: datetime) -> list[dict]:

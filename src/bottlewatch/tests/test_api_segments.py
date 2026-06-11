@@ -72,3 +72,46 @@ async def test_research_only_segment_has_no_data_regime(client: AsyncClient, set
     near = next(h for h in body["horizons"] if h["horizon"] == "near")
     assert near["data_completeness"] == 0.8
     assert near["regime"] != "NO_DATA"
+
+
+@pytest.mark.asyncio
+async def test_list_includes_human_readable_name(client: AsyncClient, settings, factory) -> None:
+    """Every row in the segments list must include a `name`
+    field that is the human-readable title (not the slug).
+    Per docs/plans/2026-06-11-display-names-and-score-help.md
+    this is sourced from `app/segments_meta.py`.
+    """
+    recompute_scores.run(settings=settings, factory=factory)
+    body = (await client.get("/api/v1/segments")).json()
+    by_slug = {r["segment"]: r for r in body}
+    # Spot-check a few known mappings.
+    assert by_slug["transformers_tnd"]["name"] == "Transformers & Switchgear (T&D)"
+    assert by_slug["hbm_memory"]["name"] == "HBM Memory"
+    assert by_slug["systems_rack_scale"]["name"] == "Systems OEM/ODM"
+
+
+@pytest.mark.asyncio
+async def test_detail_includes_human_readable_name(client: AsyncClient, seeded_factory) -> None:
+    resp = await client.get("/api/v1/segments/power_generation_oem")
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["name"] == "Power Generation OEM"
+    # Each horizon row also carries the name.
+    for h in body["horizons"]:
+        assert h["name"] == "Power Generation OEM"
+
+
+@pytest.mark.asyncio
+async def test_unknown_segment_falls_back_to_slug() -> None:
+    """If a slug is passed to display_name() that isn't in the
+    meta dict, the function returns the slug itself rather
+    than throwing. Tested at the unit level (not via the
+    API) because the API returns 404 for unknown segments
+    before reaching the display_name() call.
+    """
+    from bottlewatch.app.segments_meta import display_name
+
+    # Mapped slug → human name.
+    assert display_name("transformers_tnd") == "Transformers & Switchgear (T&D)"
+    # Unmapped slug → identity fallback.
+    assert display_name("not_a_real_segment_xyz") == "not_a_real_segment_xyz"
