@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { Area, AreaChart, ResponsiveContainer, Tooltip, YAxis } from "recharts";
+import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { ScoreHistoryPoint } from "../lib/api";
 
 // Regime-aligned line color. Matches the badge palette but as a single
@@ -79,8 +79,13 @@ export function Sparkline({
     );
   }
 
-  // Y-axis domain with small padding so the line doesn't touch the
-  // chart edges. Recharts' "auto" handles min/max.
+  // Y-axis: explicit [0, 100] domain so the line never reaches
+  // 2000+ (which would happen if Recharts auto-parsed our date
+  // strings as numbers and used them as the y-scale). The axis
+  // is hidden — only the area shape is visible — so the
+  // explicit domain is just defensive against Recharts quirks.
+  // X-axis: hidden (date labels at this size would be unreadable
+  // and add no information beyond what the aria-label provides).
   const ariaLabel = `Score trend from ${series[0].value.toFixed(1)} to ${series[series.length - 1].value.toFixed(1)} over ${series.length} months`;
 
   return (
@@ -93,7 +98,8 @@ export function Sparkline({
               <stop offset="100%" stopColor={stroke} stopOpacity={0} />
             </linearGradient>
           </defs>
-          <YAxis hide domain={["auto", "auto"]} />
+          <XAxis hide dataKey="date" type="category" />
+          <YAxis hide type="number" domain={[0, 100]} />
           <Tooltip
             contentStyle={{ fontSize: 11, padding: "4px 6px" }}
             formatter={(value) => [Number(value).toFixed(1), "B"]}
