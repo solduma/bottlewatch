@@ -116,4 +116,21 @@ describe("useBatchedScoreHistory", () => {
     if (result.current.kind !== "ready") throw new Error("not ready");
     expect(result.current.bySegment.size).toBe(0);
   });
+
+  it("refetches when the months argument changes", async () => {
+    const { rerender } = renderHook(
+      ({ months }: { months: number }) =>
+        useBatchedScoreHistory(["hbm_memory"], "near", months),
+      { initialProps: { months: 6 } },
+    );
+    await waitFor(() => expect(globalThis.fetch).toHaveBeenCalledTimes(1));
+    const firstUrl = String((globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0][0]);
+    expect(firstUrl).toContain("months=6");
+
+    // User switches to 1-year view → re-keyed, refetched.
+    rerender({ months: 12 });
+    await waitFor(() => expect(globalThis.fetch).toHaveBeenCalledTimes(2));
+    const secondUrl = String((globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[1][0]);
+    expect(secondUrl).toContain("months=12");
+  });
 });

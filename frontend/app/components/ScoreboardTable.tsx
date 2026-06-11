@@ -41,6 +41,12 @@ export function ScoreboardTable({ rows }: { rows: SegmentScore[] }) {
   const [sortKey, setSortKey] = useState<SortKey>("segment");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
 
+  // Range for the Trend (sparkline) column. 1/3/6/12 months.
+  // Default 6mo preserves the original behavior. Changing the
+  // value re-keys `useBatchedScoreHistory` (via the `months`
+  // argument), which triggers a refetch.
+  const [trendMonths, setTrendMonths] = useState<1 | 3 | 6 | 12>(6);
+
   const sorted = useMemo(() => {
     const dir = sortDir === "asc" ? 1 : -1;
     return [...segments].sort((a, b) => {
@@ -68,8 +74,9 @@ export function ScoreboardTable({ rows }: { rows: SegmentScore[] }) {
   // returns a Map keyed by segment. Per-row lookups below — this
   // replaces the previous N+1 design where each row had its own
   // useEffect + per-row fetch (10 round-trips for 10 rows).
+  // The `months` arg is the user-controlled Trend range filter.
   const segmentSlugs = useMemo(() => sorted.map((s) => s.segment), [sorted]);
-  const history = useBatchedScoreHistory(segmentSlugs, "near", 6);
+  const history = useBatchedScoreHistory(segmentSlugs, "near", trendMonths);
 
   function toggleSort(k: SortKey) {
     if (k === sortKey) {
@@ -110,8 +117,32 @@ export function ScoreboardTable({ rows }: { rows: SegmentScore[] }) {
           >
             Data{arrow("data_completeness")}
           </th>
-          <th className="px-3 py-2">
-            Trend
+          <th className="px-3 py-2" style={{ width: 120 }}>
+            <div className="flex items-center gap-1">
+              <span>Trend</span>
+              <div
+                className="ml-auto inline-flex rounded border border-gray-200 text-[10px]"
+                role="group"
+                aria-label="Trend range filter"
+              >
+                {([1, 3, 6, 12] as const).map((m) => (
+                  <button
+                    key={m}
+                    type="button"
+                    onClick={() => setTrendMonths(m)}
+                    className={`px-1.5 py-0.5 ${
+                      trendMonths === m
+                        ? "bg-gray-900 text-white"
+                        : "text-gray-500 hover:bg-gray-50"
+                    }`}
+                    aria-label={`${m} months`}
+                    aria-pressed={trendMonths === m}
+                  >
+                    {m < 12 ? `${m}mo` : "1y"}
+                  </button>
+                ))}
+              </div>
+            </div>
           </th>
         </tr>
       </thead>
