@@ -1,8 +1,9 @@
 "use client";
 
-import { Fragment } from "react";
+import { Fragment, useState } from "react";
 import type { Regime, SegmentScore } from "../lib/api";
 import { SegmentBadge } from "./SegmentBadge";
+import { QuadrantTickerList } from "./QuadrantTickerList";
 
 /**
  * 2x2 regime quadrant per plan §5.
@@ -72,6 +73,16 @@ function cellFor(regime: Regime): CellKey {
 }
 
 export function RegimeQuadrant({ rows }: { rows: SegmentScore[] }) {
+  // One expanded segment at a time. Clicking a different badge
+  // closes the previous one and opens the new one. Clicking the
+  // same badge again toggles it closed. This matches the user-
+  // selected preview in the 2026-06-11 plan.
+  const [expandedSegment, setExpandedSegment] = useState<string | null>(null);
+
+  function handleToggle(segment: string) {
+    setExpandedSegment((prev) => (prev === segment ? null : segment));
+  }
+
   // Bucket rows into the 6 cells.
   const buckets: Record<CellKey, SegmentScore[]> = {
     "top-left": [],
@@ -129,7 +140,13 @@ export function RegimeQuadrant({ rows }: { rows: SegmentScore[] }) {
           B ≥ 60
         </div>
         {order.slice(0, 3).map((k) => (
-          <Cell key={k} cellKey={k} rows={buckets[k]} />
+          <Cell
+            key={k}
+            cellKey={k}
+            rows={buckets[k]}
+            expandedSegment={expandedSegment}
+            onToggle={handleToggle}
+          />
         ))}
 
         {/* Row 2: B < 60 */}
@@ -137,14 +154,30 @@ export function RegimeQuadrant({ rows }: { rows: SegmentScore[] }) {
           B &lt; 60
         </div>
         {order.slice(3, 6).map((k) => (
-          <Cell key={k} cellKey={k} rows={buckets[k]} />
+          <Cell
+            key={k}
+            cellKey={k}
+            rows={buckets[k]}
+            expandedSegment={expandedSegment}
+            onToggle={handleToggle}
+          />
         ))}
       </div>
     </div>
   );
 }
 
-function Cell({ cellKey, rows }: { cellKey: CellKey; rows: SegmentScore[] }) {
+function Cell({
+  cellKey,
+  rows,
+  expandedSegment,
+  onToggle,
+}: {
+  cellKey: CellKey;
+  rows: SegmentScore[];
+  expandedSegment: string | null;
+  onToggle: (segment: string) => void;
+}) {
   return (
     <div className="min-h-[100px] rounded border border-dashed border-gray-200 bg-gray-50/50 p-2">
       <div className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-gray-600">
@@ -154,17 +187,28 @@ function Cell({ cellKey, rows }: { cellKey: CellKey; rows: SegmentScore[] }) {
       {rows.length === 0 ? (
         <div className="mt-2 text-[10px] italic text-gray-400">(empty)</div>
       ) : (
-        <div className="mt-2 flex flex-wrap gap-1">
-          {rows.map((r) => (
-            <Fragment key={r.segment}>
-              <SegmentBadge
-                segment={r.segment}
-                score={r.score}
-                regime={r.regime}
+        <>
+          <div className="mt-2 flex flex-wrap gap-1">
+            {rows.map((r) => (
+              <Fragment key={r.segment}>
+                <SegmentBadge
+                  segment={r.segment}
+                  score={r.score}
+                  regime={r.regime}
+                  onToggle={onToggle}
+                  expanded={expandedSegment === r.segment}
+                />
+              </Fragment>
+            ))}
+          </div>
+          {expandedSegment &&
+            rows.some((r) => r.segment === expandedSegment) && (
+              <QuadrantTickerList
+                key={expandedSegment}
+                segment={expandedSegment}
               />
-            </Fragment>
-          ))}
-        </div>
+            )}
+        </>
       )}
     </div>
   );
