@@ -193,6 +193,7 @@ function Cell({
               <Fragment key={r.segment}>
                 <SegmentBadge
                   segment={r.segment}
+                  name={r.name}
                   score={r.score}
                   regime={r.regime}
                   onToggle={onToggle}

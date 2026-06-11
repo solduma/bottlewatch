@@ -27,6 +27,7 @@ const REGIME_COLOR: Record<Regime, string> = {
  */
 export function SegmentBadge({
   segment,
+  name,
   score,
   regime,
   href,
@@ -34,6 +35,8 @@ export function SegmentBadge({
   expanded,
 }: {
   segment: string;
+  /** Human-readable title (e.g. "Transformers & Switchgear (T&D)"). */
+  name?: string;
   score: number | null;
   regime: Regime;
   /** If provided, render the badge as a navigation link. */
@@ -45,14 +48,23 @@ export function SegmentBadge({
 }) {
   const color = REGIME_COLOR[regime] ?? REGIME_COLOR.NO_DATA;
   const ringWidth = expanded ? "ring-2 ring-offset-1" : "ring-1";
+  // The badge text is the human name when available; the slug
+  // shows in a small subscript for technical reference. If
+  // only the slug is known (no name yet), show the slug in
+  // the main line — no duplicate text.
+  const display = name && name !== segment ? name : segment;
+  const showSlugSubscript = name && name !== segment;
   const content = (
     <>
       <span className="font-mono text-sm">
         {score === null ? "—" : score.toFixed(0)}
       </span>
       <span className="text-[10px] uppercase tracking-wide opacity-80">
-        {segment}
+        {display}
       </span>
+      {showSlugSubscript && (
+        <span className="font-mono text-[8px] opacity-60">{segment}</span>
+      )}
     </>
   );
 
@@ -60,6 +72,7 @@ export function SegmentBadge({
     return (
       <Link
         href={href}
+        title={name ? `${name} (${segment})` : segment}
         className={`flex flex-col gap-0.5 rounded px-3 py-1.5 text-xs font-medium ring-1 transition hover:ring-2 ${color}`}
       >
         {content}
@@ -72,6 +85,7 @@ export function SegmentBadge({
         type="button"
         onClick={() => onToggle(segment)}
         aria-expanded={expanded}
+        title={name ? `${name} (${segment})` : segment}
         className={`flex flex-col gap-0.5 rounded px-3 py-1.5 text-xs font-medium ${ringWidth} transition hover:ring-2 ${color}`}
       >
         {content}
@@ -80,7 +94,10 @@ export function SegmentBadge({
   }
   // Fallback: plain div (no interaction). Used in tests / stories.
   return (
-    <div className={`flex flex-col gap-0.5 rounded px-3 py-1.5 text-xs font-medium ring-1 ${color}`}>
+    <div
+      title={name ? `${name} (${segment})` : segment}
+      className={`flex flex-col gap-0.5 rounded px-3 py-1.5 text-xs font-medium ring-1 ${color}`}
+    >
       {content}
     </div>
   );

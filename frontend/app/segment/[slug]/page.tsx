@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import type { Horizon, Regime, SegmentScore } from "../../lib/api";
 import { getSegment } from "../../lib/api";
 import { RegimeBadge } from "../../components/RegimeBadge";
+import { displayName } from "../../lib/score_help";
 
 const SUB_SCORE_LABELS: Record<string, string> = {
   lead_time_growth: "Lead time growth",
@@ -77,7 +78,8 @@ export default async function SegmentDetailPage({
     .filter((x): x is SegmentScore => x !== undefined);
   return (
     <section>
-      <h1 className="mb-1 text-2xl font-semibold">{detail.segment}</h1>
+      <h1 className="mb-0.5 text-2xl font-semibold">{detail.name || detail.segment}</h1>
+      <p className="mb-4 font-mono text-xs text-gray-500">{detail.segment}</p>
       <p className="mb-4 text-sm text-gray-600">
         {detail.horizons.length} horizons · {detail.signals.length} recent signals
       </p>

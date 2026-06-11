@@ -17,6 +17,7 @@ export type RegimeConfidence = "low" | "medium" | "high";
 
 export interface SegmentScore {
   segment: string;
+  name: string;
   horizon: Horizon;
   score: number | null;
   momentum: number | null;
@@ -42,6 +43,7 @@ export interface SignalRow {
 
 export interface SegmentDetail {
   segment: string;
+  name: string;
   horizons: SegmentScore[];
   sub_scores: Record<string, number | null>;
   signals: SignalRow[];

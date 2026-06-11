@@ -6,6 +6,7 @@ import type { Horizon, SegmentScore } from "../lib/api";
 import { RegimeBadge } from "./RegimeBadge";
 import { Sparkline } from "./Sparkline";
 import { useBatchedScoreHistory } from "./SparklineForSegments";
+import { SCORE_HELP, displayName } from "../lib/score_help";
 
 type SortKey = "segment" | "near" | "med" | "long" | "data_completeness";
 
@@ -107,8 +108,16 @@ export function ScoreboardTable({ rows }: { rows: SegmentScore[] }) {
               key={h}
               className="cursor-pointer px-3 py-2"
               onClick={() => toggleSort(h)}
+              title={SCORE_HELP}
             >
-              {h}{arrow(h)}
+              B·{h}{arrow(h)}
+              <span
+                aria-hidden="true"
+                className="ml-1 cursor-help text-gray-400"
+                title={SCORE_HELP}
+              >
+                ?
+              </span>
             </th>
           ))}
           <th
@@ -147,14 +156,24 @@ export function ScoreboardTable({ rows }: { rows: SegmentScore[] }) {
         </tr>
       </thead>
       <tbody>
-        {sorted.map((s) => (
+        {sorted.map((s) => {
+          const display = displayName(s.segment);
+          return (
           <tr key={s.segment} className="border-b border-gray-100">
             <td className="px-3 py-2 font-medium">
               <Link
                 href={`/segment/${s.segment}`}
                 className="text-blue-700 hover:underline"
+                title={s.segment}
               >
-                {s.segment}
+                <div className="flex flex-col">
+                  <span>{display || s.segment}</span>
+                  {display && display !== s.segment && (
+                    <span className="font-mono text-[10px] text-gray-500">
+                      {s.segment}
+                    </span>
+                  )}
+                </div>
               </Link>
             </td>
             {(["near", "med", "long"] as const).map((h) => {
@@ -187,7 +206,8 @@ export function ScoreboardTable({ rows }: { rows: SegmentScore[] }) {
               )}
             </td>
           </tr>
-        ))}
+          );
+        })}
       </tbody>
     </table>
   );
