@@ -7,6 +7,7 @@ import { getTicker } from "../../lib/api";
 import type { TickerDetail } from "../../lib/api";
 import { SparklineForSegment } from "../../components/SparklineForSegment";
 import { regimePill } from "../../lib/colors";
+import { displayName } from "../../lib/score_help";
 
 export default function TickerDetailPage() {
   const params = useParams<{ ticker: string }>();
@@ -38,11 +39,24 @@ export default function TickerDetailPage() {
       </div>
 
       <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
-        {detail.segments.map(seg => (
+        {detail.segments.map(seg => {
+          const name = displayName(seg.segment);
+          return (
           <div key={seg.segment} className="rounded border border-gray-200 bg-white p-4">
             <div className="mb-2 flex items-center justify-between">
-              <Link href={`/segment/${seg.segment}`} className="font-mono text-sm font-medium text-blue-700 hover:underline">
-                {seg.segment}
+              <Link
+                href={`/segment/${seg.segment}`}
+                className="text-sm font-medium text-blue-700 hover:underline"
+                title={`${name} (${seg.segment})`}
+              >
+                <div className="flex flex-col">
+                  <span>{name}</span>
+                  {name !== seg.segment && (
+                    <span className="font-mono text-[10px] text-gray-500">
+                      {seg.segment}
+                    </span>
+                  )}
+                </div>
               </Link>
               {seg.regime_near && (
                 <span className={`inline-block rounded px-1.5 py-0.5 text-xs font-medium ${regimePill(seg.regime_near)}`}>
@@ -69,7 +83,8 @@ export default function TickerDetailPage() {
               <SparklineForSegment segment={seg.segment} horizon="near" months={6} height={28} />
             </div>
           </div>
-        ))}
+          );
+        })}
       </div>
 
       {detail.companies.length > 0 && (

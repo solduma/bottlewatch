@@ -5,6 +5,7 @@ import type { Horizon, SegmentScore } from "./lib/api";
 import { listScoresRegime } from "./lib/api";
 import { RegimeQuadrant } from "./components/RegimeQuadrant";
 import { HorizonToggle } from "./components/HorizonToggle";
+import { displayName } from "./lib/score_help";
 import Link from "next/link";
 
 export default function ScoreboardPage() {
@@ -125,19 +126,30 @@ function DerivedList({
         <p className="text-xs italic text-gray-400">(none)</p>
       ) : (
         <ul className="space-y-0.5">
-          {rows.slice(0, 5).map((r) => (
-            <li key={r.segment} className="font-mono text-xs">
-              <Link
-                href={`/segment/${r.segment}`}
-                className="text-blue-700 hover:underline"
-              >
-                {r.segment}
-              </Link>
-              <span className="ml-1 text-gray-500">
-                ({r.score?.toFixed(0)} · B&apos;{r.momentum?.toFixed(1)})
-              </span>
-            </li>
-          ))}
+          {rows.slice(0, 5).map((r) => {
+            const name = displayName(r.name || r.segment);
+            return (
+              <li key={r.segment} className="text-xs">
+                <Link
+                  href={`/segment/${r.segment}`}
+                  className="text-blue-700 hover:underline"
+                  title={r.name ? `${name} (${r.segment})` : r.segment}
+                >
+                  <div className="flex flex-col">
+                    <span>{name || r.segment}</span>
+                    {name && name !== r.segment && (
+                      <span className="font-mono text-[10px] text-gray-500">
+                        {r.segment}
+                      </span>
+                    )}
+                  </div>
+                </Link>
+                <span className="ml-1 text-gray-500">
+                  ({r.score?.toFixed(0)} · B&apos;{r.momentum?.toFixed(1)})
+                </span>
+              </li>
+            );
+          })}
         </ul>
       )}
     </div>
