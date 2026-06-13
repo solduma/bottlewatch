@@ -11,6 +11,7 @@
   "nodes": [
     {"id": "raw_inputs", "label": "raw inputs", "sector": "MaterialsSector", "companies": ["XOM","CVX","OXY","EOG","EQNR","Shell","BP","FCX","SCCO","MP","CCJ","KAP","BWXT","Centrus","AWK","WMS","Veolia","Suez"]},
     {"id": "semiconductor_materials", "label": "semiconductor materials", "sector": "MaterialsSector", "companies": ["Shin-Etsu","SUMCO","GlobalWafers","JSR","TOK","DuPont","Linde","Air Liquide","Air Products","Entegris","Versum","CMC","Fujimi","Mitsui"]},
+    {"id": "fab_process_materials", "label": "fab process materials", "sector": "MaterialsSector", "companies": ["Dow","DuPont","BASF","Mitsui","Evonik"]},
     {"id": "front_end_equipment", "label": "front-end equipment", "sector": "HardwareSector", "companies": ["ASML","AMAT","LRCX","KLAC","Tokyo Electron","ASMPT","Onto Innovation","Camtek"]},
     {"id": "advanced_node_fabs", "label": "advanced-node fabs", "sector": "HardwareSector", "companies": ["TSM","Samsung","INTC","UMC","GlobalFoundries","SMIC","Micron","SK Hynix"]},
     {"id": "advanced_packaging", "label": "advanced packaging", "sector": "HardwareSector", "companies": ["TSM","ASE","Amkor","SPIL","JCET","Powertech","AT&S","Ibiden","Shinko","Unimicron"]},
@@ -89,11 +90,14 @@
     {"id": "fuel_renewables", "label": "renewable developers (supplier of fuel_power_inputs)", "sector": "InfrastructureSector", "companies": ["NEE","ENPH","BEP","Brookfield Renewable"]},
 
     {"id": "inf_neocloud", "label": "neoclouds (supplier of inference_at_scale)", "sector": "DownstreamSector", "companies": ["CRDO","NBIS","PLTR","CoreWeave","Lambda"]},
-    {"id": "inf_enterprise_saas", "label": "enterprise SaaS (supplier of inference_at_scale)", "sector": "DownstreamSector", "companies": ["MSFT","GOOG","ADBE","CRM"]}
+    {"id": "inf_enterprise_saas", "label": "enterprise SaaS (supplier of inference_at_scale)", "sector": "DownstreamSector", "companies": ["MSFT","GOOG","ADBE","CRM"]},
+    {"id": "enterprise_inference_solutions", "label": "enterprise inference solutions", "sector": "DownstreamSector", "companies": ["MSFT","GOOG","AMZN","META","ORCL"]},
+    {"id": "vertical_industry_applications", "label": "vertical industry applications", "sector": "DownstreamSector", "companies": ["CRM","SAP","ORCL","Salesforce","Adobe"]}
   ],
   "edges": [
     {"from": "raw_inputs", "to": "semiconductor_materials", "commodity": null, "role_kind": "supplies"},
-    {"from": "semiconductor_materials", "to": "front_end_equipment", "commodity": null, "role_kind": "supplies"},
+    {"from": "semiconductor_materials", "to": "fab_process_materials", "commodity": null, "role_kind": "supplies"},
+    {"from": "fab_process_materials", "to": "front_end_equipment", "commodity": null, "role_kind": "supplies"},
     {"from": "front_end_equipment", "to": "advanced_node_fabs", "commodity": null, "role_kind": "supplies"},
     {"from": "advanced_node_fabs", "to": "advanced_packaging", "commodity": null, "role_kind": "supplies"},
     {"from": "advanced_node_fabs", "to": "hbm_memory", "commodity": null, "role_kind": "supplies"},
@@ -116,6 +120,9 @@
     {"from": "raw_mining", "to": "raw_inputs", "commodity": "copper_rare_earth_lithium", "role_kind": "suppliesCommodity"},
     {"from": "raw_nuclear_fuel", "to": "raw_inputs", "commodity": "uranium_enriched", "role_kind": "suppliesCommodity"},
     {"from": "raw_water_utilities", "to": "raw_inputs", "commodity": "water", "role_kind": "suppliesCommodity"},
+    {"from": "fuel_oil_gas", "to": "raw_inputs", "commodity": "oil_gas", "role_kind": "suppliesCommodity"},
+    {"from": "fuel_uranium", "to": "raw_inputs", "commodity": "uranium_yellowcake", "role_kind": "suppliesCommodity"},
+    {"from": "fuel_mining", "to": "raw_inputs", "commodity": "copper_rare_earth", "role_kind": "suppliesCommodity"},
     {"from": "raw_inputs", "to": "semiconductor_materials", "commodity": "process_gases_silanes", "role_kind": "dependsOnCommodity"},
 
     {"from": "mat_process_gases", "to": "semiconductor_materials", "commodity": "neon_helium_UF6", "role_kind": "suppliesCommodity"},
@@ -129,6 +136,7 @@
     {"from": "fee_vacuum_pumps", "to": "front_end_equipment", "commodity": "vacuum_pump", "role_kind": "suppliesCommodity"},
     {"from": "front_end_equipment", "to": "advanced_node_fabs", "commodity": "litho_etch_deposition_tool", "role_kind": "dependsOnCommodity"},
 
+    {"from": "fuel_power_inputs", "to": "fab_utilities", "commodity": "water_power", "role_kind": "suppliesCommodity"},
     {"from": "fab_utilities", "to": "advanced_node_fabs", "commodity": "water_power", "role_kind": "suppliesCommodity"},
     {"from": "fab_process_chemicals", "to": "advanced_node_fabs", "commodity": "process_chemicals", "role_kind": "suppliesCommodity"},
     {"from": "advanced_node_fabs", "to": "hbm_memory", "commodity": "wafer_capacity", "role_kind": "dependsOnCommodity"},
@@ -188,10 +196,19 @@
     {"from": "fuel_uranium", "to": "fuel_power_inputs", "commodity": "uranium_yellowcake", "role_kind": "suppliesCommodity"},
     {"from": "fuel_mining", "to": "fuel_power_inputs", "commodity": "copper_rare_earth", "role_kind": "suppliesCommodity"},
     {"from": "fuel_renewables", "to": "fuel_power_inputs", "commodity": "renewable_mwh", "role_kind": "suppliesCommodity"},
+    {"from": "raw_inputs", "to": "gen_rare_earths", "commodity": "rare_earths", "role_kind": "suppliesCommodity"},
+    {"from": "raw_inputs", "to": "tnd_electrical_steel", "commodity": "electrical_steel", "role_kind": "suppliesCommodity"},
+    {"from": "raw_inputs", "to": "tnd_copper", "commodity": "copper", "role_kind": "suppliesCommodity"},
+    {"from": "raw_inputs", "to": "tnd_insulation", "commodity": "insulation", "role_kind": "suppliesCommodity"},
+    {"from": "raw_inputs", "to": "cool_water_treatment", "commodity": "water_chemicals", "role_kind": "suppliesCommodity"},
+    {"from": "semiconductor_materials", "to": "pkg_ubm", "commodity": "ubm_wire", "role_kind": "suppliesCommodity"},
+    {"from": "fab_process_materials", "to": "fab_process_chemicals", "commodity": "process_chemicals", "role_kind": "suppliesCommodity"},
     {"from": "fuel_power_inputs", "to": "power_generation_oem", "commodity": "fuel_feedstock", "role_kind": "dependsOnCommodity"},
 
     {"from": "inf_neocloud", "to": "inference_at_scale", "commodity": "gpu_rental_inference", "role_kind": "suppliesCommodity"},
-    {"from": "inf_enterprise_saas", "to": "inference_at_scale", "commodity": "saas_inference_calls", "role_kind": "suppliesCommodity"}
+    {"from": "inf_enterprise_saas", "to": "inference_at_scale", "commodity": "saas_inference_calls", "role_kind": "suppliesCommodity"},
+    {"from": "inference_at_scale", "to": "enterprise_inference_solutions", "commodity": "inference_api", "role_kind": "suppliesCommodity"},
+    {"from": "enterprise_inference_solutions", "to": "vertical_industry_applications", "commodity": "industry_specific_models", "role_kind": "suppliesCommodity"}
   ],
   "commodities": [
     {"id": "oil_gas", "label": "oil & gas"},
