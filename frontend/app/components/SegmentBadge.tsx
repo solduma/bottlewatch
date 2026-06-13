@@ -42,7 +42,7 @@ export function SegmentBadge({
   /** If provided, render the badge as a navigation link. */
   href?: string;
   /** If provided, render the badge as a button that calls back. */
-  onToggle?: (segment: string) => void;
+  onToggle?: (segment: string, el: HTMLElement) => void;
   /** Visual state when onToggle is used — adds a ring emphasis. */
   expanded?: boolean;
 }) {
@@ -83,7 +83,7 @@ export function SegmentBadge({
     return (
       <button
         type="button"
-        onClick={() => onToggle(segment)}
+        onClick={(e) => onToggle(segment, e.currentTarget)}
         aria-expanded={expanded}
         title={name ? `${name} (${segment})` : segment}
         className={`flex flex-col gap-0.5 rounded px-3 py-1.5 text-xs font-medium ${ringWidth} transition hover:ring-2 ${color}`}

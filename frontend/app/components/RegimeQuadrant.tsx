@@ -78,9 +78,16 @@ export function RegimeQuadrant({ rows }: { rows: SegmentScore[] }) {
   // same badge again toggles it closed. This matches the user-
   // selected preview in the 2026-06-11 plan.
   const [expandedSegment, setExpandedSegment] = useState<string | null>(null);
+  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
 
-  function handleToggle(segment: string) {
-    setExpandedSegment((prev) => (prev === segment ? null : segment));
+  function handleToggle(segment: string, el: HTMLElement) {
+    if (expandedSegment === segment) {
+      setExpandedSegment(null);
+      setAnchorEl(null);
+    } else {
+      setExpandedSegment(segment);
+      setAnchorEl(el);
+    }
   }
 
   // Bucket rows into the 6 cells.
@@ -145,7 +152,12 @@ export function RegimeQuadrant({ rows }: { rows: SegmentScore[] }) {
             cellKey={k}
             rows={buckets[k]}
             expandedSegment={expandedSegment}
+            anchorEl={anchorEl}
             onToggle={handleToggle}
+            onClose={() => {
+              setExpandedSegment(null);
+              setAnchorEl(null);
+            }}
           />
         ))}
 
@@ -159,7 +171,12 @@ export function RegimeQuadrant({ rows }: { rows: SegmentScore[] }) {
             cellKey={k}
             rows={buckets[k]}
             expandedSegment={expandedSegment}
+            anchorEl={anchorEl}
             onToggle={handleToggle}
+            onClose={() => {
+              setExpandedSegment(null);
+              setAnchorEl(null);
+            }}
           />
         ))}
       </div>
@@ -171,12 +188,16 @@ function Cell({
   cellKey,
   rows,
   expandedSegment,
+  anchorEl,
   onToggle,
+  onClose,
 }: {
   cellKey: CellKey;
   rows: SegmentScore[];
   expandedSegment: string | null;
-  onToggle: (segment: string) => void;
+  anchorEl: HTMLElement | null;
+  onToggle: (segment: string, el: HTMLElement) => void;
+  onClose: () => void;
 }) {
   return (
     <div className="min-h-[100px] rounded border border-dashed border-gray-200 bg-gray-50/50 p-2">
@@ -203,10 +224,13 @@ function Cell({
             ))}
           </div>
           {expandedSegment &&
+            anchorEl &&
             rows.some((r) => r.segment === expandedSegment) && (
               <QuadrantTickerList
                 key={expandedSegment}
                 segment={expandedSegment}
+                anchorEl={anchorEl}
+                onClose={onClose}
               />
             )}
         </>
