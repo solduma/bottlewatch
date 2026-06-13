@@ -38,7 +38,7 @@ export function ScoreboardTable({ rows }: { rows: SegmentScore[] }) {
           horizons.long?.data_completeness ??
           0,
       }))
-      .sort((a, b) => a.segment.localeCompare(b.segment));
+      .sort((a, b) => displayName(a.segment).localeCompare(displayName(b.segment)));
   }, [rows]);
 
   const [sortKey, setSortKey] = useState<SortKey>("segment");
@@ -65,13 +65,13 @@ export function ScoreboardTable({ rows }: { rows: SegmentScore[] }) {
     return [...filtered].sort((a, b) => {
       const av: number | string =
         sortKey === "segment"
-          ? a.segment
+          ? displayName(a.segment)
           : sortKey === "data_completeness"
             ? a.data_completeness
             : pickScore(a[sortKey], sortKey);
       const bv: number | string =
         sortKey === "segment"
-          ? b.segment
+          ? displayName(b.segment)
           : sortKey === "data_completeness"
             ? b.data_completeness
             : pickScore(b[sortKey], sortKey);
@@ -109,7 +109,7 @@ export function ScoreboardTable({ rows }: { rows: SegmentScore[] }) {
     <table className="w-full border-collapse text-sm">
       <thead>
         <tr className="border-b border-gray-200 bg-white text-left text-xs uppercase tracking-wide text-gray-500">
-          <th className="px-3 py-2">
+          <th className="cursor-pointer px-3 py-2" onClick={() => toggleSort("segment")}>
             <div className="flex flex-col gap-1">
               <span>Segment{arrow("segment")}</span>
               <select
