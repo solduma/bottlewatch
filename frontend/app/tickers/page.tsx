@@ -30,6 +30,21 @@ export default function TickersPage() {
   const [sortKey, setSortKey] = useState<keyof TickerRow>("segment");
   const [sortDir, setSortDir] = useState<1 | -1>(1);
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [showDropdown, setShowDropdown] = useState<boolean>(false);
+
+  // Hide dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      const searchInput = target.closest('.relative');
+      if (!searchInput) {
+        setShowDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const hits = useMemo(() => {
     if (!searchQuery.trim()) return [] as SearchHit[];
@@ -73,8 +88,10 @@ export default function TickersPage() {
         setFilterSegment(hit.segment!);
         setSearchQuery("");
       }
+      setShowDropdown(false);
     } else if (e.key === "Escape") {
       setSearchQuery("");
+      setShowDropdown(false);
     }
   }
 
@@ -247,12 +264,16 @@ export default function TickersPage() {
             type="text"
             placeholder="Search tickers, companies, segments…"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setShowDropdown(true);
+            }}
             onKeyDown={handleSearchKeyDown}
+            onFocus={() => setShowDropdown(true)}
             className="w-full rounded border border-gray-300 px-3 py-1.5 text-sm"
             aria-label="Search tickers"
           />
-          {hits.length > 0 && (
+          {showDropdown && hits.length > 0 && (
             <ul
               className="absolute z-10 mt-1 max-h-72 w-full overflow-y-auto rounded border border-gray-200 bg-white shadow-md"
               role="listbox"
@@ -269,6 +290,7 @@ export default function TickersPage() {
                         setFilterSegment(hit.segment!);
                         setSearchQuery("");
                       }
+                      setShowDropdown(false);
                     }}
                     className="block w-full px-3 py-1.5 text-left text-xs hover:bg-blue-50"
                   >
