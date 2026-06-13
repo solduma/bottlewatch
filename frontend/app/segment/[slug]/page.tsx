@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
-import type { Horizon, Regime, SegmentScore } from "../../lib/api";
-import { getSegment } from "../../lib/api";
+import type { Horizon, Regime, SegmentScore, TickerRow } from "../../lib/api";
+import { getSegment, listTickers } from "../../lib/api";
 import { RegimeBadge } from "../../components/RegimeBadge";
 import { displayName } from "../../lib/score_help";
 
@@ -68,8 +68,10 @@ export default async function SegmentDetailPage({
 }) {
   const { slug } = await params;
   let detail;
+  let tickers;
   try {
     detail = await getSegment(slug);
+    tickers = await listTickers(slug);
   } catch {
     notFound();
   }
@@ -146,6 +148,57 @@ export default async function SegmentDetailPage({
       </div>
 
       <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-gray-500">
+        Tickers
+      </h2>
+      <div className="overflow-x-auto rounded border border-gray-200 bg-white">
+        <table className="w-full text-sm">
+          <thead className="bg-gray-50 text-left text-xs uppercase tracking-wide text-gray-500">
+            <tr>
+              <th className="px-3 py-2">Ticker</th>
+              <th className="px-3 py-2">Exchange</th>
+              <th className="px-3 py-2">Name</th>
+              <th className="px-3 py-2">Subsegment</th>
+              <th className="px-3 py-2">Exposure %</th>
+              <th className="px-3 py-2">Market Cap</th>
+              <th className="px-3 py-2">Currency Hedge</th>
+              <th className="px-3 py-2">Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            {tickers.map((t) => (
+              <tr key={t.ticker} className="border-t border-gray-100">
+                <td className="px-3 py-2 font-mono font-medium">
+                  <a
+                    href={`/tickers/${t.ticker}`}
+                    className="text-blue-700 hover:underline"
+                  >
+                    {t.ticker}
+                  </a>
+                </td>
+                <td className="px-3 py-2 text-gray-700">{t.exchange}</td>
+                <td className="px-3 py-2 text-gray-700">{t.name}</td>
+                <td className="px-3 py-2 text-gray-700">
+                  {t.subsegment ?? "—"}
+                </td>
+                <td className="px-3 py-2 font-mono text-gray-700">
+                  {t.exposure_pct}%
+                </td>
+                <td className="px-3 py-2 text-gray-700">
+                  {t.market_cap_bucket}
+                </td>
+                <td className="px-3 py-2 text-gray-700">
+                  {t.currency_hedge}
+                </td>
+                <td className="px-3 py-2 text-gray-700 text-xs">
+                  {t.notes}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <h2 className="mb-2 mt-8 text-sm font-semibold uppercase tracking-wide text-gray-500">
         Recent signals
       </h2>
       <div className="overflow-x-auto rounded border border-gray-200 bg-white">
