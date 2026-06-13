@@ -9,6 +9,13 @@ import { displayName } from "../lib/score_help";
 
 type SectorFilter = "all" | "Materials" | "Hardware" | "Infrastructure" | "Downstream";
 
+interface SearchHit {
+  ticker?: string;
+  name?: string;
+  segment?: string;
+  type: "ticker" | "company" | "segment";
+}
+
 type Side = "long" | "short" | "all";
 
 export default function TickersPage() {
@@ -23,6 +30,52 @@ export default function TickersPage() {
   const [sortKey, setSortKey] = useState<keyof TickerRow>("segment");
   const [sortDir, setSortDir] = useState<1 | -1>(1);
   const [searchQuery, setSearchQuery] = useState<string>("");
+
+  const hits = useMemo(() => {
+    if (!searchQuery.trim()) return [] as SearchHit[];
+    const q = searchQuery.toLowerCase();
+    const tickerHits: SearchHit[] = [];
+    const companyHits: SearchHit[] = [];
+    const segmentHits: SearchHit[] = [];
+
+    // Ticker hits
+    for (const t of tickers) {
+      if (t.ticker.toLowerCase().includes(q)) {
+        tickerHits.push({ ticker: t.ticker, name: t.name, type: "ticker" });
+        continue;
+      }
+      if (t.name.toLowerCase().includes(q)) {
+        companyHits.push({ ticker: t.ticker, name: t.name, type: "company" });
+        continue;
+      }
+    }
+
+    // Segment hits
+    for (const s of allSegments) {
+      if (displayName(s).toLowerCase().includes(q)) {
+        segmentHits.push({ segment: s, type: "segment" });
+      }
+    }
+
+    // Combine and limit to top 8 hits
+    return [...tickerHits, ...companyHits, ...segmentHits].slice(0, 8);
+  }, [tickers, allSegments, searchQuery]);
+
+  // Handle enter key in search input to select top hit
+  function handleSearchKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === "Enter" && hits.length > 0) {
+      const hit = hits[0];
+      if (hit.type === "ticker" || hit.type === "company") {
+        // For ticker or company hits, we don't need to do anything special (the filter will show them)
+      } else if (hit.type === "segment") {
+        // For segment hits, select the segment in the filter
+        setFilterSegment(hit.segment!);
+      }
+      setSearchQuery("");
+    } else if (e.key === "Escape") {
+      setSearchQuery("");
+    }
+  }
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -194,9 +247,51 @@ export default function TickersPage() {
             placeholder="Search tickers, companies, segments…"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={handleSearchKeyDown}
             className="w-full rounded border border-gray-300 px-3 py-1.5 text-sm"
             aria-label="Search tickers"
           />
+          {hits.length > 0 && (
+            <ul
+              className="absolute z-10 mt-1 max-h-72 w-full overflow-y-auto rounded border border-gray-200 bg-white shadow-md"
+              role="listbox"
+            >
+              {hits.map((hit, idx) => (
+                <li key={`${idx}-${hit.ticker || hit.name || hit.segment}`}>
+                  <button
+                    onClick={() => {
+                      if (hit.type === "segment") {
+                        setFilterSegment(hit.segment!);
+                      }
+                      setSearchQuery("");
+                    }}
+                    className="block w-full px-3 py-1.5 text-left text-xs hover:bg-blue-50"
+                  >
+                    {hit.type === "ticker" && (
+                      <div className="flex items-center justify-between">
+                        <span className="font-mono font-medium">{hit.ticker}</span>
+                        <span className="ml-2 shrink-0 text-[10px] text-gray-400">Ticker</span>
+                      </div>
+                    )}
+                    {hit.type === "company" && (
+                      <div className="flex items-center justify-between">
+                        <span className="font-medium truncate">{hit.name}</span>
+                        <span className="ml-2 shrink-0 text-[10px] text-gray-400">
+                          {hit.ticker}
+                        </span>
+                      </div>
+                    )}
+                    {hit.type === "segment" && (
+                      <div className="flex items-center justify-between">
+                        <span className="font-medium">{displayName(hit.segment!)}</span>
+                        <span className="ml-2 shrink-0 text-[10px] text-gray-400">Segment</span>
+                      </div>
+                    )}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
 
         <div className="flex gap-1 rounded border border-gray-200 bg-white p-1 text-sm">
