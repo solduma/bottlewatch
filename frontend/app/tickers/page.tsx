@@ -329,11 +329,6 @@ export default function TickersPage() {
                       setShowDropdown(false);
                       setHighlightedIndex(-1);
                     }}
-                    className={`block w-full px-3 py-1.5 text-left text-xs ${
-                      idx === highlightedIndex
-                        ? "bg-blue-100 text-blue-800"
-                        : "hover:bg-blue-50"
-                    }`}
                   >
                     {hit.type === "ticker" && (
                       <div className="flex items-center justify-between">
