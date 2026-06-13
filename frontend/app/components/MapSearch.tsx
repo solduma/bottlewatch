@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import type { ChainNode } from "./chainLayout";
 import { useMapStore, type SectorFilter } from "../lib/store";
 import { displayName } from "../lib/score_help";
