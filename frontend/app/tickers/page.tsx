@@ -22,6 +22,7 @@ export default function TickersPage() {
   const [filterSector, setFilterSector] = useState<SectorFilter>("all");
   const [sortKey, setSortKey] = useState<keyof TickerRow>("segment");
   const [sortDir, setSortDir] = useState<1 | -1>(1);
+  const [searchQuery, setSearchQuery] = useState<string>("");
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -130,6 +131,16 @@ export default function TickersPage() {
 
   const filtered = tickers
     .filter(t => {
+      // Search filter
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase();
+        const tickerMatch = t.ticker.toLowerCase().includes(q);
+        const nameMatch = t.name.toLowerCase().includes(q);
+        const segmentMatch = displayName(t.segment).toLowerCase().includes(q);
+        if (!tickerMatch && !nameMatch && !segmentMatch) {
+          return false;
+        }
+      }
       // Sector filter
       if (filterSector !== "all") {
         const sector = segmentToSector.get(t.segment);
@@ -176,6 +187,18 @@ export default function TickersPage() {
       </div>
 
       <div className="mb-4 flex flex-wrap gap-3">
+        {/* Search input */}
+        <div className="relative flex-1 min-w-[200px]">
+          <input
+            type="text"
+            placeholder="Search tickers, companies, segments…"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full rounded border border-gray-300 px-3 py-1.5 text-sm"
+            aria-label="Search tickers"
+          />
+        </div>
+
         <div className="flex gap-1 rounded border border-gray-200 bg-white p-1 text-sm">
           {SIDE_OPTIONS.map(o => (
             <button
