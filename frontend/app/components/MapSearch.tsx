@@ -104,7 +104,6 @@ export function MapSearch({
   function handleSearchKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
     if (e.key === "Enter" && hits.length > 0) {
       onSelect(hits[0].node.id);
-      setSearchQuery("");
       setShowDropdown(false);
     } else if (e.key === "Escape") {
       setSearchQuery("");
@@ -144,7 +143,6 @@ export function MapSearch({
                     <button
                       onClick={() => {
                         onSelect(hit.node.id);
-                        setSearchQuery("");
                         setShowDropdown(false);
                       }}
                       className="block w-full px-3 py-1.5 text-left text-xs hover:bg-blue-50"
