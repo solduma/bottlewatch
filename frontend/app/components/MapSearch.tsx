@@ -47,6 +47,7 @@ export function MapSearch({
   const cohortSegment = useMapStore((s) => s.cohortSegment);
   const setCohortSegment = useMapStore((s) => s.setCohortSegment);
   const [showDropdown, setShowDropdown] = useState<boolean>(false);
+  const [highlightedIndex, setHighlightedIndex] = useState<number>(-1);
 
   // Hide dropdown when clicking outside
   useEffect(() => {
@@ -102,12 +103,39 @@ export function MapSearch({
   }, [nodes, searchQuery]);
 
   function handleSearchKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-    if (e.key === "Enter" && hits.length > 0) {
-      onSelect(hits[0].node.id);
-      setShowDropdown(false);
-    } else if (e.key === "Escape") {
-      setSearchQuery("");
-      setShowDropdown(false);
+    switch (e.key) {
+      case "Enter":
+        if (hits.length > 0 && highlightedIndex >= 0) {
+          onSelect(hits[highlightedIndex].node.id);
+          // Set search query to the selected node's display name
+          const name = displayName(hits[highlightedIndex].node.id);
+          setSearchQuery(name);
+          setShowDropdown(false);
+          setHighlightedIndex(-1);
+        } else if (hits.length > 0) {
+          onSelect(hits[0].node.id);
+          const name = displayName(hits[0].node.id);
+          setSearchQuery(name);
+          setShowDropdown(false);
+        }
+        break;
+      case "ArrowDown":
+        e.preventDefault();
+        if (hits.length > 0) {
+          setHighlightedIndex((prev) => (prev === hits.length - 1 ? 0 : prev + 1));
+        }
+        break;
+      case "ArrowUp":
+        e.preventDefault();
+        if (hits.length > 0) {
+          setHighlightedIndex((prev) => (prev <= 0 ? hits.length - 1 : prev - 1));
+        }
+        break;
+      case "Escape":
+        setSearchQuery("");
+        setShowDropdown(false);
+        setHighlightedIndex(-1);
+        break;
     }
   }
 
@@ -134,16 +162,25 @@ export function MapSearch({
               className="absolute z-10 mt-1 max-h-72 w-full overflow-y-auto rounded border border-gray-200 bg-white shadow-md"
               role="listbox"
             >
-              {hits.map((hit) => {
+              {hits.map((hit, idx) => {
                 const name = displayName(hit.node.id);
                 const sector = (hit.node.sector ?? "").replace(/Sector$/, "");
                 const displayLabel = name || hit.node.label || hit.node.id;
                 return (
                   <li key={`${hit.node.id}-${hit.matchedCompany ?? ""}`}>
                     <button
+                      className={`block w-full px-3 py-1.5 text-left text-xs ${
+                        idx === highlightedIndex
+                          ? "bg-blue-100 text-blue-800"
+                          : "hover:bg-blue-50"
+                      }`}
                       onClick={() => {
                         onSelect(hit.node.id);
+                        // Set search query to the selected node's display name
+                        const name = displayName(hit.node.id);
+                        setSearchQuery(name);
                         setShowDropdown(false);
+                        setHighlightedIndex(-1);
                       }}
                       className="block w-full px-3 py-1.5 text-left text-xs hover:bg-blue-50"
                     >

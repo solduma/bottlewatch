@@ -31,6 +31,7 @@ export default function TickersPage() {
   const [sortDir, setSortDir] = useState<1 | -1>(1);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [showDropdown, setShowDropdown] = useState<boolean>(false);
+  const [highlightedIndex, setHighlightedIndex] = useState<number>(-1);
 
   // Hide dropdown when clicking outside
   useEffect(() => {
@@ -78,20 +79,50 @@ export default function TickersPage() {
 
   // Handle enter key in search input to select top hit
   function handleSearchKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-    if (e.key === "Enter" && hits.length > 0) {
-      const hit = hits[0];
-      if (hit.type === "ticker") {
-        setSearchQuery(hit.ticker!);
-      } else if (hit.type === "company") {
-        setSearchQuery(hit.name!);
-      } else if (hit.type === "segment") {
-        setFilterSegment(hit.segment!);
+    switch (e.key) {
+      case "Enter":
+        if (hits.length > 0 && highlightedIndex >= 0) {
+          const hit = hits[highlightedIndex];
+          if (hit.type === "ticker") {
+            setSearchQuery(hit.ticker!);
+          } else if (hit.type === "company") {
+            setSearchQuery(hit.name!);
+          } else if (hit.type === "segment") {
+            setFilterSegment(hit.segment!);
+            setSearchQuery("");
+          }
+          setShowDropdown(false);
+          setHighlightedIndex(-1);
+        } else if (hits.length > 0) {
+          const hit = hits[0];
+          if (hit.type === "ticker") {
+            setSearchQuery(hit.ticker!);
+          } else if (hit.type === "company") {
+            setSearchQuery(hit.name!);
+          } else if (hit.type === "segment") {
+            setFilterSegment(hit.segment!);
+            setSearchQuery("");
+          }
+          setShowDropdown(false);
+        }
+        break;
+      case "ArrowDown":
+        e.preventDefault();
+        if (hits.length > 0) {
+          setHighlightedIndex((prev) => (prev === hits.length - 1 ? 0 : prev + 1));
+        }
+        break;
+      case "ArrowUp":
+        e.preventDefault();
+        if (hits.length > 0) {
+          setHighlightedIndex((prev) => (prev <= 0 ? hits.length - 1 : prev - 1));
+        }
+        break;
+      case "Escape":
         setSearchQuery("");
-      }
-      setShowDropdown(false);
-    } else if (e.key === "Escape") {
-      setSearchQuery("");
-      setShowDropdown(false);
+        setShowDropdown(false);
+        setHighlightedIndex(-1);
+        break;
     }
   }
 
@@ -281,6 +312,11 @@ export default function TickersPage() {
               {hits.map((hit, idx) => (
                 <li key={`${idx}-${hit.ticker || hit.name || hit.segment}`}>
                   <button
+                    className={`block w-full px-3 py-1.5 text-left text-xs ${
+                      idx === highlightedIndex
+                        ? "bg-blue-100 text-blue-800"
+                        : "hover:bg-blue-50"
+                    }`}
                     onClick={() => {
                       if (hit.type === "ticker") {
                         setSearchQuery(hit.ticker!);
@@ -291,6 +327,7 @@ export default function TickersPage() {
                         setSearchQuery("");
                       }
                       setShowDropdown(false);
+                      setHighlightedIndex(-1);
                     }}
                     className="block w-full px-3 py-1.5 text-left text-xs hover:bg-blue-50"
                   >
