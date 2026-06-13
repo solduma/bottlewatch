@@ -65,13 +65,14 @@ export default function TickersPage() {
   function handleSearchKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
     if (e.key === "Enter" && hits.length > 0) {
       const hit = hits[0];
-      if (hit.type === "ticker" || hit.type === "company") {
-        // For ticker or company hits, we don't need to do anything special (the filter will show them)
+      if (hit.type === "ticker") {
+        setSearchQuery(hit.ticker!);
+      } else if (hit.type === "company") {
+        setSearchQuery(hit.name!);
       } else if (hit.type === "segment") {
-        // For segment hits, select the segment in the filter
         setFilterSegment(hit.segment!);
+        setSearchQuery("");
       }
-      setSearchQuery("");
     } else if (e.key === "Escape") {
       setSearchQuery("");
     }
@@ -260,10 +261,14 @@ export default function TickersPage() {
                 <li key={`${idx}-${hit.ticker || hit.name || hit.segment}`}>
                   <button
                     onClick={() => {
-                      if (hit.type === "segment") {
+                      if (hit.type === "ticker") {
+                        setSearchQuery(hit.ticker!);
+                      } else if (hit.type === "company") {
+                        setSearchQuery(hit.name!);
+                      } else if (hit.type === "segment") {
                         setFilterSegment(hit.segment!);
+                        setSearchQuery("");
                       }
-                      setSearchQuery("");
                     }}
                     className="block w-full px-3 py-1.5 text-left text-xs hover:bg-blue-50"
                   >
