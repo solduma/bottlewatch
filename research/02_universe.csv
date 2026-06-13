@@ -130,3 +130,130 @@ EMR,NYSE,Emerson Electric,transformers_tnd,industrial_automation,20,mega,8000000
 ROK,NASDAQ,Rockwell Automation,power_generation_oem,industrial_automation,15,mid,35000000000,USD,Factory automation; 15% DC
 AQN,NYSE,Algonquin Power,power_generation_oem,regulated_utility,20,small,5000000000,USD,Canadian utility w/ US data center growth; 20% DC
 BIP,NYSE,Brookfield Infrastructure,power_generation_oem,infrastructure,15,mid,15000000000,USD,Data center + utility; 15% direct
+CARR,NYSE,Carrier Global,cool_chillers,chillers_cdu,60,mega,45000000000,USD,Chillers + data center cooling; ~60% AI/DC revenue
+JCI,NYSE,Johnson Controls,cool_chillers,chillers_cdu,55,mega,50000000000,USD,YORK chillers + building automation; 55% AI/DC
+FLS,NYSE,Flowserve,cool_pumps,industrial_pumps,40,large,35000000000,USD,Pumps, valves, seals; 40% AI/DC exposure
+MWA,NYSE,Mueller Water Products,cool_pumps,water_pumps,30,mid,5000000000,USD,Water infrastructure + pumps; 30% DC
+PNR,NYSE,Pentair,cool_pumps,water_pumps,25,mid,10000000000,USD,Water filtration + pumps; 25% DC
+VIE.PA,EPA,Veolia Environment,cool_water_treatment,water_treatment,30,mega,40000000000,manual FX 6M,Water and wastewater services; hyperscaler partnerships; 30% AI/DC
+PNR,NYSE,Pentair,cool_water_treatment,water_filtration,20,mid,10000000000,USD,Water filtration and treatment; 20% DC
+ECL,NYSE,Ecolab,fab_process_chemicals,process_chemicals,20,large,80000000000,USD,Water treatment chemicals for fabs; 20% semi/AI
+DOW,NYSE,Dow Inc,fab_process_chemicals,process_chemicals,15,mid,28000000000,USD,Industrial chemicals for fabs; 15% semi/AI
+LIN,NASDAQ,Linde plc,fab_utilities,industrial_gases,40,mega,210000000000,USD,Industrial gases (helium-3/neon) for fabs; 40% semi/AI
+APD,NYSE,Air Products & Chemicals,fab_utilities,industrial_gases,35,large,65000000000,USD,Hydrogen + industrial gas for fabs; 35% semi/AI
+SNPS,NASDAQ,Synopsys,sil_ip_eda,eda_tools,95,mega,60000000000,USD,EDA tool and IP leader; 95% semi/AI revenue
+CDNS,NASDAQ,Cadence Design Systems,sil_ip_eda,eda_tools,90,mega,55000000000,USD,EDA tool leader; 90% semi/AI revenue
+ARM,NASDAQ,Arm Holdings,sil_ip_eda,ip_cores,100,mega,65000000000,USD,Arm IP cores for AI chips; 100% IP revenue
+ANSS,NASDAQ,Ansys,sil_ip_eda,simulation,70,large,40000000000,USD,Simulation software; 70% semi/AI
+SHECY,OTCQX,Shin-Etsu Chemical,mat_silicon_wafers,silicon_wafers,40,mega,80000000000,USD proxy: SOXX,Silicon wafer monopoly; 40% AI/semi
+3436.TSE,TSE,Sumco,mat_silicon_wafers,silicon_wafers,70,mid,7500000000,USD proxy: SOXX,300mm wafer #2; 70% AI exposure
+DUFPY,OTCQX,DuPont de Nemours,mat_photoresist,photoresist,30,large,35000000000,USD,Photoresists for advanced nodes; ~30% AI
+AZO,NYSE,AZ Electronics,mat_photoresist,photoresist,25,mid,15000000000,USD,Photoresist and semiconductor materials; 25% AI
+AMAT,NASDAQ,Applied Materials,mat_cmp_slurries,cmp_slurries,20,large,150000000000,USD,CMP slurries for advanced nodes; 20% AI/semi
+ENTG,NASDAQ,Entegris,mat_cmp_slurries,cmp_slurries,30,mid,18000000000,USD,CMP slurries and materials; 30% AI/semi
+LIN,NASDAQ,Linde plc,mat_process_gases,process_gases,35,mega,210000000000,USD,Industrial gases for fabs; 35% semi/AI
+APD,NYSE,Air Products & Chemicals,mat_process_gases,process_gases,30,large,65000000000,USD,Industrial gases for fabs; 30% semi/AI
+SMCI,NASDAQ,Super Micro Computer,sys_chassis,server_chassis,90,mid,30000000000,USD,AI server pure-play; 90% revenue AI/accelerator
+DELL,NYSE,Dell Technologies,sys_chassis,server_chassis,40,mid,80000000000,USD,PowerEdge server chassis; 40% AI
+HPE,NYSE,Hewlett Packard Enterprise,sys_chassis,server_chassis,40,mid,30000000000,USD,ProLiant server chassis; 40% AI server
+MPWR,NASDAQ,Monolithic Power Systems,sys_psu,power_supply,75,large,45000000000,USD,On-package power delivery; 75% AI/DC
+ON,NASDAQ,onsemi,sys_psu,power_semi,40,mid,25000000000,USD,SiC power for servers; 40% AI/DC
+IFNNY,OTCQX,Infineon Technologies,sys_psu,power_semi,30,large,55000000000,manual FX 6M,Power semis for servers; 30% AI/DC
+2382.TW,TWSE,Quanta Computer,systems_oem_odm,odm_server,85,large,39000000000,manual FX 6M,ODM leader for AI racks; 85% AI
+2317.TW,TWSE,Hon Hai (Foxconn),systems_oem_odm,odm_server,40,mega,150000000000,manual FX 6M,EMS leader; 40% AI server
+3231.TW,TWSE,Wistron,systems_oem_odm,odm_server,60,large,15000000000,manual FX 6M,AI server ODM; 60% AI
+4938.TW,TWSE,Wiwynn,systems_oem_odm,odm_server,75,mid,8000000000,manual FX 6M,White-box server ODM; 75% AI
+FCX,NYSE,Freeport-McMoRan,tnd_copper,copper,30,large,60000000000,USD,World's largest copper; 30% electrification/AI
+SCCO,NYSE,Southern Copper,tnd_copper,copper,30,large,80000000000,USD,Pure copper; 30% electrification/AI
+CLF,NYSE,Cleveland-Cliffs,tnd_electrical_steel,electrical_steel,40,mid,8000000000,USD,GOES electrical steel; 40% AI/grid
+NUE,NYSE,Nucor,tnd_electrical_steel,electrical_steel,10,mid,35000000000,USD,Steel mini-mill; 10% AI/grid
+DOW,NYSE,Dow Inc,tnd_insulation,insulation,15,mid,28000000000,USD,Insulation materials for transformers; 15% AI/grid
+PPG,NYSE,PPG Industries,tnd_insulation,insulation,10,mid,30000000000,USD,Insulation and coatings; 10% AI/grid
+ETN,NYSE,Eaton Corporation,rack_busbars,busbars,30,mega,180000000000,USD,Power management (busways, switchgear); 30% AI/DC
+SU,NYSE,Schneider Electric,rack_busbars,busbars,25,large,200000000000,manual FX 6M,Energy management + busbars; 25% AI/DC
+VRT,NYSE,Vertiv Holdings,rack_cdu,cdu,75,large,120000000000,USD,Pure-play DC power + thermal; 75% AI hyperscale
+SU.PA,EPA,Schneider Electric SE,rack_cdu,cdu,15,large,200000000000,manual FX 6M,Cooling and CDU solutions; 15% AI/DC
+MU,NASDAQ,Micron Technology,hbm_dram_platform,hbm_dram,75,large,170000000000,USD,HBM segment ~$15-20B FY26E; 75% HBM revenue
+000660.KS,KRX,SK hynix,hbm_dram_platform,hbm_dram,85,large,95500000000,unhedged,Local KRX primary; HBM leader ~52-57% share
+005930.KS,KRX,Samsung Electronics,hbm_dram_platform,hbm_dram,30,mega,416000000000,USD proxy: SOXX,HBM ~20-24% market share; 30% memory + foundry AI
+AMAT,NASDAQ,Applied Materials,hbm_tsv_equipment,tsv_equipment,25,large,150000000000,USD,TSV and HBM stacking equipment; 25% AI/semi
+LRCX,NASDAQ,Lam Research,hbm_tsv_equipment,tsv_equipment,20,large,130000000000,USD,Plasma etch for TSV; 20% AI/semi
+KLAC,NASDAQ,KLA Corporation,hbm_tsv_equipment,tsv_equipment,15,large,120000000000,USD,Process control for TSV; 15% AI/semi
+MSFT,NASDAQ,Microsoft,inf_enterprise_saas,enterprise_saas,30,mega,3500000000000,USD,Azure AI + Microsoft 365; 30% AI revenue
+GOOGL,NASDAQ,Alphabet Class A,inf_enterprise_saas,enterprise_saas,25,mega,2100000000000,USD,Google Cloud + Workspace; 25% AI revenue
+CRM,NYSE,Salesforce,inf_enterprise_saas,enterprise_saas,40,large,350000000000,USD,CRM + AI cloud; 40% AI revenue
+CRDO,NASDAQ,CoreWeave,inf_neocloud,neocloud,95,mid,40000000000,USD,Neocloud pure-play; 95% AI GPU cloud
+NBIS,OTCQX,Nebius Group,inf_neocloud,neocloud,90,small,15000000000,USD,Neocloud (Helsinki/Israel/US); 90% AI
+IREN,OTCQX,Iren Ltd,inf_neocloud,neocloud,75,small,3000000000,USD,BTC mining + AI/HPC pivot; 75% AI/HPC
+NVDA,NASDAQ,NVIDIA,inference_at_scale,inference_gpu,95,mega,4500000000000,USD,Datacenter >88% of revenue; AI inference monopoly
+AMD,NASDAQ,Advanced Micro Devices,inference_at_scale,inference_gpu,55,mega,330000000000,USD,MI300/MI350 for inference; 55% AI
+GOOG,NASDAQ,Alphabet,inference_at_scale,custom_asic_tpu,30,mega,2100000000000,USD,TPU v6/v7 for inference; 30% AI capex
+TTM,NYSE,TTM Technologies,net_high_speed_pcb,high_speed_pcb,40,mid,10000000000,USD,High-speed PCB for data centers; 40% AI/DC
+SLAB,NYSE,Sanmina,net_high_speed_pcb,high_speed_pcb,30,mid,5000000000,USD,EMS + high-speed PCB; 30% AI/DC
+COHR,NASDAQ,Coherent,net_optical_transceivers,optical_transceiver,70,mid,15000000000,USD,800G/1.6T transceivers; 200G/lane VCSEL/EML
+LITE,NASDAQ,Lumentum,net_optical_transceivers,optical_transceiver,55,mid,7000000000,USD,800G/1.6T + InP/SiPh; Cloud Light acquisition
+INFN,NASDAQ,Infinera,net_optical_transceivers,optical_transceiver,55,mid,2500000000,USD,Optical transport + 1.6T pluggables; 55% AI/cloud DCI
+AVGO,NASDAQ,Broadcom,net_switch_asics,switch_asic,50,mega,1100000000000,USD,Tomahawk/Jericho Ethernet switch ASICs; 50% AI/DC
+MRVL,NASDAQ,Marvell Technology,net_switch_asics,switch_asic,40,mid,65000000000,USD,ThunderX3 switch ASICs; 40% AI/DC
+SHECY,OTCQX,Shin-Etsu Chemical,semiconductor_materials,silicon_wafers,40,mega,80000000000,USD proxy: SOXX,Silicon wafer monopoly; 40% AI/semi
+ENTG,NASDAQ,Entegris,semiconductor_materials,process_materials,60,mid,18000000000,USD,Filtration/chemicals/materials for advanced nodes; 60% AI/semi
+DUFPY,OTCQX,DuPont de Nemours,semiconductor_materials,photoresist,30,large,35000000000,USD,Photoresists for advanced nodes; ~30% AI
+NEE,NYSE,NextEra Energy,fuel_renewables,renewable_power,100,mega,160000000000,USD,Largest US renewable energy producer; 100% renewables
+ENPH,NASDAQ,Enphase Energy,fuel_renewables,solar_inverters,90,mid,20000000000,USD,Solar microinverters; 90% solar revenue
+SEDG,NASDAQ,SolarEdge Technologies,fuel_renewables,solar_inverters,85,mid,15000000000,USD,Solar inverters + storage; 85% solar
+SPWR,NASDAQ,SunPower,fuel_renewables,solar_modules,80,mid,8000000000,USD,Solar modules + systems; 80% solar
+FSLR,NASDAQ,First Solar,fuel_renewables,solar_modules,90,large,25000000000,USD,Thin-film solar modules; 90% solar
+VWS,OTCQX,Vestas Wind Systems,gen_wind,wind_turbines,90,mega,40000000000,manual FX 6M,Wind turbine leader; 90% wind
+ENR.DE,XETRA,Siemens Energy,gen_wind,wind_turbines,25,large,140000000000,manual FX 6M,Wind turbines + grid; 25% wind
+BHP,NYSE,BHP Group,fuel_mining,coal_mining,20,mega,150000000000,USD proxy: SOXX,Coal + copper + iron ore; 20% coal
+RIO,NYSE,Rio Tinto,fuel_mining,coal_mining,10,mega,120000000000,USD proxy: SOXX,Iron ore + coal; 10% coal
+XOM,NYSE,ExxonMobil,fuel_oil_gas,oil_gas,100,mega,500000000000,USD,Global oil major; 100% oil/gas
+CVX,NYSE,Chevron,fuel_oil_gas,oil_gas,100,mega,280000000000,USD,Global oil major; 100% oil/gas
+NGG,NYSE,NextEra Energy Partners,fuel_power_inputs,natural_gas,80,mid,20000000000,USD,Natural gas power generation; 80% gas
+D,NYSE, Dominion Energy,fuel_power_inputs,natural_gas,60,large,50000000000,USD,Natural gas + utilities; 60% gas
+BWXT,NASDAQ,BWX Technologies,gen_smr,smr,70,mid,13000000000,USD,SMR + naval nuclear; 70% AI/DC
+CCJ,NYSE,Cameco,gen_smr,uranium,90,mid,30000000000,USD,Leading uranium producer; 90% of revenue from uranium
+CCJ,NYSE,Cameco,fuel_uranium,uranium,90,mid,30000000000,USD,Leading uranium producer; 90% of revenue from uranium
+DNN,AMEX,Denison Mines,fuel_uranium,uranium,95,small,3000000000,USD,Pure-play uranium; 95% uranium exposure
+CCJ,NYSE,Cameco,raw_nuclear_fuel,nuclear_fuel,90,mid,30000000000,USD,Leading uranium producer; 90% of revenue from uranium
+DNN,AMEX,Denison Mines,raw_nuclear_fuel,nuclear_fuel,95,small,3000000000,USD,Pure-play uranium; 95% uranium exposure
+BHP,NYSE,BHP Group,raw_inputs,raw_commodities,30,mega,150000000000,USD proxy: SOXX,Copper + iron ore + coal; 30% AI-relevant commodities
+RIO,NYSE,Rio Tinto,raw_inputs,raw_commodities,25,mega,120000000000,USD proxy: SOXX,Iron ore + copper; 25% AI-relevant commodities
+BHP,NYSE,BHP Group,raw_mining,mining,30,mega,150000000000,USD proxy: SOXX,Copper + iron ore + coal mining; 30% AI-relevant mining
+RIO,NYSE,Rio Tinto,raw_mining,mining,25,mega,120000000000,USD proxy: SOXX,Iron ore + copper mining; 25% AI-relevant mining
+XOM,NYSE,ExxonMobil,raw_oil_gas,oil_gas,100,mega,500000000000,USD,Global oil major; 100% oil/gas
+CVX,NYSE,Chevron,raw_oil_gas,oil_gas,100,mega,280000000000,USD,Global oil major; 100% oil/gas
+XYL,NYSE,Xylem,raw_water_utilities,water_utility,30,mid,40000000000,USD,Water pumps + smart metering; 30% DC water
+WTS,NYSE,Watts Water Technologies,raw_water_utilities,water_utility,20,small,7000000000,USD,Water systems; 20% DC
+GEV,NYSE,GE Vernova,gen_gas_turbines,gas_turbines,85,large,160000000000,USD,Gas power + grid + wind; 85% AI-driven
+ENR,OTCQX,Siemens Energy,gen_gas_turbines,gas_turbines,75,large,140000000000,manual FX 6M,Gas turbine + grid; ~EUR125B backlog
+MPWR,NASDAQ,Monolithic Power Systems,sil_power_delivery,power_delivery,75,large,45000000000,USD,On-package power delivery for AI GPUs/HBM; 75% AI
+ON,NASDAQ,onsemi,sil_power_delivery,power_semi,40,mid,25000000000,USD,SiC power for data center + EV; 40% AI/DC
+EQIX,NASDAQ,Equinix,shell_colo_reits,colocation,100,large,80000000000,USD,Pure-play colocation REIT; $80B EV; 100% IDC
+DLR,NYSE,Digital Realty Trust,shell_colo_reits,colocation,100,large,53000000000,USD,Pure-play colocation REIT; 100% IDC
+AMT,NYSE,American Tower,shell_colo_reits,tower_ma,30,mega,100000000000,USD,Primarily cell towers; ~30% DC (CoreSite)
+CCI,NYSE,Crown Castle,shell_dark_fiber,dark_fiber,10,mid,40000000000,USD,Fiber + towers; small DC exposure
+Zayo Holdings,NYSE,ZAYO,shell_dark_fiber,dark_fiber,80,mid,15000000000,USD,Dark fiber + data center connectivity; 80% fiber
+REXR,NYSE,Rexford Industrial Realty,shell_land_reits,industrial_reit,30,mid,13000000000,USD,LA/SoCal industrial REIT with data center adjacency
+MP,NYSE,MP Materials,gen_rare_earths,rare_earths,40,mid,8000000000,USD,US rare earth mining + magnets; 40% AI/electrification
+LYSCF,OTCQX,Lynas Rare Earths,gen_rare_earths,rare_earths,90,mid,5000000000,USD,Australian rare earths; 90% rare earths
+SPWR,NASDAQ,SunPower,gen_solar,solar_modules,80,mid,8000000000,USD,Solar modules + systems; 80% solar
+FSLR,NASDAQ,First Solar,gen_solar,solar_modules,90,large,25000000000,USD,Thin-film solar modules; 90% solar
+FE,NYSE,FirstEnergy,td_utilities,regulated_utility,25,mid,28000000000,USD,T&D utility OH/PA/NJ; 25% AI/DC load growth
+NEE,NYSE,NextEra Energy,td_utilities,regulated_utility,30,mega,160000000000,USD,Largest US utility; ~30% data center load growth
+2324.TW,TWSE,Unimicron Technology,pkg_substrates,abf_substrates,80,mid,15000000000,manual FX 6M,Taiwanese packaging substrate leader; 80% advanced packaging
+6976.TYO,TSE,Ibiden,pkg_substrates,abf_substrates,70,mid,10000000000,USD proxy: SOXX,Japanese packaging substrate supplier; 70% advanced packaging
+TANAKA,OTCQX,Tanaka Holdings,pkg_ubm,ubm_bonding,85,mid,8000000000,manual FX 6M,Japanese UBM and bonding wire leader; 85% advanced packaging
+ASML,NASDAQ,ASML Holding,front_end_equipment,euv,100,mega,290000000000,USD,Monopoly EUV + High-NA EUV; 100% advanced node
+AMAT,NASDAQ,Applied Materials,front_end_equipment,deposition,55,large,150000000000,USD,Deposition/etch/inspection; 55% AI/semi mix
+LRCX,NASDAQ,Lam Research,front_end_equipment,etch,75,large,130000000000,USD,Plasma etch monopoly for advanced nodes + 3D NAND; 75% AI/semi
+KLAC,NASDAQ,KLA Corporation,front_end_equipment,process_control,80,large,120000000000,USD,Process control monopoly for sub-7nm; 80% AI/semi
+8035.TSE,TSE,Tokyo Electron,front_end_equipment,coater_developer,75,large,125000000000,USD proxy: SOXX,Coater/developer monopoly for EUV; 75% AI/semi
+FERC,OTCQX,Federal Energy Regulatory Commission,util_regulators,regulatory,100,gov,0,USD,US federal energy regulator; 100% regulatory
+NARUC,OTCQX,National Association of Regulatory Utility Commissioners,util_regulators,regulatory,100,gov,0,USD,State utility regulators association; 100% regulatory
+COHR,NASDAQ,Coherent,fee_optical_components,optical_components,40,mid,15000000000,USD,Optical components for lithography; 40% semi
+LITE,NASDAQ,Lumentum,fee_optical_components,optical_components,35,mid,7000000000,USD,Optical components for lithography; 35% semi
+EDN,OTCQX,Edwards Vacuum,fee_vacuum_pumps,vacuum_pumps,90,mid,10000000000,manual FX 6M,Vacuum pump leader for fabs; 90% semi
+PFEI,OTCQX,Pfeiffer Vacuum,fee_vacuum_pumps,vacuum_pumps,85,mid,5000000000,manual FX 6M,German vacuum pump supplier; 85% semi
+AMAT,NASDAQ,Applied Materials,fee_vacuum_robotics,vacuum_robotics,15,large,150000000000,USD,Vacuum robotics for fabs; 15% AI/semi
+7733.TSE,TSE,Nidec,fee_vacuum_robotics,vacuum_robotics,20,large,50000000000,USD proxy: SOXX,Japanese vacuum robotics supplier; 20% semi
