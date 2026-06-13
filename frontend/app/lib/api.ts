@@ -25,6 +25,7 @@ export interface SegmentScore {
   regime_confidence: RegimeConfidence;
   data_completeness: number;
   computed_at: string;
+  sector: string;  // new field
 }
 
 export interface SignalRow {
@@ -145,6 +146,7 @@ export const getScoreHistoryBatched = (
 
 export interface TickerDetailSegment {
   segment: string;
+  name: string;
   subsegment: string | null;
   exposure_pct: number;
   regime_near: string | null;
@@ -181,6 +183,7 @@ export interface MapNode {
   regime: string | null;
   score: number | null;
   momentum: number | null;
+  companies: string[];
 }
 
 // The /api/v1/map endpoint returns edges with `from`/`to` (the
@@ -225,6 +228,13 @@ export interface MapNodeDetail {
 
 export const getMapNode = (slug: string): Promise<MapNodeDetail> =>
   get(`/api/v1/map/${encodeURIComponent(slug)}`);
+
+export interface MapResponse {
+  nodes: MapNode[];
+  edges: ValueChainEdge[];
+}
+
+export const getMap = (): Promise<MapResponse> => get(`/api/v1/map`);
 
 export interface ThesisRow {
   id: number;

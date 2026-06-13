@@ -59,5 +59,329 @@
     "geo_concentration": 0.35,
     "regulatory_friction": 0.67,
     "demand_signal": 0.80
+  },
+  "raw_inputs": {
+    "lead_time_growth": 0.40,
+    "geo_concentration": 0.25,
+    "regulatory_friction": 0.33,
+    "demand_signal": 0.60
+  },
+  "fuel_power_inputs": {
+    "lead_time_growth": 0.50,
+    "geo_concentration": 0.30,
+    "regulatory_friction": 0.40,
+    "demand_signal": 0.65
+  },
+  "td_utilities": {
+    "lead_time_growth": 0.60,
+    "geo_concentration": 0.20,
+    "regulatory_friction": 0.75,
+    "demand_signal": 0.70
+  },
+  "semiconductor_materials": {
+    "lead_time_growth": 0.75,
+    "geo_concentration": 0.60,
+    "regulatory_friction": 0.45,
+    "demand_signal": 0.85
+  },
+  "inference_at_scale": {
+    "lead_time_growth": 0.90,
+    "geo_concentration": 0.35,
+    "regulatory_friction": 0.30,
+    "demand_signal": 0.95
+  },
+  "cool_chillers": {
+    "lead_time_growth": 0.45,
+    "geo_concentration": 0.35,
+    "regulatory_friction": 0.40,
+    "demand_signal": 0.65
+  },
+  "cool_pumps": {
+    "lead_time_growth": 0.40,
+    "geo_concentration": 0.30,
+    "regulatory_friction": 0.35,
+    "demand_signal": 0.60
+  },
+  "cool_water_treatment": {
+    "lead_time_growth": 0.42,
+    "geo_concentration": 0.32,
+    "regulatory_friction": 0.45,
+    "demand_signal": 0.62
+  },
+  "fab_process_chemicals": {
+    "lead_time_growth": 0.65,
+    "geo_concentration": 0.55,
+    "regulatory_friction": 0.50,
+    "demand_signal": 0.75
+  },
+  "fab_utilities": {
+    "lead_time_growth": 0.48,
+    "geo_concentration": 0.38,
+    "regulatory_friction": 0.42,
+    "demand_signal": 0.68
+  },
+  "fee_optical_components": {
+    "lead_time_growth": 0.70,
+    "geo_concentration": 0.50,
+    "regulatory_friction": 0.35,
+    "demand_signal": 0.80
+  },
+  "fee_vacuum_pumps": {
+    "lead_time_growth": 0.68,
+    "geo_concentration": 0.48,
+    "regulatory_friction": 0.40,
+    "demand_signal": 0.78
+  },
+  "fee_vacuum_robotics": {
+    "lead_time_growth": 0.72,
+    "geo_concentration": 0.52,
+    "regulatory_friction": 0.38,
+    "demand_signal": 0.82
+  },
+  "front_end_equipment": {
+    "lead_time_growth": 0.85,
+    "geo_concentration": 0.65,
+    "regulatory_friction": 0.55,
+    "demand_signal": 0.90
+  },
+  "fuel_mining": {
+    "lead_time_growth": 0.35,
+    "geo_concentration": 0.25,
+    "regulatory_friction": 0.45,
+    "demand_signal": 0.55
+  },
+  "fuel_oil_gas": {
+    "lead_time_growth": 0.38,
+    "geo_concentration": 0.28,
+    "regulatory_friction": 0.42,
+    "demand_signal": 0.58
+  },
+  "fuel_renewables": {
+    "lead_time_growth": 0.55,
+    "geo_concentration": 0.35,
+    "regulatory_friction": 0.25,
+    "demand_signal": 0.70
+  },
+  "fuel_uranium": {
+    "lead_time_growth": 0.40,
+    "geo_concentration": 0.30,
+    "regulatory_friction": 0.60,
+    "demand_signal": 0.50
+  },
+  "gen_gas_turbines": {
+    "lead_time_growth": 0.60,
+    "geo_concentration": 0.40,
+    "regulatory_friction": 0.50,
+    "demand_signal": 0.75
+  },
+  "gen_rare_earths": {
+    "lead_time_growth": 0.75,
+    "geo_concentration": 0.85,
+    "regulatory_friction": 0.65,
+    "demand_signal": 0.80
+  },
+  "gen_smr": {
+    "lead_time_growth": 0.95,
+    "geo_concentration": 0.45,
+    "regulatory_friction": 0.70,
+    "demand_signal": 0.95
+  },
+  "gen_solar": {
+    "lead_time_growth": 0.50,
+    "geo_concentration": 0.35,
+    "regulatory_friction": 0.30,
+    "demand_signal": 0.85
+  },
+  "gen_wind": {
+    "lead_time_growth": 0.48,
+    "geo_concentration": 0.32,
+    "regulatory_friction": 0.35,
+    "demand_signal": 0.82
+  },
+  "hbm_dram_platform": {
+    "lead_time_growth": 0.80,
+    "geo_concentration": 0.60,
+    "regulatory_friction": 0.45,
+    "demand_signal": 0.90
+  },
+  "hbm_tsv_equipment": {
+    "lead_time_growth": 0.82,
+    "geo_concentration": 0.62,
+    "regulatory_friction": 0.48,
+    "demand_signal": 0.92
+  },
+  "inf_enterprise_saas": {
+    "lead_time_growth": 0.65,
+    "geo_concentration": 0.45,
+    "regulatory_friction": 0.30,
+    "demand_signal": 0.85
+  },
+  "inf_neocloud": {
+    "lead_time_growth": 0.70,
+    "geo_concentration": 0.50,
+    "regulatory_friction": 0.35,
+    "demand_signal": 0.90
+  },
+  "mat_cmp_slurries": {
+    "lead_time_growth": 0.68,
+    "geo_concentration": 0.58,
+    "regulatory_friction": 0.55,
+    "demand_signal": 0.80
+  },
+  "mat_photoresist": {
+    "lead_time_growth": 0.72,
+    "geo_concentration": 0.62,
+    "regulatory_friction": 0.60,
+    "demand_signal": 0.85
+  },
+  "mat_process_gases": {
+    "lead_time_growth": 0.60,
+    "geo_concentration": 0.50,
+    "regulatory_friction": 0.45,
+    "demand_signal": 0.75
+  },
+  "mat_silicon_wafers": {
+    "lead_time_growth": 0.75,
+    "geo_concentration": 0.65,
+    "regulatory_friction": 0.55,
+    "demand_signal": 0.88
+  },
+  "net_high_speed_pcb": {
+    "lead_time_growth": 0.55,
+    "geo_concentration": 0.45,
+    "regulatory_friction": 0.40,
+    "demand_signal": 0.78
+  },
+  "net_optical_transceivers": {
+    "lead_time_growth": 0.68,
+    "geo_concentration": 0.58,
+    "regulatory_friction": 0.45,
+    "demand_signal": 0.82
+  },
+  "net_switch_asics": {
+    "lead_time_growth": 0.70,
+    "geo_concentration": 0.60,
+    "regulatory_friction": 0.48,
+    "demand_signal": 0.85
+  },
+  "pkg_substrates": {
+    "lead_time_growth": 0.65,
+    "geo_concentration": 0.55,
+    "regulatory_friction": 0.50,
+    "demand_signal": 0.80
+  },
+  "pkg_ubm": {
+    "lead_time_growth": 0.60,
+    "geo_concentration": 0.50,
+    "regulatory_friction": 0.45,
+    "demand_signal": 0.75
+  },
+  "rack_busbars": {
+    "lead_time_growth": 0.50,
+    "geo_concentration": 0.40,
+    "regulatory_friction": 0.45,
+    "demand_signal": 0.70
+  },
+  "rack_cdu": {
+    "lead_time_growth": 0.52,
+    "geo_concentration": 0.42,
+    "regulatory_friction": 0.48,
+    "demand_signal": 0.72
+  },
+  "raw_mining": {
+    "lead_time_growth": 0.32,
+    "geo_concentration": 0.22,
+    "regulatory_friction": 0.40,
+    "demand_signal": 0.52
+  },
+  "raw_nuclear_fuel": {
+    "lead_time_growth": 0.35,
+    "geo_concentration": 0.25,
+    "regulatory_friction": 0.65,
+    "demand_signal": 0.48
+  },
+  "raw_oil_gas": {
+    "lead_time_growth": 0.30,
+    "geo_concentration": 0.20,
+    "regulatory_friction": 0.35,
+    "demand_signal": 0.50
+  },
+  "raw_water_utilities": {
+    "lead_time_growth": 0.38,
+    "geo_concentration": 0.28,
+    "regulatory_friction": 0.55,
+    "demand_signal": 0.55
+  },
+  "shell_colo_reits": {
+    "lead_time_growth": 0.45,
+    "geo_concentration": 0.35,
+    "regulatory_friction": 0.60,
+    "demand_signal": 0.70
+  },
+  "shell_dark_fiber": {
+    "lead_time_growth": 0.42,
+    "geo_concentration": 0.32,
+    "regulatory_friction": 0.55,
+    "demand_signal": 0.68
+  },
+  "shell_land_reits": {
+    "lead_time_growth": 0.40,
+    "geo_concentration": 0.30,
+    "regulatory_friction": 0.65,
+    "demand_signal": 0.65
+  },
+  "sil_ip_eda": {
+    "lead_time_growth": 0.75,
+    "geo_concentration": 0.65,
+    "regulatory_friction": 0.40,
+    "demand_signal": 0.88
+  },
+  "sil_power_delivery": {
+    "lead_time_growth": 0.65,
+    "geo_concentration": 0.55,
+    "regulatory_friction": 0.45,
+    "demand_signal": 0.82
+  },
+  "sys_chassis": {
+    "lead_time_growth": 0.48,
+    "geo_concentration": 0.38,
+    "regulatory_friction": 0.35,
+    "demand_signal": 0.70
+  },
+  "sys_psu": {
+    "lead_time_growth": 0.45,
+    "geo_concentration": 0.35,
+    "regulatory_friction": 0.32,
+    "demand_signal": 0.68
+  },
+  "systems_oem_odm": {
+    "lead_time_growth": 0.60,
+    "geo_concentration": 0.45,
+    "regulatory_friction": 0.30,
+    "demand_signal": 0.80
+  },
+  "tnd_copper": {
+    "lead_time_growth": 0.35,
+    "geo_concentration": 0.25,
+    "regulatory_friction": 0.40,
+    "demand_signal": 0.55
+  },
+  "tnd_electrical_steel": {
+    "lead_time_growth": 0.38,
+    "geo_concentration": 0.28,
+    "regulatory_friction": 0.45,
+    "demand_signal": 0.58
+  },
+  "tnd_insulation": {
+    "lead_time_growth": 0.32,
+    "geo_concentration": 0.22,
+    "regulatory_friction": 0.35,
+    "demand_signal": 0.52
+  },
+  "util_regulators": {
+    "lead_time_growth": 0.25,
+    "geo_concentration": 0.15,
+    "regulatory_friction": 0.85,
+    "demand_signal": 0.45
   }
 }

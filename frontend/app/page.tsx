@@ -8,11 +8,14 @@ import { HorizonToggle } from "./components/HorizonToggle";
 import { displayName } from "./lib/score_help";
 import Link from "next/link";
 
+type SectorFilter = "all" | "Materials" | "Hardware" | "Infrastructure" | "Downstream";
+
 export default function ScoreboardPage() {
   const [horizon, setHorizon] = useState<Horizon>("near");
   const [rows, setRows] = useState<SegmentScore[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [sectorFilter, setSectorFilter] = useState<SectorFilter>("all");
 
   useEffect(() => {
     let cancelled = false;
@@ -35,18 +38,27 @@ export default function ScoreboardPage() {
     };
   }, [horizon]);
 
-  // Derive 3 lists from the rows.
+  // Filter rows by sector.
+  const filteredRows = useMemo(() => {
+    if (sectorFilter === "all") return rows;
+    return rows.filter((r) => {
+      // Convert "MaterialsSector" → "Materials" for matching.
+      return r.sector.replace(/Sector$/, "") === sectorFilter;
+    });
+  }, [rows, sectorFilter]);
+
+  // Derive 3 lists from the filtered rows.
   const proactiveLongs = useMemo(
-    () => rows.filter((r) => r.regime === "EMERGING" && r.score !== null),
-    [rows],
+    () => filteredRows.filter((r) => r.regime === "EMERGING" && r.score !== null),
+    [filteredRows],
   );
   const shorts = useMemo(
-    () => rows.filter((r) => r.regime === "RESOLVING" || r.regime === "RESOLVING_FROM_LOW"),
-    [rows],
+    () => filteredRows.filter((r) => r.regime === "RESOLVING" || r.regime === "RESOLVING_FROM_LOW"),
+    [filteredRows],
   );
   const watchlist = useMemo(
-    () => rows.filter((r) => r.regime === "STABLE" && (r.momentum ?? 0) > 0),
-    [rows],
+    () => filteredRows.filter((r) => r.regime === "STABLE" && (r.momentum ?? 0) > 0),
+    [filteredRows],
   );
 
   return (
@@ -61,11 +73,23 @@ export default function ScoreboardPage() {
         </Link>
       </div>
 
-      <div className="mb-6 flex items-center gap-3">
+      <div className="mb-6 flex flex-wrap items-center gap-3">
         <span className="text-sm text-gray-600">Horizon:</span>
         <HorizonToggle value={horizon} onChange={setHorizon} />
+        <span className="text-sm text-gray-600">Sector:</span>
+        <select
+          value={sectorFilter}
+          onChange={(e) => setSectorFilter(e.target.value as SectorFilter)}
+          className="rounded border border-gray-200 bg-white px-2 py-1 text-sm"
+        >
+          <option value="all">All</option>
+          <option value="Materials">Materials</option>
+          <option value="Hardware">Hardware</option>
+          <option value="Infrastructure">Infrastructure</option>
+          <option value="Downstream">Downstream</option>
+        </select>
         <span className="ml-auto text-xs text-gray-500">
-          {loading ? "Loading…" : `${rows.length} segments`}
+          {loading ? "Loading…" : `${filteredRows.length} segments`}
         </span>
       </div>
 
@@ -96,7 +120,7 @@ export default function ScoreboardPage() {
         />
       </div>
 
-      {rows.length > 0 && <RegimeQuadrant rows={rows} />}
+      {filteredRows.length > 0 && <RegimeQuadrant rows={filteredRows} />}
 
       <div className="mt-6 rounded border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
         <strong>Note:</strong> Momentum (B') requires 6mo of nightly recomputes

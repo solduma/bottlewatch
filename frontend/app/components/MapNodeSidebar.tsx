@@ -3,6 +3,7 @@
 import Link from "next/link";
 import type { MapNodeDetail } from "../lib/api";
 import { regimeCard } from "../lib/colors";
+import { displayName } from "../lib/score_help";
 
 export function MapNodeSidebar({
   detail,
@@ -32,12 +33,21 @@ export function MapNodeSidebar({
   const colors = regimeCard(detail.node.regime ?? "NO_DATA");
   const upNodes = detail.upstream ?? [];
   const downNodes = detail.downstream ?? [];
+  const nodeName = displayName(detail.node.id);
 
   return (
     <div className="space-y-3">
       <div className={`rounded border p-4 ${colors.bg} ${colors.text} ring-1 ${colors.ring}`}>
-        <h3 className="text-lg font-semibold">{detail.node.label}</h3>
-        <p className="mb-2 text-xs opacity-70">{detail.node.sector}</p>
+        <h3
+          className="text-lg font-semibold"
+          title={nodeName !== detail.node.id ? `${detail.node.id} (${nodeName})` : detail.node.id}
+        >
+          {detail.node.label}
+        </h3>
+        {nodeName !== detail.node.id && (
+          <p className="mb-1 font-mono text-[10px] opacity-60">{detail.node.id}</p>
+        )}
+        <p className="mb-2 text-xs opacity-70">{(detail.node.sector ?? "").replace(/Sector$/, "")}</p>
         {detail.node.regime && (
           <span className="inline-block rounded bg-white/60 px-2 py-0.5 text-xs font-medium">
             {detail.node.regime}
@@ -45,12 +55,12 @@ export function MapNodeSidebar({
         )}
         <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
           <div>
-            <span className="opacity-60">Score</span>
+            <span className="opacity-60">Score (B)</span>
             <br />
             <span className="font-mono">{detail.node.score?.toFixed(1) ?? "—"}</span>
           </div>
           <div>
-            <span className="opacity-60">Momentum</span>
+            <span className="opacity-60">Momentum (B')</span>
             <br />
             <span className="font-mono">{detail.node.momentum?.toFixed(1) ?? "—"}</span>
           </div>
@@ -70,17 +80,28 @@ export function MapNodeSidebar({
           <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
             Upstream ({upNodes.length})
           </p>
-          {upNodes.map((n) => (
-            <button
-              key={n.id}
-              onClick={() => onSelect(n.id)}
-              className="mb-1 block w-full rounded bg-gray-50 px-2 py-1 text-left text-xs hover:bg-blue-50"
-            >
-              <span className="font-medium">{n.id.replace(/_/g, " ")}</span>
-              {n.regime && <span className="ml-2 text-gray-400">{n.regime}</span>}
-              <span className="ml-2 text-gray-300">depth:{n.depth}</span>
-            </button>
-          ))}
+          {upNodes.map((n) => {
+            const upName = displayName(n.id);
+            return (
+              <button
+                key={n.id}
+                onClick={() => onSelect(n.id)}
+                title={upName !== n.id ? `${n.id} (${upName})` : n.id}
+                className="mb-1 block w-full rounded bg-gray-50 px-2 py-1 text-left text-xs hover:bg-blue-50"
+              >
+                <div className="flex flex-col">
+                  <span className="font-medium">{upName}</span>
+                  {upName !== n.id && (
+                    <span className="font-mono text-[10px] text-gray-500">{n.id}</span>
+                  )}
+                </div>
+                <div className="mt-0.5 flex items-center gap-2 text-[10px]">
+                  {n.regime && <span className="text-gray-500">{n.regime}</span>}
+                  <span className="text-gray-300">depth:{n.depth}</span>
+                </div>
+              </button>
+            );
+          })}
         </div>
       )}
 
@@ -89,16 +110,28 @@ export function MapNodeSidebar({
           <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
             Downstream ({downNodes.length})
           </p>
-          {downNodes.map((n) => (
-            <button
-              key={n.id}
-              onClick={() => onSelect(n.id)}
-              className="mb-1 block w-full rounded bg-gray-50 px-2 py-1 text-left text-xs hover:bg-blue-50"
-            >
-              <span className="font-medium">{n.id.replace(/_/g, " ")}</span>
-              {n.regime && <span className="ml-2 text-gray-400">{n.regime}</span>}
-            </button>
-          ))}
+          {downNodes.map((n) => {
+            const dnName = displayName(n.id);
+            return (
+              <button
+                key={n.id}
+                onClick={() => onSelect(n.id)}
+                title={dnName !== n.id ? `${n.id} (${dnName})` : n.id}
+                className="mb-1 block w-full rounded bg-gray-50 px-2 py-1 text-left text-xs hover:bg-blue-50"
+              >
+                <div className="flex flex-col">
+                  <span className="font-medium">{dnName}</span>
+                  {dnName !== n.id && (
+                    <span className="font-mono text-[10px] text-gray-500">{n.id}</span>
+                  )}
+                </div>
+                <div className="mt-0.5 flex items-center gap-2 text-[10px]">
+                  {n.regime && <span className="text-gray-500">{n.regime}</span>}
+                  <span className="text-gray-300">depth:{n.depth}</span>
+                </div>
+              </button>
+            );
+          })}
         </div>
       )}
 
@@ -109,9 +142,13 @@ export function MapNodeSidebar({
           </p>
           <div className="flex flex-wrap gap-1">
             {detail.companies.map((c) => (
-              <span key={c} className="rounded bg-gray-100 px-1.5 py-0.5 text-xs font-mono text-gray-600">
+              <Link
+                key={c}
+                href={`/tickers/${encodeURIComponent(c)}`}
+                className="rounded bg-gray-100 px-1.5 py-0.5 text-xs font-mono text-blue-700 hover:bg-blue-100"
+              >
                 {c}
-              </span>
+              </Link>
             ))}
           </div>
         </div>

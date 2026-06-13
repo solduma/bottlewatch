@@ -9,6 +9,7 @@ import { useBatchedScoreHistory } from "./SparklineForSegments";
 import { SCORE_HELP, displayName } from "../lib/score_help";
 
 type SortKey = "segment" | "near" | "med" | "long" | "data_completeness";
+type SectorFilter = "all" | "Materials" | "Hardware" | "Infrastructure" | "Downstream";
 
 function pickScore(row: SegmentScore, h: Horizon): number {
   if (row.horizon === h) return row.score ?? -1;
@@ -27,6 +28,7 @@ export function ScoreboardTable({ rows }: { rows: SegmentScore[] }) {
     return Array.from(bySeg.entries())
       .map(([segment, horizons]) => ({
         segment,
+        sector: horizons.near?.sector ?? horizons.med?.sector ?? horizons.long?.sector ?? "Unknown",
         near: horizons.near,
         med: horizons.med,
         long: horizons.long,
@@ -41,6 +43,7 @@ export function ScoreboardTable({ rows }: { rows: SegmentScore[] }) {
 
   const [sortKey, setSortKey] = useState<SortKey>("segment");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+  const [sectorFilter, setSectorFilter] = useState<SectorFilter>("all");
 
   // Range for the Trend (sparkline) column. 1/3/6/12 months.
   // Default 6mo preserves the original behavior. Changing the
@@ -48,9 +51,18 @@ export function ScoreboardTable({ rows }: { rows: SegmentScore[] }) {
   // argument), which triggers a refetch.
   const [trendMonths, setTrendMonths] = useState<1 | 3 | 6 | 12>(6);
 
+  // Filter segments by sector.
+  const filtered = useMemo(() => {
+    if (sectorFilter === "all") return segments;
+    return segments.filter((s) => {
+      // Convert "MaterialsSector" → "Materials" for matching.
+      return s.sector.replace(/Sector$/, "") === sectorFilter;
+    });
+  }, [segments, sectorFilter]);
+
   const sorted = useMemo(() => {
     const dir = sortDir === "asc" ? 1 : -1;
-    return [...segments].sort((a, b) => {
+    return [...filtered].sort((a, b) => {
       const av: number | string =
         sortKey === "segment"
           ? a.segment
@@ -68,7 +80,7 @@ export function ScoreboardTable({ rows }: { rows: SegmentScore[] }) {
       }
       return dir * ((av as number) - (bv as number));
     });
-  }, [segments, sortKey, sortDir]);
+  }, [filtered, sortKey, sortDir]);
 
   // One batched fetch for all sparklines. `useBatchedScoreHistory`
   // issues a single GET /scores/history?segments=a,b,c call and
@@ -97,11 +109,21 @@ export function ScoreboardTable({ rows }: { rows: SegmentScore[] }) {
     <table className="w-full border-collapse text-sm">
       <thead>
         <tr className="border-b border-gray-200 bg-white text-left text-xs uppercase tracking-wide text-gray-500">
-          <th
-            className="cursor-pointer px-3 py-2"
-            onClick={() => toggleSort("segment")}
-          >
-            Segment{arrow("segment")}
+          <th className="px-3 py-2">
+            <div className="flex flex-col gap-1">
+              <span>Segment{arrow("segment")}</span>
+              <select
+                value={sectorFilter}
+                onChange={(e) => setSectorFilter(e.target.value as SectorFilter)}
+                className="w-full rounded border border-gray-300 px-2 py-1 text-xs"
+              >
+                <option value="all">All sectors</option>
+                <option value="Materials">Materials</option>
+                <option value="Hardware">Hardware</option>
+                <option value="Infrastructure">Infrastructure</option>
+                <option value="Downstream">Downstream</option>
+              </select>
+            </div>
           </th>
           {(["near", "med", "long"] as const).map((h) => (
             <th

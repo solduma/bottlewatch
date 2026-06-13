@@ -29,6 +29,7 @@ from sqlalchemy.orm import sessionmaker
 
 from bottlewatch.app.db import Score
 from bottlewatch.app.value_chain import SEGMENT_TO_NODE_ID, load_value_chain_json
+from bottlewatch.app import segments_meta
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -188,6 +189,7 @@ def list_tickers(
 
 class TickerDetailSegment(BaseModel):
     segment: str
+    name: str
     subsegment: str | None
     exposure_pct: float | None
     regime_near: str | None
@@ -250,6 +252,7 @@ def get_ticker(request: Request, ticker: str) -> TickerDetail:
             segments_out.append(
                 {
                     "segment": seg,
+                    "name": segments_meta.display_name(seg),
                     "subsegment": info["subsegment"],
                     "exposure_pct": info["exposure_pct"],
                     "regime_near": regime,

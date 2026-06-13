@@ -11,12 +11,12 @@ from bottlewatch.jobs import recompute_scores
 
 
 @pytest.mark.asyncio
-async def test_regime_returns_30_rows_with_required_fields(client: AsyncClient, settings, factory) -> None:
+async def test_regime_returns_192_rows_with_required_fields(client: AsyncClient, settings, factory) -> None:
     recompute_scores.run(settings=settings, factory=factory)
     resp = await client.get("/api/v1/scores/regime")
     assert resp.status_code == 200
     body: list[dict[str, Any]] = resp.json()
-    assert len(body) == 30  # 10 segments × 3 horizons
+    assert len(body) == 192  # 64 segments × 3 horizons
 
     # Every row has the fields the quadrant needs.
     required = {
@@ -39,7 +39,7 @@ async def test_regime_includes_horizon_filter(client: AsyncClient, settings, fac
     resp = await client.get("/api/v1/scores/regime?horizon=near")
     assert resp.status_code == 200
     body: list[dict[str, Any]] = resp.json()
-    assert len(body) == 10
+    assert len(body) == 64
     assert all(r["horizon"] == "near" for r in body)
 
 

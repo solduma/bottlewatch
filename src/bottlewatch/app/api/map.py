@@ -20,6 +20,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import sessionmaker
 
 from bottlewatch.app.db import Score, Thesis
+from bottlewatch.app.value_chain import NODE_ID_TO_SEGMENT
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -55,9 +56,11 @@ def get_map(request: Request) -> dict[str, Any]:
     nodes = []
     for n in chain.get("nodes", []):
         node_id = n.get("id", "")
-        # Some node ids are like "advanced_node_fabs" — match directly.
-        # Others like "raw_oil_gas" don't have a scoring segment.
-        node_regime = regimes.get(node_id, {})
+        # Translate value-chain node id to scoring segment slug
+        # (e.g. transformers_switchgear → transformers_tnd).
+        # Nodes without a scoring segment get regime = None.
+        segment = NODE_ID_TO_SEGMENT.get(node_id, node_id)
+        node_regime = regimes.get(segment, {})
         nodes.append(
             {
                 "id": node_id,

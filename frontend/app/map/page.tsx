@@ -2,12 +2,13 @@
 
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
-import { getMapNode, normalizeChainEdge } from "../lib/api";
-import type { MapNodeDetail, ValueChainEdge } from "../lib/api";
+import { getMap, getMapNode, normalizeChainEdge } from "../lib/api";
+import type { MapNodeDetail, MapResponse } from "../lib/api";
 import { useMapStore } from "../lib/store";
 import { ValueChainGraph } from "../components/ValueChainGraph";
 import type { ChainNode, ChainEdge } from "../components/chainLayout";
 import { MapNodeSidebar } from "../components/MapNodeSidebar";
+import { MapSearch } from "../components/MapSearch";
 
 export default function MapPage() {
   const [nodes, setNodes] = useState<ChainNode[] | null>(null);
@@ -22,13 +23,14 @@ export default function MapPage() {
 
   // Load the value chain JSON once.
   useEffect(() => {
-    fetch("/api/v1/map")
-      .then((r) => r.json())
-      .then((d: { nodes?: ChainNode[]; edges?: ValueChainEdge[] }) => {
-        setNodes(d.nodes ?? []);
-        setEdges((d.edges ?? []).map(normalizeChainEdge));
+    getMap()
+      .then((d: MapResponse) => {
+        setNodes(d.nodes);
+        setEdges(d.edges.map(normalizeChainEdge));
       })
-      .catch(() => setError("Failed to load value chain"));
+      .catch((e: unknown) => {
+        setError(e instanceof Error ? e.message : String(e));
+      });
   }, []);
 
   const selectNode = useCallback(
@@ -95,7 +97,9 @@ export default function MapPage() {
         {nodes.length} nodes · {edges.length} edges. Click a node to see its detail in the sidebar.
       </p>
 
-      <div className="flex gap-4" style={{ height: "calc(100vh - 220px)", minHeight: 480 }}>
+      <MapSearch nodes={nodes} onSelect={selectNode} />
+
+      <div className="mt-2 flex gap-4" style={{ height: "calc(100vh - 260px)", minHeight: 480 }}>
         <div className="flex-1 overflow-hidden rounded border border-gray-200 bg-white">
           <ValueChainGraph
             nodes={nodes}

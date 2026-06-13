@@ -11,15 +11,15 @@ from bottlewatch.jobs import recompute_scores
 
 
 @pytest.mark.asyncio
-async def test_list_returns_30_rows(client: AsyncClient, settings, factory) -> None:
+async def test_list_returns_192_rows(client: AsyncClient, settings, factory) -> None:
     recompute_scores.run(settings=settings, factory=factory)
     resp = await client.get("/api/v1/segments")
     assert resp.status_code == 200
     body: list[dict[str, Any]] = resp.json()
-    assert len(body) == 30  # 10 segments × 3 horizons
+    assert len(body) == 192  # 64 segments × 3 horizons
     # The set of (segment, horizon) pairs is unique.
     pairs = {(r["segment"], r["horizon"]) for r in body}
-    assert len(pairs) == 30
+    assert len(pairs) == 192
 
 
 @pytest.mark.asyncio

@@ -50,12 +50,16 @@ class SegmentDetail(BaseModel):
 
 
 def _row_with_name(d: dict) -> dict:
-    """Return a copy of `d` with a `name` field added.
+    """Return a copy of `d` with a `name` field and `sector` field added.
 
-    Helper for the two endpoints below so the slug → name
-    lookup happens in one place.
+    Helper for the two endpoints below so the slug → name and
+    slug → sector lookups happen in one place.
     """
-    return {**d, "name": segments_meta.display_name(d["segment"])}
+    return {
+        **d,
+        "name": segments_meta.display_name(d["segment"]),
+        "sector": segments_meta.sector_for_segment(d["segment"]),
+    }
 
 
 @router.get("/segments", response_model=list[SegmentScore])

@@ -125,7 +125,7 @@ async def test_full_user_journey(tmp_path: Path, factory: sessionmaker, client: 
     # Recompute populates the scores table.
     recompute_report = recompute_scores.run(settings=settings, factory=factory)
     assert recompute_report.exit_code == 0
-    assert recompute_report.rows_written == 30  # 10 segments × 3 horizons
+    assert recompute_report.rows_written == 192  # 64 segments × 3 horizons
 
     # FastAPI endpoints: health → segments → scores → map → ticker.
     health = (await client.get("/api/v1/health")).json()
@@ -133,13 +133,13 @@ async def test_full_user_journey(tmp_path: Path, factory: sessionmaker, client: 
     assert health["signals_count"] > 0
 
     segs = (await client.get("/api/v1/segments")).json()
-    # /api/v1/segments returns 30 rows (10 segments × 3 horizons)
-    assert len(segs) == 30
+    # /api/v1/segments returns 192 rows (64 segments × 3 horizons)
+    assert len(segs) == 192
     segments_seen = {s["segment"] for s in segs}
-    assert len(segments_seen) == 10
+    assert len(segments_seen) == 64
 
     scores = (await client.get("/api/v1/scores/regime?horizon=near")).json()
-    assert len(scores) == 10
+    assert len(scores) == 64
     for row in scores:
         assert row["regime"] in {
             "PEAKING",

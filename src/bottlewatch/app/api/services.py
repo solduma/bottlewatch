@@ -60,12 +60,19 @@ def list_segment_scores(
     When `horizon` is provided, returns only the 10 rows for that
     horizon. When None, returns all 30 rows.
     """
+    from bottlewatch.app import segments_meta
+
     with factory() as session:
         stmt = select(Score).order_by(Score.segment.asc(), Score.horizon.asc())
         if horizon is not None:
             stmt = stmt.where(Score.horizon == horizon)
         rows = session.execute(stmt).scalars().all()
-        return [_score_to_dict(r) for r in rows]
+        scores = []
+        for r in rows:
+            d = _score_to_dict(r)
+            d["sector"] = segments_meta.sector_for_segment(r.segment)
+            scores.append(d)
+        return scores
 
 
 def get_segment_detail(factory: sessionmaker, slug: str) -> dict[str, Any] | None:

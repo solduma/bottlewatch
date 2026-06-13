@@ -20,8 +20,8 @@ from bottlewatch.config import Settings
 from bottlewatch.jobs import recompute_scores
 
 
-def test_score_history_job_writes_30_rows(tmp_path: Path) -> None:
-    """A clean factory gets 30 score_history rows from one recompute run."""
+def test_score_history_job_writes_192_rows(tmp_path: Path) -> None:
+    """A clean factory gets 192 score_history rows from one recompute run."""
     fd, path = tempfile.mkstemp(suffix=".db")
     os.close(fd)
     try:
@@ -36,15 +36,15 @@ def test_score_history_job_writes_30_rows(tmp_path: Path) -> None:
         recompute_scores.run(factory=factory, settings=settings)
         with session_scope(factory) as session:
             count = session.execute(select(ScoreHistory.id)).scalars().all()
-        assert len(count) == 30  # 10 segments × 3 horizons
-        assert len(set(count)) == 30  # all unique auto-increment
+        assert len(count) == 192  # 64 segments × 3 horizons
+        assert len(set(count)) == 192  # all unique auto-increment
         engine.dispose()
     finally:
         os.unlink(path)
 
 
 def test_score_history_accumulates_across_runs(tmp_path: Path) -> None:
-    """Two recompute runs produce 60 rows (append, not replace)."""
+    """Two recompute runs produce 384 rows (append, not replace)."""
     fd, path = tempfile.mkstemp(suffix=".db")
     os.close(fd)
     try:
@@ -60,7 +60,7 @@ def test_score_history_accumulates_across_runs(tmp_path: Path) -> None:
         recompute_scores.run(factory=factory, settings=settings)
         with session_scope(factory) as session:
             count = session.execute(select(ScoreHistory.id)).scalars().all()
-        assert len(count) == 60
+        assert len(count) == 384
         engine.dispose()
     finally:
         os.unlink(path)
