@@ -187,22 +187,20 @@ export function ValueChainGraph({
       });
   }, [edges]);
 
-  const positioned = useMemo(() => layoutChain(nodes, reactFlowEdges), [nodes, reactFlowEdges]);
-
   // Sector filter — drop nodes outside the selected sector(s).
-  const sectorFiltered = useMemo(() => {
-    if (allowedSectors.length === 0) return positioned;
-    return positioned.filter((n) => {
+  const sectorFilteredNodes = useMemo(() => {
+    if (allowedSectors.length === 0) return nodes;
+    return nodes.filter((n) => {
       return allowedSectors.includes(n.sector ?? "");
     });
-  }, [positioned, allowedSectors]);
+  }, [nodes, allowedSectors]);
 
   // Search filter — compute the match set.
   const searchMatchSet = useMemo(() => {
     if (!searchQuery.trim()) return null;
     const q = searchQuery.toLowerCase();
     const matched = new Set<string>();
-    for (const n of positioned) {
+    for (const n of nodes) {
       if (
         n.id.toLowerCase().includes(q) ||
         (n.label ?? "").toLowerCase().includes(q) ||
@@ -216,11 +214,11 @@ export function ValueChainGraph({
       }
     }
     return matched;
-  }, [positioned, searchQuery]);
+  }, [nodes, searchQuery]);
 
   // Set of node ids that survive both filters.
   const visibleSet = useMemo(() => {
-    const set = new Set<string>(sectorFiltered.map((n) => n.id));
+    const set = new Set<string>(sectorFilteredNodes.map((n) => n.id));
     if (searchMatchSet !== null) {
       // Intersect with matches when a query is active.
       const out = new Set<string>();
@@ -230,15 +228,22 @@ export function ValueChainGraph({
       return out;
     }
     return set;
-  }, [sectorFiltered, searchMatchSet]);
+  }, [sectorFilteredNodes, searchMatchSet]);
 
-  // Filter nodes to only those that are visible (survive both sector and search filters)
+  // Filter nodes and edges to only those that are visible (survive both sector and search filters)
   const filteredNodes = useMemo(() => {
-    return sectorFiltered.filter((n) => {
+    return sectorFilteredNodes.filter((n) => {
       if (searchMatchSet === null) return true;
       return searchMatchSet.has(n.id);
     });
-  }, [sectorFiltered, searchMatchSet]);
+  }, [sectorFilteredNodes, searchMatchSet]);
+
+  const filteredEdges = useMemo(() => {
+    return reactFlowEdges.filter((e) => visibleSet.has(e.source) && visibleSet.has(e.target));
+  }, [reactFlowEdges, visibleSet]);
+
+  // Re-layout the graph with only the filtered nodes and edges to avoid empty spaces
+  const positioned = useMemo(() => layoutChain(filteredNodes, filteredEdges), [filteredNodes, filteredEdges]);
 
   const { upstream, downstream } = useMemo(
     () => buildNeighborIndex(reactFlowEdges),
@@ -263,7 +268,7 @@ export function ValueChainGraph({
 
   const flowNodes: Node<ValueChainNodeData>[] = useMemo(
     () =>
-      filteredNodes.map((n) => {
+      positioned.map((n) => {
         const isMatch = searchMatchSet === null ? true : searchMatchSet.has(n.id);
         const effectiveRegime =
           cohortScore !== null ? cohortScore : (n.regime ?? "NO_DATA");
@@ -281,7 +286,7 @@ export function ValueChainGraph({
           },
         };
       }),
-    [filteredNodes, selected, inPath, handleSelect, searchMatchSet, cohortScore],
+    [positioned, selected, inPath, handleSelect, searchMatchSet, cohortScore],
   );
 
   // Zoom to fit the filtered nodes whenever the sector filter or search query changes.
@@ -297,7 +302,7 @@ export function ValueChainGraph({
 
   const flowEdges: Edge[] = useMemo(
     () =>
-      reactFlowEdges.filter((e) => visibleSet.has(e.source) && visibleSet.has(e.target)).map((e) => {
+      filteredEdges.map((e) => {
         const isOnPath = selected !== null && inPath.has(e.source) && inPath.has(e.target);
         return {
           id: `${e.source}-${e.target}`,
@@ -312,7 +317,7 @@ export function ValueChainGraph({
           },
         };
       }),
-    [reactFlowEdges, selected, inPath, visibleSet],
+    [filteredEdges, selected, inPath],
   );
 
   // Tier 4: PNG export. We capture the React Flow's SVG
