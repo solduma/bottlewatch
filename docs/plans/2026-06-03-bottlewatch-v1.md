@@ -230,8 +230,13 @@ Common schema:
 
 ```
 signals(segment, subsegment, signal_name, value_num, value_text, unit,
-        geography, source, source_id, observed_at, ingested_at, tickers JSON)
+        geography, source, source_id, observed_at, ingested_at, released_at,
+        tickers JSON)
 ```
+
+`released_at` is nullable and is the point-in-time gate for historical
+recomputes; when absent the recompute job falls back to `ingested_at`. The
+production daily path ignores the column and loads the latest signals.
 
 ### 3.1 Adapters (`src/bottlewatch/app/ingest/`)
 

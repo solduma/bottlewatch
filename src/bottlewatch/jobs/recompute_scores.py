@@ -42,7 +42,7 @@ from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
-from sqlalchemy import delete, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import sessionmaker
 
@@ -149,8 +149,19 @@ class RunReport:
 # ---------------------------------------------------------------------------
 
 
-def _load_signals_by_segment(factory: sessionmaker, since: datetime, until: datetime) -> dict[str, list[_SignalRow]]:
+def _load_signals_by_segment(
+    factory: sessionmaker,
+    since: datetime,
+    until: datetime,
+    as_of: datetime | None = None,
+) -> dict[str, list[_SignalRow]]:
     """Read signals within the window [since, until], grouped by segment.
+
+    When `as_of` is provided, the query is gated on the signal's
+    `released_at` (or `ingested_at` when `released_at` is null) and
+    on `observed_at <= as_of.date()`. This is the point-in-time path
+    used by historical recomputes; the daily production path leaves
+    `as_of` as None and loads all signals in the window.
 
     Dedup contract: for sources where re-emission is the same
     data point (e.g. EIA 860M: the planned addition for plant
@@ -169,17 +180,36 @@ def _load_signals_by_segment(factory: sessionmaker, since: datetime, until: date
     """
     out: dict[str, list[_SignalRow]] = {}
     seen: set[tuple[str, str, str | None]] = set()
+
+    as_of_naive = as_of
+    as_of_date = None
+    if as_of is not None and as_of.tzinfo is not None:
+        as_of_naive = as_of.astimezone(timezone.utc).replace(tzinfo=None)
+    if as_of_naive is not None:
+        as_of_date = as_of_naive.date()
+
+    def _base_query(session):
+        stmt = select(
+            Signal.segment,
+            Signal.signal_name,
+            Signal.source,
+            Signal.source_id,
+            Signal.value_num,
+            Signal.observed_at,
+            Signal.ingested_at,
+        )
+        if as_of_naive is not None:
+            # True point-in-time gate: when the source exposes a release
+            # date, use it; otherwise fall back to when the row was
+            # ingested. `observed_at` is also bounded by the as-of date
+            # so forward-dated observations cannot leak into history.
+            available_at = func.coalesce(Signal.released_at, Signal.ingested_at)
+            stmt = stmt.where(available_at <= as_of_naive).where(Signal.observed_at <= as_of_date)
+        return stmt
+
     with session_scope(factory) as session:
         rows = session.execute(
-            select(
-                Signal.segment,
-                Signal.signal_name,
-                Signal.source,
-                Signal.source_id,
-                Signal.value_num,
-                Signal.observed_at,
-                Signal.ingested_at,
-            )
+            _base_query(session)
             .where(Signal.observed_at >= since.date())
             .where(Signal.observed_at <= until.date())
             # For idempotent sources, multiple ingestion runs emit
@@ -360,6 +390,7 @@ def run(
     now: datetime | None = None,
     skip_prune: bool = False,
     ontology_world: Any | None = None,
+    as_of: datetime | None = None,
 ) -> RunReport:
     """Rebuild the scores table for all segments × horizons.
 
@@ -376,6 +407,10 @@ def run(
             missing owlready2 produces a `world=None` and the
             formula falls back to the seed value for
             `geo_concentration` (preserving M2 stopgap behavior).
+        as_of: point-in-time recompute boundary. When provided,
+            signals are gated on `released_at` (or `ingested_at` as
+            a fallback) and `observed_at <= as_of.date()`. Production
+            daily runs should leave this as None.
     """
     settings = settings or get_settings()
     started = now or datetime.now(tz=timezone.utc)
@@ -384,6 +419,11 @@ def run(
         naive_now = started.astimezone(timezone.utc).replace(tzinfo=None)
     else:
         naive_now = started
+
+    # Point-in-time runs use as_of as the effective "now".
+    effective_now = as_of if as_of is not None else naive_now
+    if effective_now.tzinfo:
+        effective_now = effective_now.astimezone(timezone.utc).replace(tzinfo=None)
 
     if factory is None:
         db_url = _dry_run_url(settings.database_url) if dry_run else settings.database_url
@@ -410,10 +450,10 @@ def run(
     # Snapshot existing first_computed_at before we delete rows.
     existing = _load_existing_first_computed_at(factory)
     # Load trailing 6mo of score_history for momentum formula.
-    score_history = _load_score_history(factory, until=naive_now)
+    score_history = _load_score_history(factory, until=effective_now)
 
-    since = started - timedelta(days=_LOOKBACK_DAYS)
-    signals_by_segment = _load_signals_by_segment(factory, since=since, until=started)
+    since = effective_now - timedelta(days=_LOOKBACK_DAYS)
+    signals_by_segment = _load_signals_by_segment(factory, since=since, until=effective_now, as_of=as_of)
 
     # Pre-compute per-segment dynamic `demand_signal` (FRED
     # `A35SNO` for `transformers_tnd`; None for everything else,
@@ -436,10 +476,10 @@ def run(
             result = compute_segment_score(
                 segment,
                 horizon,
-                signals=seg_signals,
+                signals=seg_signals,  # type: ignore[arg-type]
                 b_history=b_hist,
                 first_computed_at=first_at,
-                now=naive_now,
+                now=effective_now,
                 geo_concentration=geo_by_segment.get(segment),
                 demand_signal=demand_signal_by_segment.get(segment),
                 lead_time_growth=lead_time_by_segment.get(segment),
@@ -454,7 +494,7 @@ def run(
                     "b": result.score,
                     "momentum": result.momentum,
                     "regime": result.regime.value,
-                    "computed_at": naive_now,
+                    "computed_at": effective_now,
                 }
             )
 
@@ -465,8 +505,8 @@ def run(
             prune_cutoff = naive_now - timedelta(days=_RETENTION_DAYS)
             session.execute(delete(ScoreHistory).where(ScoreHistory.computed_at < prune_cutoff))
         session.execute(delete(Score))
-        session.bulk_insert_mappings(Score, new_rows)
-        session.bulk_insert_mappings(ScoreHistory, history_rows)
+        session.bulk_insert_mappings(Score, new_rows)  # type: ignore[arg-type]
+        session.bulk_insert_mappings(ScoreHistory, history_rows)  # type: ignore[arg-type]
 
     finished = datetime.now(tz=timezone.utc)
     _append_log(

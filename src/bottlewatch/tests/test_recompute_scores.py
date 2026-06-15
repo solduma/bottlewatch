@@ -469,6 +469,115 @@ def test_lead_time_growth_falls_back_to_seed_without_fred_signals(settings, fact
             assert by_segment[("transformers_tnd", horizon)].sub_scores["lead_time_growth"] == pytest.approx(0.85)
 
 
+def _seed_ppi_with_release_dates(
+    session_factory: sessionmaker,
+    *,
+    older_released_at: datetime | None,
+    newer_released_at: datetime | None,
+    newer_ingested_at: datetime | None = None,
+) -> None:
+    """Seed two `ppi_transformers` rows for `transformers_tnd`.
+
+    Lets callers control either `released_at` or `ingested_at` so
+    both the true release-date gate and the ingested_at fallback can
+    be exercised.
+    """
+    now = datetime.now(tz=timezone.utc).replace(tzinfo=None)
+    today = now.date().replace(day=1)
+    rows = [
+        Signal(
+            segment="transformers_tnd",
+            subsegment=None,
+            signal_name="ppi_transformers",
+            value_num=200.0,
+            unit="index",
+            source="fred",
+            source_id="WPU1321:2025-12",
+            observed_at=today - timedelta(days=30),
+            ingested_at=now,
+            released_at=older_released_at,
+        ),
+        Signal(
+            segment="transformers_tnd",
+            subsegment=None,
+            signal_name="ppi_transformers",
+            value_num=250.0,
+            unit="index",
+            source="fred",
+            source_id="WPU1321:2026-01",
+            observed_at=today,
+            ingested_at=newer_ingested_at if newer_ingested_at is not None else now,
+            released_at=newer_released_at,
+        ),
+    ]
+    with session_scope(session_factory) as session:
+        session.add_all(rows)
+
+
+def test_point_in_time_gating_uses_released_at(settings, factory: sessionmaker) -> None:
+    """A signal whose `released_at` is after `as_of` is excluded from a
+    historical recompute. Only the older row remains, so the dynamic
+    lead_time_growth extractor returns None and the segment falls
+    back to the static seed.
+    """
+    now = datetime.now(tz=timezone.utc).replace(tzinfo=None)
+    _seed_ppi_with_release_dates(
+        factory,
+        older_released_at=now - timedelta(days=1),
+        newer_released_at=now + timedelta(days=1),
+    )
+    recompute_scores.run(settings=settings, factory=factory, as_of=now)
+    with factory() as session:
+        rows = session.execute(select(Score)).scalars().all()
+        by_segment = {(s.segment, s.horizon): s for s in rows}
+        for horizon in settings.score_horizons:
+            assert by_segment[("transformers_tnd", horizon)].sub_scores["lead_time_growth"] == pytest.approx(0.85), (
+                "expected lead_time_growth to fall back to seed when newer signal is gated"
+            )
+
+
+def test_point_in_time_fallback_to_ingested_at(settings, factory: sessionmaker) -> None:
+    """When `released_at` is null, the point-in-time gate falls back to
+    `ingested_at`. A row ingested after `as_of` is excluded.
+    """
+    now = datetime.now(tz=timezone.utc).replace(tzinfo=None)
+    _seed_ppi_with_release_dates(
+        factory,
+        older_released_at=None,
+        newer_released_at=None,
+        newer_ingested_at=now + timedelta(days=1),
+    )
+    recompute_scores.run(settings=settings, factory=factory, as_of=now)
+    with factory() as session:
+        rows = session.execute(select(Score)).scalars().all()
+        by_segment = {(s.segment, s.horizon): s for s in rows}
+        for horizon in settings.score_horizons:
+            assert by_segment[("transformers_tnd", horizon)].sub_scores["lead_time_growth"] == pytest.approx(0.85), (
+                "expected lead_time_growth to fall back to seed when newer signal is gated by ingested_at"
+            )
+
+
+def test_daily_recompute_ignores_released_at_gate(settings, factory: sessionmaker) -> None:
+    """The default production recompute path (no `as_of`) loads the
+    latest signal regardless of its `released_at`, preserving
+    existing behavior.
+    """
+    now = datetime.now(tz=timezone.utc).replace(tzinfo=None)
+    _seed_ppi_with_release_dates(
+        factory,
+        older_released_at=now - timedelta(days=1),
+        newer_released_at=now + timedelta(days=1),
+    )
+    recompute_scores.run(settings=settings, factory=factory)
+    with factory() as session:
+        rows = session.execute(select(Score)).scalars().all()
+        by_segment = {(s.segment, s.horizon): s for s in rows}
+        for horizon in settings.score_horizons:
+            assert by_segment[("transformers_tnd", horizon)].sub_scores["lead_time_growth"] == pytest.approx(
+                0.63, abs=1e-2
+            ), "expected daily recompute to use the newer signal despite future released_at"
+
+
 def test_geo_concentration_end_to_end_against_real_abox(settings, factory: sessionmaker) -> None:
     """Live integration test: load the real ABox from
     `research/05_ontology/instances.ttl`, run recompute, and
