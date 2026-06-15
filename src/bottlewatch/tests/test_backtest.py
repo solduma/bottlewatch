@@ -231,8 +231,8 @@ def test_run_backtest_with_synthetic_positive_signal(settings: Settings, factory
     for s in report.per_segment_ic:
         assert s.n >= 8
         # Within a single segment, B is constant, so Spearman is undefined
-        # and the helper returns rho=0.0 with no p-value.
-        assert s.rho == pytest.approx(0.0)
+        # and the job now reports rho=None with no p-value.
+        assert s.rho is None
         assert s.p_value is None
 
     # Basket snapshots carry risk/sizing fields.

@@ -311,9 +311,17 @@ def _call_llm(prompt: str, api_key: str | None, base_url: str, model: str) -> st
     choices = data.get("choices") or []
     if not choices:
         raise RuntimeError("LLM returned no choices")
-    content = choices[0].get("message", {}).get("content")
+    message = choices[0].get("message", {})
+    content = message.get("content") or ""
+    # Some Ollama models (e.g. qwen3.5:cloud) return the final answer in
+    # a `reasoning` field and leave `content` empty. Fall back to
+    # reasoning text, but warn so the operator can switch models.
     if not content:
-        raise RuntimeError("LLM returned empty content")
+        reasoning = message.get("reasoning") or ""
+        if reasoning:
+            _LOGGER.warning("LLM model %r returned empty content; using reasoning field", model)
+            return str(reasoning).strip()
+        raise RuntimeError("LLM returned empty content and no reasoning")
     return str(content).strip()
 
 

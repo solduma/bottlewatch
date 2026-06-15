@@ -331,10 +331,30 @@ def _run_single_mode(
     per_segment_raw: list[SegmentICResult] = []
     segments_in_data = sorted({p.segment for p in eval_points})
     p_values_for_bh: list[tuple[str, float | None]] = []
+    constant_score_segments: set[str] = set()
     for seg in segments_in_data:
         seg_points = [p for p in eval_points if p.segment == seg]
         xs = [p.b for p in seg_points]
         ys = [p.forward_return for p in seg_points]
+        if len(set(xs)) < 2:
+            # A constant score across the entire backtest window means
+            # no statistical relationship can be measured. This happens
+            # when the historical recompute pipeline used static seeds
+            # with no time-varying dynamic inputs.
+            constant_score_segments.add(seg)
+            p_values_for_bh.append((seg, None))
+            per_segment_raw.append(
+                SegmentICResult(
+                    segment=seg,
+                    n=len(seg_points),
+                    rho=None,
+                    p_value=None,
+                    ci_low=None,
+                    ci_high=None,
+                    bh_rejected=False,
+                )
+            )
+            continue
         points_by_date: dict[date, list[tuple[float, float]]] = {}
         for p in seg_points:
             points_by_date.setdefault(p.eval_date, []).append((p.b, p.forward_return))
@@ -355,6 +375,12 @@ def _run_single_mode(
         )
         for r in per_segment_raw
     ]
+    if constant_score_segments:
+        _LOGGER.warning(
+            "%d segments had constant scores over the backtest window (no IC computable): %s",
+            len(constant_score_segments),
+            ", ".join(sorted(constant_score_segments)[:10]) + ("..." if len(constant_score_segments) > 10 else ""),
+        )
 
     # Overall IC.
     xs = [p.b for p in eval_points]

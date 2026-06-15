@@ -27,11 +27,16 @@ class BasketSnapshot:
 
 @dataclass(frozen=True)
 class SegmentICRow:
-    """IC result for one segment."""
+    """IC result for one segment.
+
+    `rho` is None when the segment's score did not vary over the
+    backtest window (e.g., historical recomputes used static seeds with
+    no time-varying inputs), making Spearman correlation undefined.
+    """
 
     segment: str
     n: int
-    rho: float
+    rho: float | None
     p_value: float | None
     ci_low: float | None
     ci_high: float | None

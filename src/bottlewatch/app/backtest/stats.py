@@ -15,11 +15,15 @@ from scipy import stats
 
 @dataclass(frozen=True)
 class SegmentICResult:
-    """Information coefficient result for one segment."""
+    """Information coefficient result for one segment.
+
+    `rho` is None when the score series has zero variance, making
+    Spearman correlation undefined.
+    """
 
     segment: str
     n: int
-    rho: float
+    rho: float | None
     p_value: float | None
     ci_low: float | None
     ci_high: float | None

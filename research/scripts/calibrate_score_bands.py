@@ -27,8 +27,6 @@ _DEFAULT_REPORT = _PROJECT_ROOT / "data" / "reports" / "phase3_backtest.json"
 _BACKTEST_MODULE = "bottlewatch.jobs.backtest"
 
 
-
-
 @dataclass(frozen=True)
 class SegmentDiag:
     segment: str

@@ -1,18 +1,18 @@
 {
   "horizon": "near",
   "forward_days": 90,
-  "start": "2024-09-01",
-  "end": "2025-06-01",
+  "start": "2024-03-01",
+  "end": "2026-03-01",
   "normalization_mode": "fixed",
-  "n_eval_dates": 10,
-  "n_eval_points": 6990,
-  "overall_ic": 0.03241032526920414,
-  "overall_p_value": 0.006729699412493471,
+  "n_eval_dates": 25,
+  "n_eval_points": 17475,
+  "overall_ic": 0.00989343659678073,
+  "overall_p_value": 0.19094729006429342,
   "per_segment_ic": [
     {
       "segment": "advanced_node_fabs",
-      "n": 100,
-      "rho": 0.0,
+      "n": 250,
+      "rho": null,
       "p_value": null,
       "ci_low": null,
       "ci_high": null,
@@ -20,8 +20,8 @@
     },
     {
       "segment": "advanced_packaging",
-      "n": 100,
-      "rho": 0.0,
+      "n": 250,
+      "rho": null,
       "p_value": null,
       "ci_low": null,
       "ci_high": null,
@@ -29,8 +29,8 @@
     },
     {
       "segment": "cool_chillers",
-      "n": 100,
-      "rho": 0.0,
+      "n": 250,
+      "rho": null,
       "p_value": null,
       "ci_low": null,
       "ci_high": null,
@@ -38,8 +38,8 @@
     },
     {
       "segment": "cool_pumps",
-      "n": 100,
-      "rho": 0.0,
+      "n": 250,
+      "rho": null,
       "p_value": null,
       "ci_low": null,
       "ci_high": null,
@@ -47,8 +47,8 @@
     },
     {
       "segment": "cool_water_treatment",
-      "n": 100,
-      "rho": 0.0,
+      "n": 250,
+      "rho": null,
       "p_value": null,
       "ci_low": null,
       "ci_high": null,
@@ -56,8 +56,8 @@
     },
     {
       "segment": "cooling_water",
-      "n": 100,
-      "rho": 0.0,
+      "n": 250,
+      "rho": null,
       "p_value": null,
       "ci_low": null,
       "ci_high": null,
@@ -65,17 +65,17 @@
     },
     {
       "segment": "data_center_shell",
-      "n": 100,
-      "rho": 0.08526472401387498,
-      "p_value": 0.39896853618963046,
-      "ci_low": -0.014049198984334325,
-      "ci_high": 0.16521022467602905,
+      "n": 250,
+      "rho": 0.12505182554441827,
+      "p_value": 0.048257520264539035,
+      "ci_low": 0.030370315303986577,
+      "ci_high": 0.21333475943931104,
       "bh_rejected": false
     },
     {
       "segment": "fab_process_chemicals",
-      "n": 100,
-      "rho": 0.0,
+      "n": 250,
+      "rho": null,
       "p_value": null,
       "ci_low": null,
       "ci_high": null,
@@ -83,8 +83,8 @@
     },
     {
       "segment": "fab_utilities",
-      "n": 100,
-      "rho": 0.0,
+      "n": 250,
+      "rho": null,
       "p_value": null,
       "ci_low": null,
       "ci_high": null,
@@ -92,8 +92,8 @@
     },
     {
       "segment": "fee_optical_components",
-      "n": 100,
-      "rho": 0.0,
+      "n": 250,
+      "rho": null,
       "p_value": null,
       "ci_low": null,
       "ci_high": null,
@@ -101,8 +101,8 @@
     },
     {
       "segment": "fee_vacuum_pumps",
-      "n": 100,
-      "rho": 0.0,
+      "n": 250,
+      "rho": null,
       "p_value": null,
       "ci_low": null,
       "ci_high": null,
@@ -110,8 +110,8 @@
     },
     {
       "segment": "fee_vacuum_robotics",
-      "n": 100,
-      "rho": 0.0,
+      "n": 250,
+      "rho": null,
       "p_value": null,
       "ci_low": null,
       "ci_high": null,
@@ -119,8 +119,8 @@
     },
     {
       "segment": "front_end_equipment",
-      "n": 100,
-      "rho": 0.0,
+      "n": 250,
+      "rho": null,
       "p_value": null,
       "ci_low": null,
       "ci_high": null,
@@ -128,8 +128,8 @@
     },
     {
       "segment": "fuel_mining",
-      "n": 100,
-      "rho": 0.0,
+      "n": 250,
+      "rho": null,
       "p_value": null,
       "ci_low": null,
       "ci_high": null,
@@ -137,8 +137,8 @@
     },
     {
       "segment": "fuel_oil_gas",
-      "n": 100,
-      "rho": 0.0,
+      "n": 250,
+      "rho": null,
       "p_value": null,
       "ci_low": null,
       "ci_high": null,
@@ -146,8 +146,8 @@
     },
     {
       "segment": "fuel_power_inputs",
-      "n": 100,
-      "rho": 0.0,
+      "n": 250,
+      "rho": null,
       "p_value": null,
       "ci_low": null,
       "ci_high": null,
@@ -155,8 +155,8 @@
     },
     {
       "segment": "fuel_renewables",
-      "n": 100,
-      "rho": 0.0,
+      "n": 250,
+      "rho": null,
       "p_value": null,
       "ci_low": null,
       "ci_high": null,
@@ -164,8 +164,8 @@
     },
     {
       "segment": "fuel_uranium",
-      "n": 100,
-      "rho": 0.0,
+      "n": 250,
+      "rho": null,
       "p_value": null,
       "ci_low": null,
       "ci_high": null,
@@ -173,8 +173,8 @@
     },
     {
       "segment": "gen_gas_turbines",
-      "n": 100,
-      "rho": 0.0,
+      "n": 250,
+      "rho": null,
       "p_value": null,
       "ci_low": null,
       "ci_high": null,
@@ -182,8 +182,8 @@
     },
     {
       "segment": "gen_rare_earths",
-      "n": 100,
-      "rho": 0.0,
+      "n": 250,
+      "rho": null,
       "p_value": null,
       "ci_low": null,
       "ci_high": null,
@@ -191,8 +191,8 @@
     },
     {
       "segment": "gen_smr",
-      "n": 100,
-      "rho": 0.0,
+      "n": 250,
+      "rho": null,
       "p_value": null,
       "ci_low": null,
       "ci_high": null,
@@ -200,8 +200,8 @@
     },
     {
       "segment": "gen_solar",
-      "n": 100,
-      "rho": 0.0,
+      "n": 250,
+      "rho": null,
       "p_value": null,
       "ci_low": null,
       "ci_high": null,
@@ -209,8 +209,8 @@
     },
     {
       "segment": "gen_wind",
-      "n": 100,
-      "rho": 0.0,
+      "n": 250,
+      "rho": null,
       "p_value": null,
       "ci_low": null,
       "ci_high": null,
@@ -218,8 +218,8 @@
     },
     {
       "segment": "gpu_asic_silicon",
-      "n": 250,
-      "rho": 0.0,
+      "n": 625,
+      "rho": null,
       "p_value": null,
       "ci_low": null,
       "ci_high": null,
@@ -227,8 +227,8 @@
     },
     {
       "segment": "hbm_dram_platform",
-      "n": 100,
-      "rho": 0.0,
+      "n": 250,
+      "rho": null,
       "p_value": null,
       "ci_low": null,
       "ci_high": null,
@@ -236,8 +236,8 @@
     },
     {
       "segment": "hbm_memory",
-      "n": 100,
-      "rho": 0.0,
+      "n": 250,
+      "rho": null,
       "p_value": null,
       "ci_low": null,
       "ci_high": null,
@@ -245,8 +245,8 @@
     },
     {
       "segment": "hbm_tsv_equipment",
-      "n": 100,
-      "rho": 0.0,
+      "n": 250,
+      "rho": null,
       "p_value": null,
       "ci_low": null,
       "ci_high": null,
@@ -254,8 +254,8 @@
     },
     {
       "segment": "inf_enterprise_saas",
-      "n": 100,
-      "rho": 0.0,
+      "n": 250,
+      "rho": null,
       "p_value": null,
       "ci_low": null,
       "ci_high": null,
@@ -263,8 +263,8 @@
     },
     {
       "segment": "inf_neocloud",
-      "n": 100,
-      "rho": 0.0,
+      "n": 250,
+      "rho": null,
       "p_value": null,
       "ci_low": null,
       "ci_high": null,
@@ -272,8 +272,8 @@
     },
     {
       "segment": "inference_at_scale",
-      "n": 100,
-      "rho": 0.0,
+      "n": 250,
+      "rho": null,
       "p_value": null,
       "ci_low": null,
       "ci_high": null,
@@ -281,8 +281,8 @@
     },
     {
       "segment": "mat_cmp_slurries",
-      "n": 100,
-      "rho": 0.0,
+      "n": 250,
+      "rho": null,
       "p_value": null,
       "ci_low": null,
       "ci_high": null,
@@ -290,8 +290,8 @@
     },
     {
       "segment": "mat_photoresist",
-      "n": 100,
-      "rho": 0.0,
+      "n": 250,
+      "rho": null,
       "p_value": null,
       "ci_low": null,
       "ci_high": null,
@@ -299,8 +299,8 @@
     },
     {
       "segment": "mat_process_gases",
-      "n": 100,
-      "rho": 0.0,
+      "n": 250,
+      "rho": null,
       "p_value": null,
       "ci_low": null,
       "ci_high": null,
@@ -308,8 +308,8 @@
     },
     {
       "segment": "mat_silicon_wafers",
-      "n": 100,
-      "rho": 0.0,
+      "n": 250,
+      "rho": null,
       "p_value": null,
       "ci_low": null,
       "ci_high": null,
@@ -317,8 +317,8 @@
     },
     {
       "segment": "net_high_speed_pcb",
-      "n": 100,
-      "rho": 0.0,
+      "n": 250,
+      "rho": null,
       "p_value": null,
       "ci_low": null,
       "ci_high": null,
@@ -326,8 +326,8 @@
     },
     {
       "segment": "net_optical_transceivers",
-      "n": 100,
-      "rho": 0.0,
+      "n": 250,
+      "rho": null,
       "p_value": null,
       "ci_low": null,
       "ci_high": null,
@@ -335,8 +335,8 @@
     },
     {
       "segment": "net_switch_asics",
-      "n": 100,
-      "rho": 0.0,
+      "n": 250,
+      "rho": null,
       "p_value": null,
       "ci_low": null,
       "ci_high": null,
@@ -344,8 +344,8 @@
     },
     {
       "segment": "networking_interconnect",
-      "n": 100,
-      "rho": 0.0,
+      "n": 250,
+      "rho": null,
       "p_value": null,
       "ci_low": null,
       "ci_high": null,
@@ -353,8 +353,8 @@
     },
     {
       "segment": "pkg_substrates",
-      "n": 100,
-      "rho": 0.0,
+      "n": 250,
+      "rho": null,
       "p_value": null,
       "ci_low": null,
       "ci_high": null,
@@ -362,8 +362,8 @@
     },
     {
       "segment": "pkg_ubm",
-      "n": 100,
-      "rho": 0.0,
+      "n": 250,
+      "rho": null,
       "p_value": null,
       "ci_low": null,
       "ci_high": null,
@@ -371,8 +371,8 @@
     },
     {
       "segment": "power_generation_oem",
-      "n": 310,
-      "rho": 0.0,
+      "n": 775,
+      "rho": null,
       "p_value": null,
       "ci_low": null,
       "ci_high": null,
@@ -380,8 +380,8 @@
     },
     {
       "segment": "rack_busbars",
-      "n": 100,
-      "rho": 0.0,
+      "n": 250,
+      "rho": null,
       "p_value": null,
       "ci_low": null,
       "ci_high": null,
@@ -389,8 +389,8 @@
     },
     {
       "segment": "rack_cdu",
-      "n": 100,
-      "rho": 0.0,
+      "n": 250,
+      "rho": null,
       "p_value": null,
       "ci_low": null,
       "ci_high": null,
@@ -398,8 +398,8 @@
     },
     {
       "segment": "raw_inputs",
-      "n": 100,
-      "rho": 0.0,
+      "n": 250,
+      "rho": null,
       "p_value": null,
       "ci_low": null,
       "ci_high": null,
@@ -407,8 +407,8 @@
     },
     {
       "segment": "raw_mining",
-      "n": 100,
-      "rho": 0.0,
+      "n": 250,
+      "rho": null,
       "p_value": null,
       "ci_low": null,
       "ci_high": null,
@@ -416,8 +416,8 @@
     },
     {
       "segment": "raw_nuclear_fuel",
-      "n": 100,
-      "rho": 0.0,
+      "n": 250,
+      "rho": null,
       "p_value": null,
       "ci_low": null,
       "ci_high": null,
@@ -425,8 +425,8 @@
     },
     {
       "segment": "raw_oil_gas",
-      "n": 100,
-      "rho": 0.0,
+      "n": 250,
+      "rho": null,
       "p_value": null,
       "ci_low": null,
       "ci_high": null,
@@ -434,8 +434,8 @@
     },
     {
       "segment": "raw_water_utilities",
-      "n": 100,
-      "rho": 0.0,
+      "n": 250,
+      "rho": null,
       "p_value": null,
       "ci_low": null,
       "ci_high": null,
@@ -443,8 +443,8 @@
     },
     {
       "segment": "semiconductor_materials",
-      "n": 100,
-      "rho": 0.0,
+      "n": 250,
+      "rho": null,
       "p_value": null,
       "ci_low": null,
       "ci_high": null,
@@ -452,8 +452,8 @@
     },
     {
       "segment": "shell_colo_reits",
-      "n": 100,
-      "rho": 0.0,
+      "n": 250,
+      "rho": null,
       "p_value": null,
       "ci_low": null,
       "ci_high": null,
@@ -461,8 +461,8 @@
     },
     {
       "segment": "shell_dark_fiber",
-      "n": 100,
-      "rho": 0.0,
+      "n": 250,
+      "rho": null,
       "p_value": null,
       "ci_low": null,
       "ci_high": null,
@@ -470,8 +470,8 @@
     },
     {
       "segment": "shell_land_reits",
-      "n": 100,
-      "rho": 0.0,
+      "n": 250,
+      "rho": null,
       "p_value": null,
       "ci_low": null,
       "ci_high": null,
@@ -479,8 +479,8 @@
     },
     {
       "segment": "sil_ip_eda",
-      "n": 100,
-      "rho": 0.0,
+      "n": 250,
+      "rho": null,
       "p_value": null,
       "ci_low": null,
       "ci_high": null,
@@ -488,8 +488,8 @@
     },
     {
       "segment": "sil_power_delivery",
-      "n": 100,
-      "rho": 0.0,
+      "n": 250,
+      "rho": null,
       "p_value": null,
       "ci_low": null,
       "ci_high": null,
@@ -497,8 +497,8 @@
     },
     {
       "segment": "sys_chassis",
-      "n": 100,
-      "rho": 0.0,
+      "n": 250,
+      "rho": null,
       "p_value": null,
       "ci_low": null,
       "ci_high": null,
@@ -506,8 +506,8 @@
     },
     {
       "segment": "sys_psu",
-      "n": 100,
-      "rho": 0.0,
+      "n": 250,
+      "rho": null,
       "p_value": null,
       "ci_low": null,
       "ci_high": null,
@@ -515,8 +515,8 @@
     },
     {
       "segment": "systems_oem_odm",
-      "n": 100,
-      "rho": 0.0,
+      "n": 250,
+      "rho": null,
       "p_value": null,
       "ci_low": null,
       "ci_high": null,
@@ -524,8 +524,8 @@
     },
     {
       "segment": "systems_rack_scale",
-      "n": 240,
-      "rho": 0.0,
+      "n": 600,
+      "rho": null,
       "p_value": null,
       "ci_low": null,
       "ci_high": null,
@@ -533,8 +533,8 @@
     },
     {
       "segment": "td_utilities",
-      "n": 100,
-      "rho": 0.0,
+      "n": 250,
+      "rho": null,
       "p_value": null,
       "ci_low": null,
       "ci_high": null,
@@ -542,8 +542,8 @@
     },
     {
       "segment": "tnd_copper",
-      "n": 100,
-      "rho": 0.0,
+      "n": 250,
+      "rho": null,
       "p_value": null,
       "ci_low": null,
       "ci_high": null,
@@ -551,8 +551,8 @@
     },
     {
       "segment": "tnd_electrical_steel",
-      "n": 100,
-      "rho": 0.0,
+      "n": 250,
+      "rho": null,
       "p_value": null,
       "ci_low": null,
       "ci_high": null,
@@ -560,8 +560,8 @@
     },
     {
       "segment": "tnd_insulation",
-      "n": 100,
-      "rho": 0.0,
+      "n": 250,
+      "rho": null,
       "p_value": null,
       "ci_low": null,
       "ci_high": null,
@@ -569,17 +569,17 @@
     },
     {
       "segment": "transformers_tnd",
-      "n": 190,
-      "rho": 0.06208553409351184,
-      "p_value": 0.39478933860639404,
-      "ci_low": 0.00830049372019122,
-      "ci_high": 0.09661466262769054,
+      "n": 475,
+      "rho": 0.028489363688883718,
+      "p_value": 0.5356521815208031,
+      "ci_low": -0.01294642114224452,
+      "ci_high": 0.06728158011428338,
       "bh_rejected": false
     },
     {
       "segment": "util_regulators",
-      "n": 100,
-      "rho": 0.0,
+      "n": 250,
+      "rho": null,
       "p_value": null,
       "ci_low": null,
       "ci_high": null,
@@ -588,7 +588,7 @@
   ],
   "baskets": [
     {
-      "eval_date": "2024-09-01",
+      "eval_date": "2024-03-01",
       "side": "long",
       "segments": [
         "gen_smr",
@@ -606,19 +606,42 @@
         "8035.TSE",
         "036930.KQ"
       ],
-      "equal_weight_return": 0.003399249268096066,
-      "coverage": 1.0
+      "weights": {
+        "SMR": 0.1,
+        "OKLO": 0.1,
+        "UEC": 0.1,
+        "NXE": 0.1,
+        "DNN": 0.1,
+        "ASML": 0.1,
+        "KLAC": 0.1,
+        "LRCX": 0.1,
+        "8035.TSE": 0.1,
+        "036930.KQ": 0.1
+      },
+      "equal_weight_return": -0.0131131896034373,
+      "net_return": -0.0231131896034373,
+      "volatility": 0.04908032283129773,
+      "max_drawdown": -0.013113189603437214,
+      "hit_rate": 0.4,
+      "coverage": 1.0,
+      "sector_neutral": false
     },
     {
-      "eval_date": "2024-09-01",
+      "eval_date": "2024-03-01",
       "side": "short",
       "segments": [],
       "tickers": [],
+      "weights": {},
       "equal_weight_return": null,
-      "coverage": 0.0
+      "net_return": null,
+      "volatility": null,
+      "max_drawdown": null,
+      "hit_rate": null,
+      "coverage": 0.0,
+      "sector_neutral": false
     },
     {
-      "eval_date": "2024-09-01",
+      "eval_date": "2024-03-01",
       "side": "watchlist",
       "segments": [
         "gen_smr",
@@ -636,11 +659,28 @@
         "8035.TSE",
         "036930.KQ"
       ],
+      "weights": {
+        "SMR": 0.1,
+        "OKLO": 0.1,
+        "UEC": 0.1,
+        "NXE": 0.1,
+        "DNN": 0.1,
+        "ASML": 0.1,
+        "KLAC": 0.1,
+        "LRCX": 0.1,
+        "8035.TSE": 0.1,
+        "036930.KQ": 0.1
+      },
       "equal_weight_return": null,
-      "coverage": 0.0
+      "net_return": -0.0231131896034373,
+      "volatility": 0.04908032283129773,
+      "max_drawdown": -0.013113189603437214,
+      "hit_rate": 0.4,
+      "coverage": 1.0,
+      "sector_neutral": false
     },
     {
-      "eval_date": "2024-10-01",
+      "eval_date": "2024-03-31",
       "side": "long",
       "segments": [
         "gen_smr",
@@ -658,19 +698,42 @@
         "8035.TSE",
         "036930.KQ"
       ],
-      "equal_weight_return": -0.011475191363914282,
-      "coverage": 1.0
+      "weights": {
+        "SMR": 0.1,
+        "OKLO": 0.1,
+        "UEC": 0.1,
+        "NXE": 0.1,
+        "DNN": 0.1,
+        "ASML": 0.1,
+        "KLAC": 0.1,
+        "LRCX": 0.1,
+        "8035.TSE": 0.1,
+        "036930.KQ": 0.1
+      },
+      "equal_weight_return": -0.013708257708515095,
+      "net_return": -0.023708257708515097,
+      "volatility": 0.07167075514077159,
+      "max_drawdown": -0.005647985863407756,
+      "hit_rate": 0.3,
+      "coverage": 1.0,
+      "sector_neutral": false
     },
     {
-      "eval_date": "2024-10-01",
+      "eval_date": "2024-03-31",
       "side": "short",
       "segments": [],
       "tickers": [],
+      "weights": {},
       "equal_weight_return": null,
-      "coverage": 0.0
+      "net_return": null,
+      "volatility": null,
+      "max_drawdown": null,
+      "hit_rate": null,
+      "coverage": 0.0,
+      "sector_neutral": false
     },
     {
-      "eval_date": "2024-10-01",
+      "eval_date": "2024-03-31",
       "side": "watchlist",
       "segments": [
         "gen_smr",
@@ -688,11 +751,28 @@
         "8035.TSE",
         "036930.KQ"
       ],
+      "weights": {
+        "SMR": 0.1,
+        "OKLO": 0.1,
+        "UEC": 0.1,
+        "NXE": 0.1,
+        "DNN": 0.1,
+        "ASML": 0.1,
+        "KLAC": 0.1,
+        "LRCX": 0.1,
+        "8035.TSE": 0.1,
+        "036930.KQ": 0.1
+      },
       "equal_weight_return": null,
-      "coverage": 0.0
+      "net_return": -0.023708257708515097,
+      "volatility": 0.07167075514077159,
+      "max_drawdown": -0.005647985863407756,
+      "hit_rate": 0.3,
+      "coverage": 1.0,
+      "sector_neutral": false
     },
     {
-      "eval_date": "2024-10-31",
+      "eval_date": "2024-04-30",
       "side": "long",
       "segments": [
         "gen_smr",
@@ -710,19 +790,594 @@
         "8035.TSE",
         "036930.KQ"
       ],
+      "weights": {
+        "SMR": 0.1,
+        "OKLO": 0.1,
+        "UEC": 0.1,
+        "NXE": 0.1,
+        "DNN": 0.1,
+        "ASML": 0.1,
+        "KLAC": 0.1,
+        "LRCX": 0.1,
+        "8035.TSE": 0.1,
+        "036930.KQ": 0.1
+      },
+      "equal_weight_return": -0.008715198306830763,
+      "net_return": -0.018715198306830765,
+      "volatility": 0.04442839096847597,
+      "max_drawdown": -0.003640184929065815,
+      "hit_rate": 0.4,
+      "coverage": 1.0,
+      "sector_neutral": false
+    },
+    {
+      "eval_date": "2024-04-30",
+      "side": "short",
+      "segments": [],
+      "tickers": [],
+      "weights": {},
+      "equal_weight_return": null,
+      "net_return": null,
+      "volatility": null,
+      "max_drawdown": null,
+      "hit_rate": null,
+      "coverage": 0.0,
+      "sector_neutral": false
+    },
+    {
+      "eval_date": "2024-04-30",
+      "side": "watchlist",
+      "segments": [
+        "gen_smr",
+        "front_end_equipment"
+      ],
+      "tickers": [
+        "SMR",
+        "OKLO",
+        "UEC",
+        "NXE",
+        "DNN",
+        "ASML",
+        "KLAC",
+        "LRCX",
+        "8035.TSE",
+        "036930.KQ"
+      ],
+      "weights": {
+        "SMR": 0.1,
+        "OKLO": 0.1,
+        "UEC": 0.1,
+        "NXE": 0.1,
+        "DNN": 0.1,
+        "ASML": 0.1,
+        "KLAC": 0.1,
+        "LRCX": 0.1,
+        "8035.TSE": 0.1,
+        "036930.KQ": 0.1
+      },
+      "equal_weight_return": null,
+      "net_return": -0.018715198306830765,
+      "volatility": 0.04442839096847597,
+      "max_drawdown": -0.003640184929065815,
+      "hit_rate": 0.4,
+      "coverage": 1.0,
+      "sector_neutral": false
+    },
+    {
+      "eval_date": "2024-05-30",
+      "side": "long",
+      "segments": [
+        "gen_smr",
+        "front_end_equipment"
+      ],
+      "tickers": [
+        "SMR",
+        "OKLO",
+        "UEC",
+        "NXE",
+        "DNN",
+        "ASML",
+        "KLAC",
+        "LRCX",
+        "8035.TSE",
+        "036930.KQ"
+      ],
+      "weights": {
+        "SMR": 0.1,
+        "OKLO": 0.1,
+        "UEC": 0.1,
+        "NXE": 0.1,
+        "DNN": 0.1,
+        "ASML": 0.1,
+        "KLAC": 0.1,
+        "LRCX": 0.1,
+        "8035.TSE": 0.1,
+        "036930.KQ": 0.1
+      },
+      "equal_weight_return": 0.003907302607495905,
+      "net_return": -0.006092697392504095,
+      "volatility": 0.06455043451035403,
+      "max_drawdown": -0.002796638667252549,
+      "hit_rate": 0.6,
+      "coverage": 1.0,
+      "sector_neutral": false
+    },
+    {
+      "eval_date": "2024-05-30",
+      "side": "short",
+      "segments": [],
+      "tickers": [],
+      "weights": {},
+      "equal_weight_return": null,
+      "net_return": null,
+      "volatility": null,
+      "max_drawdown": null,
+      "hit_rate": null,
+      "coverage": 0.0,
+      "sector_neutral": false
+    },
+    {
+      "eval_date": "2024-05-30",
+      "side": "watchlist",
+      "segments": [
+        "gen_smr",
+        "front_end_equipment"
+      ],
+      "tickers": [
+        "SMR",
+        "OKLO",
+        "UEC",
+        "NXE",
+        "DNN",
+        "ASML",
+        "KLAC",
+        "LRCX",
+        "8035.TSE",
+        "036930.KQ"
+      ],
+      "weights": {
+        "SMR": 0.1,
+        "OKLO": 0.1,
+        "UEC": 0.1,
+        "NXE": 0.1,
+        "DNN": 0.1,
+        "ASML": 0.1,
+        "KLAC": 0.1,
+        "LRCX": 0.1,
+        "8035.TSE": 0.1,
+        "036930.KQ": 0.1
+      },
+      "equal_weight_return": null,
+      "net_return": -0.006092697392504095,
+      "volatility": 0.06455043451035403,
+      "max_drawdown": -0.002796638667252549,
+      "hit_rate": 0.6,
+      "coverage": 1.0,
+      "sector_neutral": false
+    },
+    {
+      "eval_date": "2024-06-29",
+      "side": "long",
+      "segments": [
+        "gen_smr",
+        "front_end_equipment"
+      ],
+      "tickers": [
+        "SMR",
+        "OKLO",
+        "UEC",
+        "NXE",
+        "DNN",
+        "ASML",
+        "KLAC",
+        "LRCX",
+        "8035.TSE",
+        "036930.KQ"
+      ],
+      "weights": {
+        "SMR": 0.1,
+        "OKLO": 0.1,
+        "UEC": 0.1,
+        "NXE": 0.1,
+        "DNN": 0.1,
+        "ASML": 0.1,
+        "KLAC": 0.1,
+        "LRCX": 0.1,
+        "8035.TSE": 0.1,
+        "036930.KQ": 0.1
+      },
+      "equal_weight_return": -0.0006179722816263137,
+      "net_return": -0.010617972281626314,
+      "volatility": 0.04931012652230776,
+      "max_drawdown": -0.005279190569206449,
+      "hit_rate": 0.6,
+      "coverage": 1.0,
+      "sector_neutral": false
+    },
+    {
+      "eval_date": "2024-06-29",
+      "side": "short",
+      "segments": [],
+      "tickers": [],
+      "weights": {},
+      "equal_weight_return": null,
+      "net_return": null,
+      "volatility": null,
+      "max_drawdown": null,
+      "hit_rate": null,
+      "coverage": 0.0,
+      "sector_neutral": false
+    },
+    {
+      "eval_date": "2024-06-29",
+      "side": "watchlist",
+      "segments": [
+        "gen_smr",
+        "front_end_equipment"
+      ],
+      "tickers": [
+        "SMR",
+        "OKLO",
+        "UEC",
+        "NXE",
+        "DNN",
+        "ASML",
+        "KLAC",
+        "LRCX",
+        "8035.TSE",
+        "036930.KQ"
+      ],
+      "weights": {
+        "SMR": 0.1,
+        "OKLO": 0.1,
+        "UEC": 0.1,
+        "NXE": 0.1,
+        "DNN": 0.1,
+        "ASML": 0.1,
+        "KLAC": 0.1,
+        "LRCX": 0.1,
+        "8035.TSE": 0.1,
+        "036930.KQ": 0.1
+      },
+      "equal_weight_return": null,
+      "net_return": -0.010617972281626314,
+      "volatility": 0.04931012652230776,
+      "max_drawdown": -0.005279190569206449,
+      "hit_rate": 0.6,
+      "coverage": 1.0,
+      "sector_neutral": false
+    },
+    {
+      "eval_date": "2024-07-29",
+      "side": "long",
+      "segments": [
+        "gen_smr",
+        "front_end_equipment"
+      ],
+      "tickers": [
+        "SMR",
+        "OKLO",
+        "UEC",
+        "NXE",
+        "DNN",
+        "ASML",
+        "KLAC",
+        "LRCX",
+        "8035.TSE",
+        "036930.KQ"
+      ],
+      "weights": {
+        "SMR": 0.1,
+        "OKLO": 0.1,
+        "UEC": 0.1,
+        "NXE": 0.1,
+        "DNN": 0.1,
+        "ASML": 0.1,
+        "KLAC": 0.1,
+        "LRCX": 0.1,
+        "8035.TSE": 0.1,
+        "036930.KQ": 0.1
+      },
+      "equal_weight_return": 0.009291835884932436,
+      "net_return": -0.0007081641150675638,
+      "volatility": 0.060380409195851976,
+      "max_drawdown": -0.005260612736774917,
+      "hit_rate": 0.7,
+      "coverage": 1.0,
+      "sector_neutral": false
+    },
+    {
+      "eval_date": "2024-07-29",
+      "side": "short",
+      "segments": [],
+      "tickers": [],
+      "weights": {},
+      "equal_weight_return": null,
+      "net_return": null,
+      "volatility": null,
+      "max_drawdown": null,
+      "hit_rate": null,
+      "coverage": 0.0,
+      "sector_neutral": false
+    },
+    {
+      "eval_date": "2024-07-29",
+      "side": "watchlist",
+      "segments": [
+        "gen_smr",
+        "front_end_equipment"
+      ],
+      "tickers": [
+        "SMR",
+        "OKLO",
+        "UEC",
+        "NXE",
+        "DNN",
+        "ASML",
+        "KLAC",
+        "LRCX",
+        "8035.TSE",
+        "036930.KQ"
+      ],
+      "weights": {
+        "SMR": 0.1,
+        "OKLO": 0.1,
+        "UEC": 0.1,
+        "NXE": 0.1,
+        "DNN": 0.1,
+        "ASML": 0.1,
+        "KLAC": 0.1,
+        "LRCX": 0.1,
+        "8035.TSE": 0.1,
+        "036930.KQ": 0.1
+      },
+      "equal_weight_return": null,
+      "net_return": -0.0007081641150675638,
+      "volatility": 0.060380409195851976,
+      "max_drawdown": -0.005260612736774917,
+      "hit_rate": 0.7,
+      "coverage": 1.0,
+      "sector_neutral": false
+    },
+    {
+      "eval_date": "2024-08-28",
+      "side": "long",
+      "segments": [
+        "gen_smr",
+        "front_end_equipment"
+      ],
+      "tickers": [
+        "SMR",
+        "OKLO",
+        "UEC",
+        "NXE",
+        "DNN",
+        "ASML",
+        "KLAC",
+        "LRCX",
+        "8035.TSE",
+        "036930.KQ"
+      ],
+      "weights": {
+        "SMR": 0.1,
+        "OKLO": 0.1,
+        "UEC": 0.1,
+        "NXE": 0.1,
+        "DNN": 0.1,
+        "ASML": 0.1,
+        "KLAC": 0.1,
+        "LRCX": 0.1,
+        "8035.TSE": 0.1,
+        "036930.KQ": 0.1
+      },
+      "equal_weight_return": -0.0016213086753870997,
+      "net_return": -0.0116213086753871,
+      "volatility": 0.05064817681619703,
+      "max_drawdown": -0.0034299924424220363,
+      "hit_rate": 0.5,
+      "coverage": 1.0,
+      "sector_neutral": false
+    },
+    {
+      "eval_date": "2024-08-28",
+      "side": "short",
+      "segments": [],
+      "tickers": [],
+      "weights": {},
+      "equal_weight_return": null,
+      "net_return": null,
+      "volatility": null,
+      "max_drawdown": null,
+      "hit_rate": null,
+      "coverage": 0.0,
+      "sector_neutral": false
+    },
+    {
+      "eval_date": "2024-08-28",
+      "side": "watchlist",
+      "segments": [
+        "gen_smr",
+        "front_end_equipment"
+      ],
+      "tickers": [
+        "SMR",
+        "OKLO",
+        "UEC",
+        "NXE",
+        "DNN",
+        "ASML",
+        "KLAC",
+        "LRCX",
+        "8035.TSE",
+        "036930.KQ"
+      ],
+      "weights": {
+        "SMR": 0.1,
+        "OKLO": 0.1,
+        "UEC": 0.1,
+        "NXE": 0.1,
+        "DNN": 0.1,
+        "ASML": 0.1,
+        "KLAC": 0.1,
+        "LRCX": 0.1,
+        "8035.TSE": 0.1,
+        "036930.KQ": 0.1
+      },
+      "equal_weight_return": null,
+      "net_return": -0.0116213086753871,
+      "volatility": 0.05064817681619703,
+      "max_drawdown": -0.0034299924424220363,
+      "hit_rate": 0.5,
+      "coverage": 1.0,
+      "sector_neutral": false
+    },
+    {
+      "eval_date": "2024-09-27",
+      "side": "long",
+      "segments": [
+        "gen_smr",
+        "front_end_equipment"
+      ],
+      "tickers": [
+        "SMR",
+        "OKLO",
+        "UEC",
+        "NXE",
+        "DNN",
+        "ASML",
+        "KLAC",
+        "LRCX",
+        "8035.TSE",
+        "036930.KQ"
+      ],
+      "weights": {
+        "SMR": 0.1,
+        "OKLO": 0.1,
+        "UEC": 0.1,
+        "NXE": 0.1,
+        "DNN": 0.1,
+        "ASML": 0.1,
+        "KLAC": 0.1,
+        "LRCX": 0.1,
+        "8035.TSE": 0.1,
+        "036930.KQ": 0.1
+      },
+      "equal_weight_return": -0.0046459773438557745,
+      "net_return": -0.014645977343855775,
+      "volatility": 0.05826931142882765,
+      "max_drawdown": -0.011571138098201095,
+      "hit_rate": 0.6,
+      "coverage": 1.0,
+      "sector_neutral": false
+    },
+    {
+      "eval_date": "2024-09-27",
+      "side": "short",
+      "segments": [],
+      "tickers": [],
+      "weights": {},
+      "equal_weight_return": null,
+      "net_return": null,
+      "volatility": null,
+      "max_drawdown": null,
+      "hit_rate": null,
+      "coverage": 0.0,
+      "sector_neutral": false
+    },
+    {
+      "eval_date": "2024-09-27",
+      "side": "watchlist",
+      "segments": [
+        "gen_smr",
+        "front_end_equipment"
+      ],
+      "tickers": [
+        "SMR",
+        "OKLO",
+        "UEC",
+        "NXE",
+        "DNN",
+        "ASML",
+        "KLAC",
+        "LRCX",
+        "8035.TSE",
+        "036930.KQ"
+      ],
+      "weights": {
+        "SMR": 0.1,
+        "OKLO": 0.1,
+        "UEC": 0.1,
+        "NXE": 0.1,
+        "DNN": 0.1,
+        "ASML": 0.1,
+        "KLAC": 0.1,
+        "LRCX": 0.1,
+        "8035.TSE": 0.1,
+        "036930.KQ": 0.1
+      },
+      "equal_weight_return": null,
+      "net_return": -0.014645977343855775,
+      "volatility": 0.05826931142882765,
+      "max_drawdown": -0.011571138098201095,
+      "hit_rate": 0.6,
+      "coverage": 1.0,
+      "sector_neutral": false
+    },
+    {
+      "eval_date": "2024-10-27",
+      "side": "long",
+      "segments": [
+        "gen_smr",
+        "front_end_equipment"
+      ],
+      "tickers": [
+        "SMR",
+        "OKLO",
+        "UEC",
+        "NXE",
+        "DNN",
+        "ASML",
+        "KLAC",
+        "LRCX",
+        "8035.TSE",
+        "036930.KQ"
+      ],
+      "weights": {
+        "SMR": 0.1,
+        "OKLO": 0.1,
+        "UEC": 0.1,
+        "NXE": 0.1,
+        "DNN": 0.1,
+        "ASML": 0.1,
+        "KLAC": 0.1,
+        "LRCX": 0.1,
+        "8035.TSE": 0.1,
+        "036930.KQ": 0.1
+      },
       "equal_weight_return": -0.010671431454755409,
-      "coverage": 1.0
+      "net_return": -0.02067143145475541,
+      "volatility": 0.06504452908035972,
+      "max_drawdown": -0.008057191003370212,
+      "hit_rate": 0.6,
+      "coverage": 1.0,
+      "sector_neutral": false
     },
     {
-      "eval_date": "2024-10-31",
+      "eval_date": "2024-10-27",
       "side": "short",
       "segments": [],
       "tickers": [],
+      "weights": {},
       "equal_weight_return": null,
-      "coverage": 0.0
+      "net_return": null,
+      "volatility": null,
+      "max_drawdown": null,
+      "hit_rate": null,
+      "coverage": 0.0,
+      "sector_neutral": false
     },
     {
-      "eval_date": "2024-10-31",
+      "eval_date": "2024-10-27",
       "side": "watchlist",
       "segments": [
         "gen_smr",
@@ -740,11 +1395,28 @@
         "8035.TSE",
         "036930.KQ"
       ],
+      "weights": {
+        "SMR": 0.1,
+        "OKLO": 0.1,
+        "UEC": 0.1,
+        "NXE": 0.1,
+        "DNN": 0.1,
+        "ASML": 0.1,
+        "KLAC": 0.1,
+        "LRCX": 0.1,
+        "8035.TSE": 0.1,
+        "036930.KQ": 0.1
+      },
       "equal_weight_return": null,
-      "coverage": 0.0
+      "net_return": -0.02067143145475541,
+      "volatility": 0.06504452908035972,
+      "max_drawdown": -0.008057191003370212,
+      "hit_rate": 0.6,
+      "coverage": 1.0,
+      "sector_neutral": false
     },
     {
-      "eval_date": "2024-11-30",
+      "eval_date": "2024-11-26",
       "side": "long",
       "segments": [
         "gen_smr",
@@ -762,19 +1434,42 @@
         "8035.TSE",
         "036930.KQ"
       ],
-      "equal_weight_return": -0.006959320781005923,
-      "coverage": 1.0
+      "weights": {
+        "SMR": 0.1,
+        "OKLO": 0.1,
+        "UEC": 0.1,
+        "NXE": 0.1,
+        "DNN": 0.1,
+        "ASML": 0.1,
+        "KLAC": 0.1,
+        "LRCX": 0.1,
+        "8035.TSE": 0.1,
+        "036930.KQ": 0.1
+      },
+      "equal_weight_return": -0.006959320781005924,
+      "net_return": -0.016959320781005923,
+      "volatility": 0.06495313925452091,
+      "max_drawdown": 0.0,
+      "hit_rate": 0.4,
+      "coverage": 1.0,
+      "sector_neutral": false
     },
     {
-      "eval_date": "2024-11-30",
+      "eval_date": "2024-11-26",
       "side": "short",
       "segments": [],
       "tickers": [],
+      "weights": {},
       "equal_weight_return": null,
-      "coverage": 0.0
+      "net_return": null,
+      "volatility": null,
+      "max_drawdown": null,
+      "hit_rate": null,
+      "coverage": 0.0,
+      "sector_neutral": false
     },
     {
-      "eval_date": "2024-11-30",
+      "eval_date": "2024-11-26",
       "side": "watchlist",
       "segments": [
         "gen_smr",
@@ -792,11 +1487,28 @@
         "8035.TSE",
         "036930.KQ"
       ],
+      "weights": {
+        "SMR": 0.1,
+        "OKLO": 0.1,
+        "UEC": 0.1,
+        "NXE": 0.1,
+        "DNN": 0.1,
+        "ASML": 0.1,
+        "KLAC": 0.1,
+        "LRCX": 0.1,
+        "8035.TSE": 0.1,
+        "036930.KQ": 0.1
+      },
       "equal_weight_return": null,
-      "coverage": 0.0
+      "net_return": -0.016959320781005923,
+      "volatility": 0.06495313925452091,
+      "max_drawdown": 0.0,
+      "hit_rate": 0.4,
+      "coverage": 1.0,
+      "sector_neutral": false
     },
     {
-      "eval_date": "2024-12-30",
+      "eval_date": "2024-12-26",
       "side": "long",
       "segments": [
         "gen_smr",
@@ -814,19 +1526,42 @@
         "8035.TSE",
         "036930.KQ"
       ],
-      "equal_weight_return": 0.000719933533929395,
-      "coverage": 1.0
+      "weights": {
+        "SMR": 0.1,
+        "OKLO": 0.1,
+        "UEC": 0.1,
+        "NXE": 0.1,
+        "DNN": 0.1,
+        "ASML": 0.1,
+        "KLAC": 0.1,
+        "LRCX": 0.1,
+        "8035.TSE": 0.1,
+        "036930.KQ": 0.1
+      },
+      "equal_weight_return": 0.0007199335339293953,
+      "net_return": -0.009280066466070606,
+      "volatility": 0.07054330775487105,
+      "max_drawdown": -0.0004041461311705685,
+      "hit_rate": 0.5,
+      "coverage": 1.0,
+      "sector_neutral": false
     },
     {
-      "eval_date": "2024-12-30",
+      "eval_date": "2024-12-26",
       "side": "short",
       "segments": [],
       "tickers": [],
+      "weights": {},
       "equal_weight_return": null,
-      "coverage": 0.0
+      "net_return": null,
+      "volatility": null,
+      "max_drawdown": null,
+      "hit_rate": null,
+      "coverage": 0.0,
+      "sector_neutral": false
     },
     {
-      "eval_date": "2024-12-30",
+      "eval_date": "2024-12-26",
       "side": "watchlist",
       "segments": [
         "gen_smr",
@@ -844,11 +1579,28 @@
         "8035.TSE",
         "036930.KQ"
       ],
+      "weights": {
+        "SMR": 0.1,
+        "OKLO": 0.1,
+        "UEC": 0.1,
+        "NXE": 0.1,
+        "DNN": 0.1,
+        "ASML": 0.1,
+        "KLAC": 0.1,
+        "LRCX": 0.1,
+        "8035.TSE": 0.1,
+        "036930.KQ": 0.1
+      },
       "equal_weight_return": null,
-      "coverage": 0.0
+      "net_return": -0.009280066466070606,
+      "volatility": 0.07054330775487105,
+      "max_drawdown": -0.0004041461311705685,
+      "hit_rate": 0.5,
+      "coverage": 1.0,
+      "sector_neutral": false
     },
     {
-      "eval_date": "2025-01-29",
+      "eval_date": "2025-01-25",
       "side": "long",
       "segments": [
         "gen_smr",
@@ -866,19 +1618,42 @@
         "8035.TSE",
         "036930.KQ"
       ],
-      "equal_weight_return": -0.000210137365491708,
-      "coverage": 1.0
+      "weights": {
+        "SMR": 0.1,
+        "OKLO": 0.1,
+        "UEC": 0.1,
+        "NXE": 0.1,
+        "DNN": 0.1,
+        "ASML": 0.1,
+        "KLAC": 0.1,
+        "LRCX": 0.1,
+        "8035.TSE": 0.1,
+        "036930.KQ": 0.1
+      },
+      "equal_weight_return": -0.00021013736549170794,
+      "net_return": -0.010210137365491707,
+      "volatility": 0.06271593110386502,
+      "max_drawdown": -0.0005329345887958858,
+      "hit_rate": 0.5,
+      "coverage": 1.0,
+      "sector_neutral": false
     },
     {
-      "eval_date": "2025-01-29",
+      "eval_date": "2025-01-25",
       "side": "short",
       "segments": [],
       "tickers": [],
+      "weights": {},
       "equal_weight_return": null,
-      "coverage": 0.0
+      "net_return": null,
+      "volatility": null,
+      "max_drawdown": null,
+      "hit_rate": null,
+      "coverage": 0.0,
+      "sector_neutral": false
     },
     {
-      "eval_date": "2025-01-29",
+      "eval_date": "2025-01-25",
       "side": "watchlist",
       "segments": [
         "gen_smr",
@@ -896,11 +1671,28 @@
         "8035.TSE",
         "036930.KQ"
       ],
+      "weights": {
+        "SMR": 0.1,
+        "OKLO": 0.1,
+        "UEC": 0.1,
+        "NXE": 0.1,
+        "DNN": 0.1,
+        "ASML": 0.1,
+        "KLAC": 0.1,
+        "LRCX": 0.1,
+        "8035.TSE": 0.1,
+        "036930.KQ": 0.1
+      },
       "equal_weight_return": null,
-      "coverage": 0.0
+      "net_return": -0.010210137365491707,
+      "volatility": 0.06271593110386502,
+      "max_drawdown": -0.0005329345887958858,
+      "hit_rate": 0.5,
+      "coverage": 1.0,
+      "sector_neutral": false
     },
     {
-      "eval_date": "2025-02-28",
+      "eval_date": "2025-02-24",
       "side": "long",
       "segments": [
         "gen_smr",
@@ -918,19 +1710,42 @@
         "8035.TSE",
         "036930.KQ"
       ],
-      "equal_weight_return": -0.0012608972533311382,
-      "coverage": 1.0
+      "weights": {
+        "SMR": 0.1,
+        "OKLO": 0.1,
+        "UEC": 0.1,
+        "NXE": 0.1,
+        "DNN": 0.1,
+        "ASML": 0.1,
+        "KLAC": 0.1,
+        "LRCX": 0.1,
+        "8035.TSE": 0.1,
+        "036930.KQ": 0.1
+      },
+      "equal_weight_return": -0.0012608972533311384,
+      "net_return": -0.011260897253331138,
+      "volatility": 0.03643627512813834,
+      "max_drawdown": -0.0006225731166371595,
+      "hit_rate": 0.5,
+      "coverage": 1.0,
+      "sector_neutral": false
     },
     {
-      "eval_date": "2025-02-28",
+      "eval_date": "2025-02-24",
       "side": "short",
       "segments": [],
       "tickers": [],
+      "weights": {},
       "equal_weight_return": null,
-      "coverage": 0.0
+      "net_return": null,
+      "volatility": null,
+      "max_drawdown": null,
+      "hit_rate": null,
+      "coverage": 0.0,
+      "sector_neutral": false
     },
     {
-      "eval_date": "2025-02-28",
+      "eval_date": "2025-02-24",
       "side": "watchlist",
       "segments": [
         "gen_smr",
@@ -948,11 +1763,28 @@
         "8035.TSE",
         "036930.KQ"
       ],
+      "weights": {
+        "SMR": 0.1,
+        "OKLO": 0.1,
+        "UEC": 0.1,
+        "NXE": 0.1,
+        "DNN": 0.1,
+        "ASML": 0.1,
+        "KLAC": 0.1,
+        "LRCX": 0.1,
+        "8035.TSE": 0.1,
+        "036930.KQ": 0.1
+      },
       "equal_weight_return": null,
-      "coverage": 0.0
+      "net_return": -0.011260897253331138,
+      "volatility": 0.03643627512813834,
+      "max_drawdown": -0.0006225731166371595,
+      "hit_rate": 0.5,
+      "coverage": 1.0,
+      "sector_neutral": false
     },
     {
-      "eval_date": "2025-03-30",
+      "eval_date": "2025-03-26",
       "side": "long",
       "segments": [
         "gen_smr",
@@ -970,19 +1802,42 @@
         "ETN",
         "SU.PA"
       ],
+      "weights": {
+        "SMR": 0.1,
+        "OKLO": 0.1,
+        "UEC": 0.1,
+        "NXE": 0.1,
+        "DNN": 0.1,
+        "HUBB": 0.1,
+        "267260.KS": 0.1,
+        "103590.KS": 0.1,
+        "ETN": 0.1,
+        "SU.PA": 0.1
+      },
       "equal_weight_return": -0.005168420175719451,
-      "coverage": 1.0
+      "net_return": -0.015168420175719451,
+      "volatility": 0.06668432102714059,
+      "max_drawdown": -0.0032165501600788238,
+      "hit_rate": 0.4,
+      "coverage": 1.0,
+      "sector_neutral": false
     },
     {
-      "eval_date": "2025-03-30",
+      "eval_date": "2025-03-26",
       "side": "short",
       "segments": [],
       "tickers": [],
+      "weights": {},
       "equal_weight_return": null,
-      "coverage": 0.0
+      "net_return": null,
+      "volatility": null,
+      "max_drawdown": null,
+      "hit_rate": null,
+      "coverage": 0.0,
+      "sector_neutral": false
     },
     {
-      "eval_date": "2025-03-30",
+      "eval_date": "2025-03-26",
       "side": "watchlist",
       "segments": [
         "gen_smr",
@@ -1000,11 +1855,28 @@
         "ETN",
         "SU.PA"
       ],
+      "weights": {
+        "SMR": 0.1,
+        "OKLO": 0.1,
+        "UEC": 0.1,
+        "NXE": 0.1,
+        "DNN": 0.1,
+        "HUBB": 0.1,
+        "267260.KS": 0.1,
+        "103590.KS": 0.1,
+        "ETN": 0.1,
+        "SU.PA": 0.1
+      },
       "equal_weight_return": null,
-      "coverage": 0.0
+      "net_return": -0.015168420175719451,
+      "volatility": 0.06668432102714059,
+      "max_drawdown": -0.0032165501600788238,
+      "hit_rate": 0.4,
+      "coverage": 1.0,
+      "sector_neutral": false
     },
     {
-      "eval_date": "2025-04-29",
+      "eval_date": "2025-04-25",
       "side": "long",
       "segments": [
         "gen_smr",
@@ -1022,19 +1894,42 @@
         "ETN",
         "SU.PA"
       ],
+      "weights": {
+        "SMR": 0.1,
+        "OKLO": 0.1,
+        "UEC": 0.1,
+        "NXE": 0.1,
+        "DNN": 0.1,
+        "HUBB": 0.1,
+        "267260.KS": 0.1,
+        "103590.KS": 0.1,
+        "ETN": 0.1,
+        "SU.PA": 0.1
+      },
       "equal_weight_return": 0.005099243220154358,
-      "coverage": 1.0
+      "net_return": -0.004900756779845642,
+      "volatility": 0.08195966132145002,
+      "max_drawdown": 0.0,
+      "hit_rate": 0.4,
+      "coverage": 1.0,
+      "sector_neutral": false
     },
     {
-      "eval_date": "2025-04-29",
+      "eval_date": "2025-04-25",
       "side": "short",
       "segments": [],
       "tickers": [],
+      "weights": {},
       "equal_weight_return": null,
-      "coverage": 0.0
+      "net_return": null,
+      "volatility": null,
+      "max_drawdown": null,
+      "hit_rate": null,
+      "coverage": 0.0,
+      "sector_neutral": false
     },
     {
-      "eval_date": "2025-04-29",
+      "eval_date": "2025-04-25",
       "side": "watchlist",
       "segments": [
         "gen_smr",
@@ -1052,11 +1947,28 @@
         "ETN",
         "SU.PA"
       ],
+      "weights": {
+        "SMR": 0.1,
+        "OKLO": 0.1,
+        "UEC": 0.1,
+        "NXE": 0.1,
+        "DNN": 0.1,
+        "HUBB": 0.1,
+        "267260.KS": 0.1,
+        "103590.KS": 0.1,
+        "ETN": 0.1,
+        "SU.PA": 0.1
+      },
       "equal_weight_return": null,
-      "coverage": 0.0
+      "net_return": -0.004900756779845642,
+      "volatility": 0.08195966132145002,
+      "max_drawdown": 0.0,
+      "hit_rate": 0.4,
+      "coverage": 1.0,
+      "sector_neutral": false
     },
     {
-      "eval_date": "2025-05-29",
+      "eval_date": "2025-05-25",
       "side": "long",
       "segments": [
         "gen_smr",
@@ -1074,19 +1986,42 @@
         "ETN",
         "SU.PA"
       ],
-      "equal_weight_return": 0.00789732497871592,
-      "coverage": 1.0
+      "weights": {
+        "SMR": 0.1,
+        "OKLO": 0.1,
+        "UEC": 0.1,
+        "NXE": 0.1,
+        "DNN": 0.1,
+        "HUBB": 0.1,
+        "267260.KS": 0.1,
+        "103590.KS": 0.1,
+        "ETN": 0.1,
+        "SU.PA": 0.1
+      },
+      "equal_weight_return": 0.007897324978715922,
+      "net_return": -0.0021026750212840787,
+      "volatility": 0.07555644817329767,
+      "max_drawdown": 0.0,
+      "hit_rate": 0.4,
+      "coverage": 1.0,
+      "sector_neutral": false
     },
     {
-      "eval_date": "2025-05-29",
+      "eval_date": "2025-05-25",
       "side": "short",
       "segments": [],
       "tickers": [],
+      "weights": {},
       "equal_weight_return": null,
-      "coverage": 0.0
+      "net_return": null,
+      "volatility": null,
+      "max_drawdown": null,
+      "hit_rate": null,
+      "coverage": 0.0,
+      "sector_neutral": false
     },
     {
-      "eval_date": "2025-05-29",
+      "eval_date": "2025-05-25",
       "side": "watchlist",
       "segments": [
         "gen_smr",
@@ -1104,14 +2039,859 @@
         "ETN",
         "SU.PA"
       ],
+      "weights": {
+        "SMR": 0.1,
+        "OKLO": 0.1,
+        "UEC": 0.1,
+        "NXE": 0.1,
+        "DNN": 0.1,
+        "HUBB": 0.1,
+        "267260.KS": 0.1,
+        "103590.KS": 0.1,
+        "ETN": 0.1,
+        "SU.PA": 0.1
+      },
       "equal_weight_return": null,
-      "coverage": 0.0
+      "net_return": -0.0021026750212840787,
+      "volatility": 0.07555644817329767,
+      "max_drawdown": 0.0,
+      "hit_rate": 0.4,
+      "coverage": 1.0,
+      "sector_neutral": false
+    },
+    {
+      "eval_date": "2025-06-24",
+      "side": "long",
+      "segments": [
+        "gen_smr",
+        "transformers_tnd"
+      ],
+      "tickers": [
+        "SMR",
+        "OKLO",
+        "UEC",
+        "NXE",
+        "DNN",
+        "HUBB",
+        "267260.KS",
+        "103590.KS",
+        "ETN",
+        "SU.PA"
+      ],
+      "weights": {
+        "SMR": 0.1,
+        "OKLO": 0.1,
+        "UEC": 0.1,
+        "NXE": 0.1,
+        "DNN": 0.1,
+        "HUBB": 0.1,
+        "267260.KS": 0.1,
+        "103590.KS": 0.1,
+        "ETN": 0.1,
+        "SU.PA": 0.1
+      },
+      "equal_weight_return": -0.0007291161412242357,
+      "net_return": -0.010729116141224236,
+      "volatility": 0.06081752203475012,
+      "max_drawdown": -0.0042461403262507025,
+      "hit_rate": 0.4,
+      "coverage": 1.0,
+      "sector_neutral": false
+    },
+    {
+      "eval_date": "2025-06-24",
+      "side": "short",
+      "segments": [],
+      "tickers": [],
+      "weights": {},
+      "equal_weight_return": null,
+      "net_return": null,
+      "volatility": null,
+      "max_drawdown": null,
+      "hit_rate": null,
+      "coverage": 0.0,
+      "sector_neutral": false
+    },
+    {
+      "eval_date": "2025-06-24",
+      "side": "watchlist",
+      "segments": [
+        "gen_smr",
+        "transformers_tnd"
+      ],
+      "tickers": [
+        "SMR",
+        "OKLO",
+        "UEC",
+        "NXE",
+        "DNN",
+        "HUBB",
+        "267260.KS",
+        "103590.KS",
+        "ETN",
+        "SU.PA"
+      ],
+      "weights": {
+        "SMR": 0.1,
+        "OKLO": 0.1,
+        "UEC": 0.1,
+        "NXE": 0.1,
+        "DNN": 0.1,
+        "HUBB": 0.1,
+        "267260.KS": 0.1,
+        "103590.KS": 0.1,
+        "ETN": 0.1,
+        "SU.PA": 0.1
+      },
+      "equal_weight_return": null,
+      "net_return": -0.010729116141224236,
+      "volatility": 0.06081752203475012,
+      "max_drawdown": -0.0042461403262507025,
+      "hit_rate": 0.4,
+      "coverage": 1.0,
+      "sector_neutral": false
+    },
+    {
+      "eval_date": "2025-07-24",
+      "side": "long",
+      "segments": [
+        "gen_smr",
+        "transformers_tnd"
+      ],
+      "tickers": [
+        "SMR",
+        "OKLO",
+        "UEC",
+        "NXE",
+        "DNN",
+        "HUBB",
+        "267260.KS",
+        "103590.KS",
+        "ETN",
+        "SU.PA"
+      ],
+      "weights": {
+        "SMR": 0.1,
+        "OKLO": 0.1,
+        "UEC": 0.1,
+        "NXE": 0.1,
+        "DNN": 0.1,
+        "HUBB": 0.1,
+        "267260.KS": 0.1,
+        "103590.KS": 0.1,
+        "ETN": 0.1,
+        "SU.PA": 0.1
+      },
+      "equal_weight_return": -0.007136537027519242,
+      "net_return": -0.017136537027519244,
+      "volatility": 0.046292193588332885,
+      "max_drawdown": -0.006925817442016813,
+      "hit_rate": 0.2,
+      "coverage": 1.0,
+      "sector_neutral": false
+    },
+    {
+      "eval_date": "2025-07-24",
+      "side": "short",
+      "segments": [],
+      "tickers": [],
+      "weights": {},
+      "equal_weight_return": null,
+      "net_return": null,
+      "volatility": null,
+      "max_drawdown": null,
+      "hit_rate": null,
+      "coverage": 0.0,
+      "sector_neutral": false
+    },
+    {
+      "eval_date": "2025-07-24",
+      "side": "watchlist",
+      "segments": [
+        "gen_smr",
+        "transformers_tnd"
+      ],
+      "tickers": [
+        "SMR",
+        "OKLO",
+        "UEC",
+        "NXE",
+        "DNN",
+        "HUBB",
+        "267260.KS",
+        "103590.KS",
+        "ETN",
+        "SU.PA"
+      ],
+      "weights": {
+        "SMR": 0.1,
+        "OKLO": 0.1,
+        "UEC": 0.1,
+        "NXE": 0.1,
+        "DNN": 0.1,
+        "HUBB": 0.1,
+        "267260.KS": 0.1,
+        "103590.KS": 0.1,
+        "ETN": 0.1,
+        "SU.PA": 0.1
+      },
+      "equal_weight_return": null,
+      "net_return": -0.017136537027519244,
+      "volatility": 0.046292193588332885,
+      "max_drawdown": -0.006925817442016813,
+      "hit_rate": 0.2,
+      "coverage": 1.0,
+      "sector_neutral": false
+    },
+    {
+      "eval_date": "2025-08-23",
+      "side": "long",
+      "segments": [
+        "gen_smr",
+        "transformers_tnd"
+      ],
+      "tickers": [
+        "SMR",
+        "OKLO",
+        "UEC",
+        "NXE",
+        "DNN",
+        "HUBB",
+        "267260.KS",
+        "103590.KS",
+        "ETN",
+        "SU.PA"
+      ],
+      "weights": {
+        "SMR": 0.1,
+        "OKLO": 0.1,
+        "UEC": 0.1,
+        "NXE": 0.1,
+        "DNN": 0.1,
+        "HUBB": 0.1,
+        "267260.KS": 0.1,
+        "103590.KS": 0.1,
+        "ETN": 0.1,
+        "SU.PA": 0.1
+      },
+      "equal_weight_return": -0.003801097371294909,
+      "net_return": -0.01380109737129491,
+      "volatility": 0.06319211123416565,
+      "max_drawdown": -0.0027850151256374467,
+      "hit_rate": 0.5,
+      "coverage": 1.0,
+      "sector_neutral": false
+    },
+    {
+      "eval_date": "2025-08-23",
+      "side": "short",
+      "segments": [],
+      "tickers": [],
+      "weights": {},
+      "equal_weight_return": null,
+      "net_return": null,
+      "volatility": null,
+      "max_drawdown": null,
+      "hit_rate": null,
+      "coverage": 0.0,
+      "sector_neutral": false
+    },
+    {
+      "eval_date": "2025-08-23",
+      "side": "watchlist",
+      "segments": [
+        "gen_smr",
+        "transformers_tnd"
+      ],
+      "tickers": [
+        "SMR",
+        "OKLO",
+        "UEC",
+        "NXE",
+        "DNN",
+        "HUBB",
+        "267260.KS",
+        "103590.KS",
+        "ETN",
+        "SU.PA"
+      ],
+      "weights": {
+        "SMR": 0.1,
+        "OKLO": 0.1,
+        "UEC": 0.1,
+        "NXE": 0.1,
+        "DNN": 0.1,
+        "HUBB": 0.1,
+        "267260.KS": 0.1,
+        "103590.KS": 0.1,
+        "ETN": 0.1,
+        "SU.PA": 0.1
+      },
+      "equal_weight_return": null,
+      "net_return": -0.01380109737129491,
+      "volatility": 0.06319211123416565,
+      "max_drawdown": -0.0027850151256374467,
+      "hit_rate": 0.5,
+      "coverage": 1.0,
+      "sector_neutral": false
+    },
+    {
+      "eval_date": "2025-09-22",
+      "side": "long",
+      "segments": [
+        "gen_smr",
+        "transformers_tnd"
+      ],
+      "tickers": [
+        "SMR",
+        "OKLO",
+        "UEC",
+        "NXE",
+        "DNN",
+        "HUBB",
+        "267260.KS",
+        "103590.KS",
+        "ETN",
+        "SU.PA"
+      ],
+      "weights": {
+        "SMR": 0.1,
+        "OKLO": 0.1,
+        "UEC": 0.1,
+        "NXE": 0.1,
+        "DNN": 0.1,
+        "HUBB": 0.1,
+        "267260.KS": 0.1,
+        "103590.KS": 0.1,
+        "ETN": 0.1,
+        "SU.PA": 0.1
+      },
+      "equal_weight_return": -0.0005041038461947477,
+      "net_return": -0.010504103846194749,
+      "volatility": 0.07067388375871055,
+      "max_drawdown": -0.0009559839532365944,
+      "hit_rate": 0.5,
+      "coverage": 1.0,
+      "sector_neutral": false
+    },
+    {
+      "eval_date": "2025-09-22",
+      "side": "short",
+      "segments": [],
+      "tickers": [],
+      "weights": {},
+      "equal_weight_return": null,
+      "net_return": null,
+      "volatility": null,
+      "max_drawdown": null,
+      "hit_rate": null,
+      "coverage": 0.0,
+      "sector_neutral": false
+    },
+    {
+      "eval_date": "2025-09-22",
+      "side": "watchlist",
+      "segments": [
+        "gen_smr",
+        "transformers_tnd"
+      ],
+      "tickers": [
+        "SMR",
+        "OKLO",
+        "UEC",
+        "NXE",
+        "DNN",
+        "HUBB",
+        "267260.KS",
+        "103590.KS",
+        "ETN",
+        "SU.PA"
+      ],
+      "weights": {
+        "SMR": 0.1,
+        "OKLO": 0.1,
+        "UEC": 0.1,
+        "NXE": 0.1,
+        "DNN": 0.1,
+        "HUBB": 0.1,
+        "267260.KS": 0.1,
+        "103590.KS": 0.1,
+        "ETN": 0.1,
+        "SU.PA": 0.1
+      },
+      "equal_weight_return": null,
+      "net_return": -0.010504103846194749,
+      "volatility": 0.07067388375871055,
+      "max_drawdown": -0.0009559839532365944,
+      "hit_rate": 0.5,
+      "coverage": 1.0,
+      "sector_neutral": false
+    },
+    {
+      "eval_date": "2025-10-22",
+      "side": "long",
+      "segments": [
+        "gen_smr",
+        "transformers_tnd"
+      ],
+      "tickers": [
+        "SMR",
+        "OKLO",
+        "UEC",
+        "NXE",
+        "DNN",
+        "HUBB",
+        "267260.KS",
+        "103590.KS",
+        "ETN",
+        "SU.PA"
+      ],
+      "weights": {
+        "SMR": 0.1,
+        "OKLO": 0.1,
+        "UEC": 0.1,
+        "NXE": 0.1,
+        "DNN": 0.1,
+        "HUBB": 0.1,
+        "267260.KS": 0.1,
+        "103590.KS": 0.1,
+        "ETN": 0.1,
+        "SU.PA": 0.1
+      },
+      "equal_weight_return": 0.0091244331586744,
+      "net_return": -0.0008755668413256007,
+      "volatility": 0.0762141693087909,
+      "max_drawdown": -0.0009602415904437223,
+      "hit_rate": 0.6,
+      "coverage": 1.0,
+      "sector_neutral": false
+    },
+    {
+      "eval_date": "2025-10-22",
+      "side": "short",
+      "segments": [],
+      "tickers": [],
+      "weights": {},
+      "equal_weight_return": null,
+      "net_return": null,
+      "volatility": null,
+      "max_drawdown": null,
+      "hit_rate": null,
+      "coverage": 0.0,
+      "sector_neutral": false
+    },
+    {
+      "eval_date": "2025-10-22",
+      "side": "watchlist",
+      "segments": [
+        "gen_smr",
+        "transformers_tnd"
+      ],
+      "tickers": [
+        "SMR",
+        "OKLO",
+        "UEC",
+        "NXE",
+        "DNN",
+        "HUBB",
+        "267260.KS",
+        "103590.KS",
+        "ETN",
+        "SU.PA"
+      ],
+      "weights": {
+        "SMR": 0.1,
+        "OKLO": 0.1,
+        "UEC": 0.1,
+        "NXE": 0.1,
+        "DNN": 0.1,
+        "HUBB": 0.1,
+        "267260.KS": 0.1,
+        "103590.KS": 0.1,
+        "ETN": 0.1,
+        "SU.PA": 0.1
+      },
+      "equal_weight_return": null,
+      "net_return": -0.0008755668413256007,
+      "volatility": 0.0762141693087909,
+      "max_drawdown": -0.0009602415904437223,
+      "hit_rate": 0.6,
+      "coverage": 1.0,
+      "sector_neutral": false
+    },
+    {
+      "eval_date": "2025-11-21",
+      "side": "long",
+      "segments": [
+        "gen_smr",
+        "transformers_tnd"
+      ],
+      "tickers": [
+        "SMR",
+        "OKLO",
+        "UEC",
+        "NXE",
+        "DNN",
+        "HUBB",
+        "267260.KS",
+        "103590.KS",
+        "ETN",
+        "SU.PA"
+      ],
+      "weights": {
+        "SMR": 0.1,
+        "OKLO": 0.1,
+        "UEC": 0.1,
+        "NXE": 0.1,
+        "DNN": 0.1,
+        "HUBB": 0.1,
+        "267260.KS": 0.1,
+        "103590.KS": 0.1,
+        "ETN": 0.1,
+        "SU.PA": 0.1
+      },
+      "equal_weight_return": 0.002963492494371975,
+      "net_return": -0.007036507505628025,
+      "volatility": 0.07393427958223871,
+      "max_drawdown": -0.0032537910690885186,
+      "hit_rate": 0.6,
+      "coverage": 1.0,
+      "sector_neutral": false
+    },
+    {
+      "eval_date": "2025-11-21",
+      "side": "short",
+      "segments": [],
+      "tickers": [],
+      "weights": {},
+      "equal_weight_return": null,
+      "net_return": null,
+      "volatility": null,
+      "max_drawdown": null,
+      "hit_rate": null,
+      "coverage": 0.0,
+      "sector_neutral": false
+    },
+    {
+      "eval_date": "2025-11-21",
+      "side": "watchlist",
+      "segments": [
+        "gen_smr",
+        "transformers_tnd"
+      ],
+      "tickers": [
+        "SMR",
+        "OKLO",
+        "UEC",
+        "NXE",
+        "DNN",
+        "HUBB",
+        "267260.KS",
+        "103590.KS",
+        "ETN",
+        "SU.PA"
+      ],
+      "weights": {
+        "SMR": 0.1,
+        "OKLO": 0.1,
+        "UEC": 0.1,
+        "NXE": 0.1,
+        "DNN": 0.1,
+        "HUBB": 0.1,
+        "267260.KS": 0.1,
+        "103590.KS": 0.1,
+        "ETN": 0.1,
+        "SU.PA": 0.1
+      },
+      "equal_weight_return": null,
+      "net_return": -0.007036507505628025,
+      "volatility": 0.07393427958223871,
+      "max_drawdown": -0.0032537910690885186,
+      "hit_rate": 0.6,
+      "coverage": 1.0,
+      "sector_neutral": false
+    },
+    {
+      "eval_date": "2025-12-21",
+      "side": "long",
+      "segments": [
+        "gen_smr",
+        "transformers_tnd"
+      ],
+      "tickers": [
+        "SMR",
+        "OKLO",
+        "UEC",
+        "NXE",
+        "DNN",
+        "HUBB",
+        "267260.KS",
+        "103590.KS",
+        "ETN",
+        "SU.PA"
+      ],
+      "weights": {
+        "SMR": 0.1,
+        "OKLO": 0.1,
+        "UEC": 0.1,
+        "NXE": 0.1,
+        "DNN": 0.1,
+        "HUBB": 0.1,
+        "267260.KS": 0.1,
+        "103590.KS": 0.1,
+        "ETN": 0.1,
+        "SU.PA": 0.1
+      },
+      "equal_weight_return": -0.0026566315799459476,
+      "net_return": -0.012656631579945947,
+      "volatility": 0.06002233172875827,
+      "max_drawdown": -0.009392558190639888,
+      "hit_rate": 0.5,
+      "coverage": 1.0,
+      "sector_neutral": false
+    },
+    {
+      "eval_date": "2025-12-21",
+      "side": "short",
+      "segments": [],
+      "tickers": [],
+      "weights": {},
+      "equal_weight_return": null,
+      "net_return": null,
+      "volatility": null,
+      "max_drawdown": null,
+      "hit_rate": null,
+      "coverage": 0.0,
+      "sector_neutral": false
+    },
+    {
+      "eval_date": "2025-12-21",
+      "side": "watchlist",
+      "segments": [
+        "gen_smr",
+        "transformers_tnd"
+      ],
+      "tickers": [
+        "SMR",
+        "OKLO",
+        "UEC",
+        "NXE",
+        "DNN",
+        "HUBB",
+        "267260.KS",
+        "103590.KS",
+        "ETN",
+        "SU.PA"
+      ],
+      "weights": {
+        "SMR": 0.1,
+        "OKLO": 0.1,
+        "UEC": 0.1,
+        "NXE": 0.1,
+        "DNN": 0.1,
+        "HUBB": 0.1,
+        "267260.KS": 0.1,
+        "103590.KS": 0.1,
+        "ETN": 0.1,
+        "SU.PA": 0.1
+      },
+      "equal_weight_return": null,
+      "net_return": -0.012656631579945947,
+      "volatility": 0.06002233172875827,
+      "max_drawdown": -0.009392558190639888,
+      "hit_rate": 0.5,
+      "coverage": 1.0,
+      "sector_neutral": false
+    },
+    {
+      "eval_date": "2026-01-20",
+      "side": "long",
+      "segments": [
+        "gen_smr",
+        "transformers_tnd"
+      ],
+      "tickers": [
+        "SMR",
+        "OKLO",
+        "UEC",
+        "NXE",
+        "DNN",
+        "HUBB",
+        "267260.KS",
+        "103590.KS",
+        "ETN",
+        "SU.PA"
+      ],
+      "weights": {
+        "SMR": 0.1,
+        "OKLO": 0.1,
+        "UEC": 0.1,
+        "NXE": 0.1,
+        "DNN": 0.1,
+        "HUBB": 0.1,
+        "267260.KS": 0.1,
+        "103590.KS": 0.1,
+        "ETN": 0.1,
+        "SU.PA": 0.1
+      },
+      "equal_weight_return": -0.012432647287133874,
+      "net_return": -0.022432647287133872,
+      "volatility": 0.06924053047765824,
+      "max_drawdown": -0.0091819453025197,
+      "hit_rate": 0.3,
+      "coverage": 1.0,
+      "sector_neutral": false
+    },
+    {
+      "eval_date": "2026-01-20",
+      "side": "short",
+      "segments": [],
+      "tickers": [],
+      "weights": {},
+      "equal_weight_return": null,
+      "net_return": null,
+      "volatility": null,
+      "max_drawdown": null,
+      "hit_rate": null,
+      "coverage": 0.0,
+      "sector_neutral": false
+    },
+    {
+      "eval_date": "2026-01-20",
+      "side": "watchlist",
+      "segments": [
+        "gen_smr",
+        "transformers_tnd"
+      ],
+      "tickers": [
+        "SMR",
+        "OKLO",
+        "UEC",
+        "NXE",
+        "DNN",
+        "HUBB",
+        "267260.KS",
+        "103590.KS",
+        "ETN",
+        "SU.PA"
+      ],
+      "weights": {
+        "SMR": 0.1,
+        "OKLO": 0.1,
+        "UEC": 0.1,
+        "NXE": 0.1,
+        "DNN": 0.1,
+        "HUBB": 0.1,
+        "267260.KS": 0.1,
+        "103590.KS": 0.1,
+        "ETN": 0.1,
+        "SU.PA": 0.1
+      },
+      "equal_weight_return": null,
+      "net_return": -0.022432647287133872,
+      "volatility": 0.06924053047765824,
+      "max_drawdown": -0.0091819453025197,
+      "hit_rate": 0.3,
+      "coverage": 1.0,
+      "sector_neutral": false
+    },
+    {
+      "eval_date": "2026-02-19",
+      "side": "long",
+      "segments": [
+        "gen_smr",
+        "transformers_tnd"
+      ],
+      "tickers": [
+        "SMR",
+        "OKLO",
+        "UEC",
+        "NXE",
+        "DNN",
+        "HUBB",
+        "267260.KS",
+        "103590.KS",
+        "ETN",
+        "SU.PA"
+      ],
+      "weights": {
+        "SMR": 0.1,
+        "OKLO": 0.1,
+        "UEC": 0.1,
+        "NXE": 0.1,
+        "DNN": 0.1,
+        "HUBB": 0.1,
+        "267260.KS": 0.1,
+        "103590.KS": 0.1,
+        "ETN": 0.1,
+        "SU.PA": 0.1
+      },
+      "equal_weight_return": -0.018502393448861617,
+      "net_return": -0.028502393448861615,
+      "volatility": 0.05976701009452652,
+      "max_drawdown": -0.012349505486944579,
+      "hit_rate": 0.3,
+      "coverage": 1.0,
+      "sector_neutral": false
+    },
+    {
+      "eval_date": "2026-02-19",
+      "side": "short",
+      "segments": [],
+      "tickers": [],
+      "weights": {},
+      "equal_weight_return": null,
+      "net_return": null,
+      "volatility": null,
+      "max_drawdown": null,
+      "hit_rate": null,
+      "coverage": 0.0,
+      "sector_neutral": false
+    },
+    {
+      "eval_date": "2026-02-19",
+      "side": "watchlist",
+      "segments": [
+        "gen_smr",
+        "transformers_tnd"
+      ],
+      "tickers": [
+        "SMR",
+        "OKLO",
+        "UEC",
+        "NXE",
+        "DNN",
+        "HUBB",
+        "267260.KS",
+        "103590.KS",
+        "ETN",
+        "SU.PA"
+      ],
+      "weights": {
+        "SMR": 0.1,
+        "OKLO": 0.1,
+        "UEC": 0.1,
+        "NXE": 0.1,
+        "DNN": 0.1,
+        "HUBB": 0.1,
+        "267260.KS": 0.1,
+        "103590.KS": 0.1,
+        "ETN": 0.1,
+        "SU.PA": 0.1
+      },
+      "equal_weight_return": null,
+      "net_return": -0.028502393448861615,
+      "volatility": 0.05976701009452652,
+      "max_drawdown": -0.012349505486944579,
+      "hit_rate": 0.3,
+      "coverage": 1.0,
+      "sector_neutral": false
     }
   ],
   "fixed_vs_rolling": {
-    "fixed_overall_ic": 0.03241032526920414,
+    "fixed_overall_ic": 0.00989343659678073,
     "rolling_overall_ic": null,
-    "fixed_n_eval_points": 6990,
+    "fixed_n_eval_points": 17475,
     "rolling_n_eval_points": 0,
     "per_segment": []
   },
