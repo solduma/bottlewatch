@@ -22,6 +22,7 @@ dependencies = [
     "uvicorn[standard]>=0.30",  # M2 ASGI server (httptools + uvloop extras)
     "psycopg[binary]>=3.2",  # Postgres adapter (v1.1 cutover target)
     "beautifulsoup4>=4.12",  # 10-K/10-Q HTML stripping for sec_edgar capacity keyword extraction
+    "yfinance>=0.2",  # daily equity price ingest for backtest
 ]
 
 [dependency-groups]
@@ -41,6 +42,7 @@ bottlewatch-validate   = "bottlewatch.jobs.validate_ontology:main"
 bottlewatch-refresh    = "bottlewatch.jobs.refresh_daily:main"
 bottlewatch-recompute  = "bottlewatch.jobs.recompute_scores:main"
 bottlewatch-backtest   = "bottlewatch.jobs.backtest:main"
+bottlewatch-refresh-prices = "bottlewatch.jobs.refresh_prices:main"
 bottlewatch-map-mermaid = "bottlewatch.jobs.map_mermaid:main"
 
 [tool.hatch.build.targets.wheel]

@@ -15,6 +15,7 @@ here, not fork the class.
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Literal
 
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -55,6 +56,21 @@ class Settings(BaseSettings):
     refresh_log_path: Path = Field(
         default=_DEFAULT_LOG_PATH,
         description="JSONL log written by the orchestrator.",
+    )
+
+    # Price ingest for the walk-forward backtest.
+    price_data_source: Literal["csv", "yfinance", "alphavantage"] = Field(
+        default="csv",
+        description="Source for refreshing data/processed/prices.csv; 'csv' leaves the file untouched.",
+    )
+    price_api_key: str | None = Field(default=None, description="API key for Alpha Vantage price ingest.")
+    prices_csv_path: Path = Field(
+        default=_DATA_DIR / "processed" / "prices.csv",
+        description="Destination CSV for price refresh; backtest reads this file by default.",
+    )
+    price_lookback_days: int = Field(
+        default=730,
+        description="Default calendar-days window to pull when refreshing prices.",
     )
 
     eia_base_url: str = Field(
