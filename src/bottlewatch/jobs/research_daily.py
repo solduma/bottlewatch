@@ -303,7 +303,7 @@ def _call_llm(prompt: str, api_key: str | None, base_url: str, model: str) -> st
         "max_tokens": 512,
     }
 
-    with httpx.Client(timeout=60.0) as client:
+    with httpx.Client(timeout=60.0, follow_redirects=True) as client:
         response = client.post(url, headers=headers, json=payload)
         response.raise_for_status()
         data = response.json()

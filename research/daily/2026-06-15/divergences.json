@@ -1,16 +1,212 @@
 {
   "advanced_node_fabs:near": [
     {
-      "sub_score": "lead_time_growth",
-      "seed": 0.85,
-      "dynamic": 0.5,
-      "gap": -0.35
+      "sub_score": "geo_concentration",
+      "seed": 0.65,
+      "dynamic": 0.42577249978180387,
+      "gap": -0.22422750021819615
     },
     {
       "sub_score": "demand_signal",
       "seed": 0.9,
-      "dynamic": 0.5,
-      "gap": -0.4
+      "dynamic": 0.532649757150567,
+      "gap": -0.3673502428494331
+    }
+  ],
+  "advanced_node_fabs:med": [
+    {
+      "sub_score": "geo_concentration",
+      "seed": 0.65,
+      "dynamic": 0.42577249978180387,
+      "gap": -0.22422750021819615
+    },
+    {
+      "sub_score": "demand_signal",
+      "seed": 0.9,
+      "dynamic": 0.532649757150567,
+      "gap": -0.3673502428494331
+    }
+  ],
+  "advanced_node_fabs:long": [
+    {
+      "sub_score": "geo_concentration",
+      "seed": 0.65,
+      "dynamic": 0.42577249978180387,
+      "gap": -0.22422750021819615
+    },
+    {
+      "sub_score": "demand_signal",
+      "seed": 0.9,
+      "dynamic": 0.532649757150567,
+      "gap": -0.3673502428494331
+    }
+  ],
+  "advanced_packaging:near": [
+    {
+      "sub_score": "demand_signal",
+      "seed": 0.9,
+      "dynamic": 0.532649757150567,
+      "gap": -0.3673502428494331
+    }
+  ],
+  "advanced_packaging:med": [
+    {
+      "sub_score": "demand_signal",
+      "seed": 0.9,
+      "dynamic": 0.532649757150567,
+      "gap": -0.3673502428494331
+    }
+  ],
+  "advanced_packaging:long": [
+    {
+      "sub_score": "demand_signal",
+      "seed": 0.9,
+      "dynamic": 0.532649757150567,
+      "gap": -0.3673502428494331
+    }
+  ],
+  "data_center_shell:near": [
+    {
+      "sub_score": "demand_signal",
+      "seed": 0.95,
+      "dynamic": 0.532649757150567,
+      "gap": -0.417350242849433
+    }
+  ],
+  "data_center_shell:med": [
+    {
+      "sub_score": "demand_signal",
+      "seed": 0.95,
+      "dynamic": 0.532649757150567,
+      "gap": -0.417350242849433
+    }
+  ],
+  "data_center_shell:long": [
+    {
+      "sub_score": "demand_signal",
+      "seed": 0.95,
+      "dynamic": 0.532649757150567,
+      "gap": -0.417350242849433
+    }
+  ],
+  "gpu_asic_silicon:near": [
+    {
+      "sub_score": "demand_signal",
+      "seed": 0.9,
+      "dynamic": 0.532649757150567,
+      "gap": -0.3673502428494331
+    }
+  ],
+  "gpu_asic_silicon:med": [
+    {
+      "sub_score": "demand_signal",
+      "seed": 0.9,
+      "dynamic": 0.532649757150567,
+      "gap": -0.3673502428494331
+    }
+  ],
+  "gpu_asic_silicon:long": [
+    {
+      "sub_score": "demand_signal",
+      "seed": 0.9,
+      "dynamic": 0.532649757150567,
+      "gap": -0.3673502428494331
+    }
+  ],
+  "hbm_memory:near": [
+    {
+      "sub_score": "demand_signal",
+      "seed": 0.9,
+      "dynamic": 0.532649757150567,
+      "gap": -0.3673502428494331
+    }
+  ],
+  "hbm_memory:med": [
+    {
+      "sub_score": "demand_signal",
+      "seed": 0.9,
+      "dynamic": 0.532649757150567,
+      "gap": -0.3673502428494331
+    }
+  ],
+  "hbm_memory:long": [
+    {
+      "sub_score": "demand_signal",
+      "seed": 0.9,
+      "dynamic": 0.532649757150567,
+      "gap": -0.3673502428494331
+    }
+  ],
+  "networking_interconnect:near": [
+    {
+      "sub_score": "demand_signal",
+      "seed": 0.8,
+      "dynamic": 0.532649757150567,
+      "gap": -0.2673502428494331
+    }
+  ],
+  "networking_interconnect:med": [
+    {
+      "sub_score": "demand_signal",
+      "seed": 0.8,
+      "dynamic": 0.532649757150567,
+      "gap": -0.2673502428494331
+    }
+  ],
+  "networking_interconnect:long": [
+    {
+      "sub_score": "demand_signal",
+      "seed": 0.8,
+      "dynamic": 0.532649757150567,
+      "gap": -0.2673502428494331
+    }
+  ],
+  "fee_vacuum_pumps:near": [
+    {
+      "sub_score": "geo_concentration",
+      "seed": 0.48,
+      "dynamic": 0.7327232367125804,
+      "gap": 0.25272323671258046
+    }
+  ],
+  "fee_vacuum_pumps:med": [
+    {
+      "sub_score": "geo_concentration",
+      "seed": 0.48,
+      "dynamic": 0.7327232367125804,
+      "gap": 0.25272323671258046
+    }
+  ],
+  "fee_vacuum_pumps:long": [
+    {
+      "sub_score": "geo_concentration",
+      "seed": 0.48,
+      "dynamic": 0.7327232367125804,
+      "gap": 0.25272323671258046
+    }
+  ],
+  "inf_neocloud:near": [
+    {
+      "sub_score": "geo_concentration",
+      "seed": 0.5,
+      "dynamic": 0.7767543540084825,
+      "gap": 0.2767543540084825
+    }
+  ],
+  "inf_neocloud:med": [
+    {
+      "sub_score": "geo_concentration",
+      "seed": 0.5,
+      "dynamic": 0.7767543540084825,
+      "gap": 0.2767543540084825
+    }
+  ],
+  "inf_neocloud:long": [
+    {
+      "sub_score": "geo_concentration",
+      "seed": 0.5,
+      "dynamic": 0.7767543540084825,
+      "gap": 0.2767543540084825
     }
   ]
 }

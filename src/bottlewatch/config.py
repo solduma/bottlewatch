@@ -47,7 +47,7 @@ class Settings(BaseSettings):
     comtrade_api_key: str | None = Field(default=None, description="UN Comtrade API key")
     ollama_api_key: str | None = Field(default=None, description="Ollama Cloud API key for daily research reasoning")
     ollama_base_url: str = Field(
-        default="https://api.ollama.com/v1",
+        default="https://ollama.com/v1",
         description="Ollama Cloud API base URL",
     )
     ollama_model: str = Field(default="llama3.2", description="Ollama model for daily research reasoning")
