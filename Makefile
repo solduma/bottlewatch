@@ -1,4 +1,4 @@
-.PHONY: sync ontology validate-ontology ingest api web research db-upgrade db-downgrade recompute test test-pg schedule unschedule install-hooks check-migrations
+.PHONY: sync ontology validate-ontology ingest refresh-prices api web research db-upgrade db-downgrade recompute test test-pg schedule unschedule install-hooks check-migrations
 
 sync:
 	uv sync
@@ -11,6 +11,9 @@ validate-ontology:
 
 ingest:
 	uv run bottlewatch-refresh
+
+refresh-prices:
+	uv run bottlewatch-refresh-prices
 
 api:
 	uv run uvicorn bottlewatch.app.main:app --reload --host 127.0.0.1 --port 8000

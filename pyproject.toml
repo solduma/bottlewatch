@@ -24,6 +24,7 @@ dependencies = [
     "beautifulsoup4>=4.12",  # 10-K/10-Q HTML stripping for sec_edgar capacity keyword extraction
     "anthropic>=0.49",  # daily research reasoning (Claude API)
     "scipy>=1.14",  # Phase 3 backtest statistics (Spearman, t-dist, bootstrap)
+    "yfinance>=0.2",  # daily equity price ingest for backtest
 ]
 
 [dependency-groups]
@@ -45,6 +46,7 @@ bottlewatch-validate   = "bottlewatch.jobs.validate_ontology:main"
 bottlewatch-refresh    = "bottlewatch.jobs.refresh_daily:main"
 bottlewatch-recompute  = "bottlewatch.jobs.recompute_scores:main"
 bottlewatch-backtest   = "bottlewatch.jobs.backtest:main"
+bottlewatch-refresh-prices = "bottlewatch.jobs.refresh_prices:main"
 bottlewatch-map-mermaid = "bottlewatch.jobs.map_mermaid:main"
 bottlewatch-research = "bottlewatch.jobs.research_daily:main"
 

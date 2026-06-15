@@ -64,6 +64,21 @@ class Settings(BaseSettings):
         description="JSONL log written by the orchestrator.",
     )
 
+    # Price ingest for the walk-forward backtest.
+    price_data_source: Literal["csv", "yfinance", "alphavantage"] = Field(
+        default="csv",
+        description="Source for refreshing data/processed/prices.csv; 'csv' leaves the file untouched.",
+    )
+    price_api_key: str | None = Field(default=None, description="API key for Alpha Vantage price ingest.")
+    prices_csv_path: Path = Field(
+        default=_DATA_DIR / "processed" / "prices.csv",
+        description="Destination CSV for price refresh; backtest reads this file by default.",
+    )
+    price_lookback_days: int = Field(
+        default=730,
+        description="Default calendar-days window to pull when refreshing prices.",
+    )
+
     eia_base_url: str = Field(
         default="https://api.eia.gov/v2",
         description="EIA v2 base URL; pinned so v2 changes do not surprise us.",
