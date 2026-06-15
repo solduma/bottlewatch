@@ -124,6 +124,7 @@ class _SignalRow:
     signal_name: str
     value_num: float | None
     observed_at: date
+    geography: str | None = None
 
 
 # ---------------------------------------------------------------------------
@@ -213,6 +214,7 @@ def _load_signals_by_segment(
             Signal.value_num,
             Signal.observed_at,
             Signal.ingested_at,
+            Signal.geography,
         )
         if as_of_naive is not None:
             # True point-in-time gate: when the source exposes a release
@@ -267,7 +269,7 @@ def _add_signal_rows(
     seen: set[tuple[str, str, str | None]],
 ) -> None:
     """Add raw signal rows to `out`, applying idempotent-source dedup."""
-    for segment, signal_name, source, source_id, value_num, observed_at, _ingested_at in rows:
+    for segment, signal_name, source, source_id, value_num, observed_at, _ingested_at, geography in rows:
         if source in _IDEMPOTENT_SOURCES:
             dedup_key = (segment, signal_name, source_id)
             if dedup_key in seen:
@@ -278,6 +280,7 @@ def _add_signal_rows(
                 signal_name=signal_name,
                 value_num=value_num,
                 observed_at=observed_at,
+                geography=geography,
             )
         )
 

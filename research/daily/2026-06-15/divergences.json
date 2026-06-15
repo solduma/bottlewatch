@@ -1,0 +1,16 @@
+{
+  "advanced_node_fabs:near": [
+    {
+      "sub_score": "lead_time_growth",
+      "seed": 0.85,
+      "dynamic": 0.5,
+      "gap": -0.35
+    },
+    {
+      "sub_score": "demand_signal",
+      "seed": 0.9,
+      "dynamic": 0.5,
+      "gap": -0.4
+    }
+  ]
+}

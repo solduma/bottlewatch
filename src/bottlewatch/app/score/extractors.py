@@ -11,6 +11,7 @@ concentration index, so it returns `float | None` directly.
 
 from __future__ import annotations
 
+from collections import defaultdict
 from dataclasses import dataclass
 from datetime import date
 from typing import Any, Iterable, Protocol
@@ -69,9 +70,14 @@ class SignalLike(Protocol):
     ORM rows or `to_row()` dicts without conversion.
     """
 
-    signal_name: str
-    value_num: float | None
-    observed_at: object  # datetime.date or str; extractors use only the float
+    @property
+    def signal_name(self) -> str: ...
+    @property
+    def value_num(self) -> float | None: ...
+    @property
+    def observed_at(self) -> object: ...  # datetime.date or str
+    @property
+    def geography(self) -> str | None: ...  # optional region tag for ISO/RTO signals
 
 
 # Segments that can use Comtrade trade-volume YoY as a capacity proxy.
@@ -100,12 +106,12 @@ def capacity_tightness(segment: str, signals: Iterable[SignalLike]) -> Extractor
     raw: float | None = None
     source_key = "edgar_keyword"
     match segment:
-        case "power_generation_oem":
-            raw = _power_tightness(seg_signals)
-            source_key = "power_ratio"
-        case "data_center_shell":
-            raw = _data_center_shell_tightness(seg_signals)
-            source_key = "retail_sales_yoy"
+        case "power_generation_oem" | "data_center_shell":
+            raw = _iso_capacity_tightness(seg_signals)
+            source_key = "iso_capacity_ratio"
+            if raw is None:
+                raw = _power_tightness(seg_signals)
+                source_key = "power_ratio"
         case _:
             if segment in _COMTRADE_CAPACITY_SEGMENTS:
                 raw = _comtrade_capacity_tightness(seg_signals)
@@ -128,24 +134,17 @@ def demand_signal(segment: str, signals: Iterable[SignalLike]) -> ExtractorResul
     segment has no dynamic demand extractor in the current data set.
     """
     seg_signals = list(signals)
-    match segment:
-        case "transformers_tnd":
-            raw = _transformer_demand_signal(seg_signals)
-            if raw is not None:
-                return ExtractorResult(raw, "transformer_orders")
-            return None
-        case _:
-            if segment in _HYPERSCALER_DEMAND_SEGMENTS:
-                raw = _hyperscaler_demand_signal(segment)
-                if raw is not None:
-                    return ExtractorResult(raw, "hyperscaler_capex")
-                return None
-            if segment in _MANUFACTURING_SEGMENTS:
-                raw = _manufacturing_demand_signal(seg_signals)
-                if raw is not None:
-                    return ExtractorResult(raw, "manufacturing_indpro")
-                return None
-            return None
+    if segment in _HYPERSCALER_DEMAND_SEGMENTS:
+        raw = _hyperscaler_demand_signal(segment)
+        if raw is not None:
+            return ExtractorResult(raw, "hyperscaler_capex")
+        return None
+    if segment in _MANUFACTURING_SEGMENTS:
+        raw = _manufacturing_demand_signal(seg_signals)
+        if raw is not None:
+            return ExtractorResult(raw, "manufacturing_indpro")
+        return None
+    return None
 
 
 def lead_time_growth(segment: str, signals: Iterable[SignalLike]) -> ExtractorResult | None:
@@ -179,26 +178,6 @@ def lead_time_growth(segment: str, signals: Iterable[SignalLike]) -> ExtractorRe
     if edgar is not None:
         return ExtractorResult(edgar, "edgar_keyword")
     return None
-
-
-def _transformer_demand_signal(signals: list[SignalLike]) -> float | None:
-    """Raw YoY growth of FRED `A35SNO` (electrical equipment new orders).
-
-    -10% YoY -> normalized 0.0; +25% YoY -> normalized 1.0 via the fixed
-    band in `score_bands.json`.
-    """
-    values: list[tuple[object, float]] = []
-    for s in signals:
-        if s.signal_name == "electrical_equipment_orders" and s.value_num is not None:
-            values.append((s.observed_at, s.value_num))
-    if len(values) < 13:
-        return None
-    values.sort(key=lambda x: _to_date(x[0]))
-    latest = values[-1][1]
-    year_ago = values[-13][1]
-    if year_ago <= 0:
-        return None
-    return (latest - year_ago) / year_ago
 
 
 def _manufacturing_demand_signal(signals: list[SignalLike]) -> float | None:
@@ -360,11 +339,51 @@ def _semi_lead_time_growth(signals: list[SignalLike]) -> float | None:
     return (latest - year_ago) / year_ago
 
 
+def _iso_capacity_tightness(signals: list[SignalLike]) -> float | None:
+    """Raw ISO/RTO peak-load-to-capacity ratio as primary capacity tightness.
+
+    Per-region utilization is peak load / capacity, clamped to 1.0.
+    The segment-level score is the mean utilization across regions.
+    Returns None if no region has both required signals.
+    """
+    by_region_month: dict[tuple[str | None, date], dict[str, float]] = defaultdict(dict)
+    for s in signals:
+        if s.value_num is None:
+            continue
+        if s.signal_name not in ("iso_peak_load_mw", "iso_capacity_mw"):
+            continue
+        d = _to_date(s.observed_at)
+        region = getattr(s, "geography", None)
+        by_region_month[(region, d)][s.signal_name] = s.value_num
+
+    if not by_region_month:
+        return None
+
+    latest_by_region: dict[str | None, date] = {}
+    for region, d in by_region_month:
+        if region not in latest_by_region or d > latest_by_region[region]:
+            latest_by_region[region] = d
+
+    ratios: list[float] = []
+    for region, latest_d in latest_by_region.items():
+        vals = by_region_month[(region, latest_d)]
+        cap = vals.get("iso_capacity_mw")
+        peak = vals.get("iso_peak_load_mw")
+        if cap is not None and cap > 0 and peak is not None:
+            ratios.append(min(peak / cap, 1.0))
+
+    if not ratios:
+        return None
+    return sum(ratios) / len(ratios)
+
+
 def _power_tightness(signals: list[SignalLike]) -> float | None:
     """Raw ratio of forward additions to operating capacity.
 
     Returns the unclamped ratio so rolling normalization can use the
-    actual historical range. The fixed band maps [0, 1] -> [0, 1].
+    actual historical range. The calibrated fixed band maps [0, 0.5]
+    -> [0, 1], so a planned/operating ratio of 0.5 is treated as fully
+    tight.
     """
     forward: list[float] = []
     operating: list[float] = []
@@ -382,25 +401,6 @@ def _power_tightness(signals: list[SignalLike]) -> float | None:
     if operating_level <= 0:
         return None
     return forward_sum / operating_level
-
-
-def _data_center_shell_tightness(signals: list[SignalLike]) -> float | None:
-    """Raw retail_sales_mwh YoY growth for data-center shell proxy.
-
-    The fixed band maps [-10%, +25%] -> [0, 1].
-    """
-    values: list[tuple[object, float]] = []
-    for s in signals:
-        if s.signal_name == "retail_sales_mwh" and s.value_num is not None:
-            values.append((s.observed_at, s.value_num))
-    if len(values) < 13:
-        return None
-    values.sort(key=lambda x: _to_date(x[0]))
-    latest = values[-1][1]
-    year_ago = values[-13][1]
-    if year_ago <= 0:
-        return None
-    return (latest - year_ago) / year_ago
 
 
 def _comtrade_capacity_tightness(signals: list[SignalLike]) -> float | None:

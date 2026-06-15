@@ -19,20 +19,21 @@ from bottlewatch.app.score.formula import (
 from bottlewatch.app.score.regime import Regime
 
 
-@dataclass(frozen=True)
+@dataclass
 class _Row:
     signal_name: str
     value_num: Optional[float]
     observed_at: object  # unused in the no-extractor path
+    geography: str | None = None
 
 
 def test_full_b_near_for_power() -> None:
     # power_generation_oem with planned_capacity_mw (forward 5000) +
-    # capacity_mw (20000) → capacity_tightness raw = 5000/20000 = 0.25
-    # → normalized 0.25.
-    # B(near) = 100 * (0.30*0.80 + 0.35*0.25 + 0.10*0.35 + 0.05*0.67 + 0.20*0.85)
-    #         = 100 * (0.24 + 0.0875 + 0.035 + 0.0335 + 0.17)
-    #         = 100 * 0.566 = 56.6
+    # capacity_mw (20000) → capacity_tightness raw = 5000/20000 = 0.25.
+    # The calibrated fixed band [0, 0.5] maps 0.25 → 0.5.
+    # B(near) = 100 * (0.30*0.80 + 0.35*0.50 + 0.10*0.35 + 0.05*0.67 + 0.20*0.85)
+    #         = 100 * (0.24 + 0.175 + 0.035 + 0.0335 + 0.17)
+    #         = 100 * 0.6535 = 65.35
     result = compute_segment_score(
         "power_generation_oem",
         "near",
@@ -45,9 +46,9 @@ def test_full_b_near_for_power() -> None:
     assert isinstance(result, ScoreResult)
     assert result.segment == "power_generation_oem"
     assert result.horizon == "near"
-    assert result.score == pytest.approx(56.6, abs=1e-3)
+    assert result.score == pytest.approx(65.35, abs=1e-3)
     assert result.data_completeness == 1.0
-    assert result.regime is Regime.STABLE  # B=56.6, B'=0 → STABLE
+    assert result.regime is Regime.STABLE  # B=65.35, B'=0 → STABLE
     assert result.regime_confidence == "low"
 
 
@@ -213,7 +214,9 @@ def test_geo_concentration_large_divergence_falls_back_to_seed() -> None:
 
 
 def test_demand_signal_override_replaces_seed() -> None:
-    # transformer_orders band: YoY [-0.10, 0.25]. Raw 0.25 → normalized 1.0.
+    # The `transformer_orders` macro-proxy band was removed during
+    # Phase 4 calibration. An override with that source_key now falls
+    # back to the seed passthrough band [0, 1], so raw 0.25 stays 0.25.
     now = datetime(2026, 6, 4, tzinfo=timezone.utc)
     with_override = compute_segment_score(
         "transformers_tnd",
@@ -226,7 +229,7 @@ def test_demand_signal_override_replaces_seed() -> None:
         "near",
         now=now,
     )
-    assert with_override.sub_scores["demand_signal"] == 1.0
+    assert with_override.sub_scores["demand_signal"] == pytest.approx(0.25)
     assert without_override.sub_scores["demand_signal"] == pytest.approx(0.80)
     assert with_override.score != without_override.score
 

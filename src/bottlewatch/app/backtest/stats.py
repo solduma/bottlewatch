@@ -6,6 +6,7 @@ Light wrapper around scipy so the backtest job stays readable.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from collections.abc import Sequence
 from typing import Any
 
 import numpy as np
@@ -37,7 +38,7 @@ class BootstrapResult:
 
 
 def _block_bootstrap_ic(
-    eval_dates: list[Any],
+    eval_dates: Sequence[Any],
     points_by_date: dict[Any, list[tuple[float, float]]],
     block_size: int = 3,
     n_bootstraps: int = 1000,
@@ -90,7 +91,7 @@ def _block_bootstrap_ic(
 
 
 def benjamini_hochberg(
-    p_values: list[tuple[str, float | None]],
+    p_values: Sequence[tuple[str, float | None]],
     alpha: float = 0.10,
 ) -> dict[str, bool]:
     """Return which hypotheses are rejected at FDR `alpha`.
@@ -118,9 +119,9 @@ def benjamini_hochberg(
 
 def segment_ic_with_ci(
     segment: str,
-    xs: list[float],
-    ys: list[float],
-    eval_dates: list[Any],
+    xs: Sequence[float],
+    ys: Sequence[float],
+    eval_dates: Sequence[Any],
     points_by_date: dict[Any, list[tuple[float, float]]],
     alpha: float = 0.10,
 ) -> SegmentICResult:

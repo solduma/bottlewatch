@@ -85,6 +85,10 @@ class Settings(BaseSettings):
     )
     eia_timeout_s: float = Field(default=30.0, description="httpx timeout per request")
     eia_max_retries: int = Field(default=3, description="tenacity stop_after_attempt")
+    eia_isorto_regions: list[str] = Field(
+        default_factory=lambda: ["ERCO", "CISO", "PJM"],
+        description="EIA-930 respondents used for ISO/RTO capacity-tightness data.",
+    )
 
     # M2 web surface. CORS default is the Next.js dev origin; override
     # in .env for prod. The API is read-only in M2 so methods are

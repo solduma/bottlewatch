@@ -33,7 +33,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import sessionmaker
 
 from bottlewatch.app.db import ResearchSnapshot, Score, Signal, make_engine, make_session_factory, session_scope
-from bottlewatch.app.score.research_values import for_segment, known_segments, load_seed
+from bottlewatch.app.score.research_values import SeedEntry, for_segment, known_segments, load_seed
 from bottlewatch.config import Settings, get_settings
 
 _LOGGER = logging.getLogger(__name__)
@@ -53,7 +53,7 @@ class SegmentContext:
     """Inputs needed to reason about one segment."""
 
     segment: str
-    seed: dict[str, float]
+    seed: SeedEntry
     scores: dict[str, dict[str, Any]]  # horizon -> score row dict
     prev_scores: dict[str, dict[str, Any]] | None
     signals: list[dict[str, Any]]
@@ -172,7 +172,7 @@ def _load_recent_signals(
     ]
 
 
-def _detect_divergences(score_row: dict[str, Any], seed: dict[str, float]) -> list[dict[str, Any]]:
+def _detect_divergences(score_row: dict[str, Any], seed: SeedEntry) -> list[dict[str, Any]]:
     """Compare the score row's actual sub-scores to research seeds.
 
     Only sub-scores that are backed by a seed value can diverge:
@@ -463,7 +463,7 @@ def run(
 
         context = SegmentContext(
             segment=segment,
-            seed=dict(segment_seed),
+            seed=segment_seed,
             scores=scores,
             prev_scores=prev_scores if prev_scores else None,
             signals=signals,
