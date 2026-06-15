@@ -75,6 +75,7 @@ class Signal(Base):
     source_id: Mapped[str | None] = mapped_column(String, nullable=True)
     observed_at: Mapped[date] = mapped_column(Date, nullable=False)
     ingested_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    released_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     tickers: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     __table_args__ = (

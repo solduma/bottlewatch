@@ -43,7 +43,7 @@ from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Sequence
 
-from sqlalchemy import delete, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import sessionmaker
 
@@ -174,9 +174,11 @@ def _load_signals_by_segment(
     `_PLANNED_CAPACITY_LOOKAHEAD_DAYS` after `until`, because their
     `observed_at` is the planned operation date in the future.
 
-    When `as_of` is provided, only rows with `ingested_at <= as_of`
-    and `observed_at <= as_of.date()` are returned. This is the
-    point-in-time path used by the backtest job.
+    When `as_of` is provided, the query is gated on the signal's
+    `released_at` (or `ingested_at` when `released_at` is null) and
+    on `observed_at <= as_of.date()`. This is the point-in-time path
+    used by historical recomputes; the daily production path leaves
+    `as_of` as None and loads all signals in the window.
 
     Dedup contract: for sources where re-emission is the same
     data point (e.g. EIA 860M: the planned addition for plant
@@ -195,7 +197,12 @@ def _load_signals_by_segment(
     """
     out: dict[str, list[_SignalRow]] = {}
     seen: set[tuple[str, str, str | None]] = set()
-    as_of_date = as_of.date() if as_of is not None else None
+    as_of_naive = as_of
+    as_of_date = None
+    if as_of is not None and as_of.tzinfo is not None:
+        as_of_naive = as_of.astimezone(timezone.utc).replace(tzinfo=None)
+    if as_of_naive is not None:
+        as_of_date = as_of_naive.date()
 
     def _base_query(session):
         stmt = select(
@@ -207,8 +214,13 @@ def _load_signals_by_segment(
             Signal.observed_at,
             Signal.ingested_at,
         )
-        if as_of is not None:
-            stmt = stmt.where(Signal.ingested_at <= as_of).where(Signal.observed_at <= as_of_date)
+        if as_of_naive is not None:
+            # True point-in-time gate: when the source exposes a release
+            # date, use it; otherwise fall back to when the row was
+            # ingested. `observed_at` is also bounded by the as-of date
+            # so forward-dated observations cannot leak into history.
+            available_at = func.coalesce(Signal.released_at, Signal.ingested_at)
+            stmt = stmt.where(available_at <= as_of_naive).where(Signal.observed_at <= as_of_date)
         return stmt
 
     # 1. Normal window: all signals within [since, until].
@@ -487,9 +499,9 @@ def run(
             formula falls back to the seed value for
             `geo_concentration` (preserving M2 stopgap behavior).
         as_of: point-in-time recompute boundary. When provided,
-            signals and history are filtered to data available on or
-            before `as_of`. Production daily runs should leave this
-            as None.
+            signals are gated on `released_at` (or `ingested_at` as
+            a fallback) and `observed_at <= as_of.date()`. Production
+            daily runs should leave this as None.
     """
     settings = settings or get_settings()
     started = now or datetime.now(tz=timezone.utc)
