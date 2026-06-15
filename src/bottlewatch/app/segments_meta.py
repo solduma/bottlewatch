@@ -34,14 +34,12 @@ _SEGMENT_NAMES: dict[str, str] = {
     "power_generation_oem": "Power Generation OEM",
     "systems_rack_scale": "Systems OEM/ODM",
     "transformers_tnd": "Transformers & Switchgear (T&D)",
-
     # Added 5 segments
     "raw_inputs": "Raw Materials & Commodities",
     "fuel_power_inputs": "Fuel & Power Inputs",
     "td_utilities": "Transmission & Distribution Utilities",
     "semiconductor_materials": "Semiconductor Materials",
     "inference_at_scale": "Inference at Scale",
-
     # Remaining 49 non-scoring nodes turned scoring segments
     "cool_chillers": "Cooling Chillers",
     "cool_pumps": "Cooling Pumps",
@@ -98,6 +96,7 @@ _SEGMENT_NAMES: dict[str, str] = {
 # which is the source of truth for the value chain's sector structure.
 _SEGMENT_TO_SECTOR: dict[str, str] = {}
 
+
 def load_value_chain_sectors() -> dict[str, str]:
     """Load segment → sector mapping from value chain JSON."""
     global _SEGMENT_TO_SECTOR
@@ -114,8 +113,10 @@ def load_value_chain_sectors() -> dict[str, str]:
         return _SEGMENT_TO_SECTOR
     except Exception as e:
         from logging import warning
+
         warning(f"Failed to load value chain sectors: {e}")
         return {}
+
 
 def sector_for_segment(slug: str) -> str:
     """Return the sector for a segment slug, or fallback to 'Unknown'."""

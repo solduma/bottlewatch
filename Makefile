@@ -18,6 +18,14 @@ api:
 recompute:
 	uv run bottlewatch-recompute
 
+research:
+	uv run bottlewatch-research
+
+daily:
+	uv run bottlewatch-refresh && \
+	uv run bottlewatch-recompute && \
+	uv run bottlewatch-research
+
 backfill:
 	uv run bottlewatch-recompute --backfill-since 2024-01-01
 

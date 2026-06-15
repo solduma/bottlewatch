@@ -6,19 +6,24 @@ This is the load-bearing test for `m4-backtest-final.md`'s P1 item:
 breaks (FRED removed from the registry, the wrong series ID, the
 orchestrator stops iterating the registry, the recompute job drops
 the `ppi_transformers` rows, etc.) the `transformers_tnd` segment
-loses its `capacity_tightness` and silently regresses to NO_DATA
-once the seed `transformers_tnd` value is overridden.
+loses its `lead_time_growth` and silently regresses once the seed
+`transformers_tnd` value is overridden.
+
+Note: `transformers_tnd.capacity_tightness` is now sourced from UN
+Comtrade trade-volume YoY, not FRED PPI. This test verifies the FRED
+PPI path for `lead_time_growth`; Comtrade capacity is tested in
+`test_recompute_scores.py`.
 
 The test:
 1. Mocks the FRED API to return >=14 months of `WPU1321` data with
-   rising values (the `_transformer_tightness` extractor needs >=13
-   months for a YoY delta).
+   rising values (the `_transformer_lead_time_growth` extractor needs
+   >=2 observations for the absolute level).
 2. Runs `refresh_daily.run(source_filter=["fred"], ...)` with dates
    relative to `now` so the test is stable over time.
 3. Asserts the DB has `ppi_transformers` rows.
 4. Runs `recompute_scores.run(...)` and asserts the
-   `transformers_tnd` row has a non-None `capacity_tightness` and
-   `data_completeness == 1.0`.
+   `transformers_tnd` row has a non-None `lead_time_growth` and a
+   valid score.
 """
 
 from __future__ import annotations
@@ -27,6 +32,7 @@ from datetime import date, timedelta
 from pathlib import Path
 
 import httpx
+import pytest
 import respx
 from sqlalchemy import select
 from sqlalchemy.orm import sessionmaker
@@ -77,13 +83,13 @@ def _fred_response_for_series(request: httpx.Request) -> httpx.Response:
     return httpx.Response(200, json={"observations": observations})
 
 
-def test_fred_end_to_end_produces_live_transformers_capacity(tmp_path: Path, factory: sessionmaker) -> None:
+def test_fred_end_to_end_produces_live_transformers_lead_time(tmp_path: Path, factory: sessionmaker) -> None:
     """Full path: FRED mock -> refresh_daily -> DB -> recompute -> Score row.
 
     Asserts:
     - refresh_daily writes >=14 `ppi_transformers` rows
     - recompute_scores produces a `transformers_tnd` score with
-      `capacity_tightness` populated and `data_completeness == 1.0`
+      `lead_time_growth` populated from PPI absolute level.
     """
     settings = _settings_with_fred_key(tmp_path)
     today = date.today()
@@ -125,17 +131,17 @@ def test_fred_end_to_end_produces_live_transformers_capacity(tmp_path: Path, fac
         assert all(s.source_id == "WPU1321" for s in signals)
 
     # Now run the recompute and assert `transformers_tnd` got a real
-    # capacity_tightness (not the seed-only None) and full
-    # data_completeness.
+    # lead_time_growth from PPI (capacity_tightness now comes from
+    # Comtrade trade volume, which is not mocked here).
     recompute_scores.run(settings=settings, factory=factory)
 
     with factory() as session:
         rows = session.execute(select(Score)).scalars().all()
         by_segment = {(s.segment, s.horizon): s for s in rows}
         score = by_segment[("transformers_tnd", "near")]
-        assert score.sub_scores["capacity_tightness"] is not None
-        assert 0.0 <= score.sub_scores["capacity_tightness"] <= 1.0
-        # All 5 sub-scores populated → completeness is 1.0.
-        assert score.data_completeness == 1.0
-        # Score reflects the live data, not the seed.
+        assert score.sub_scores["lead_time_growth"] is not None
+        assert 0.0 <= score.sub_scores["lead_time_growth"] <= 1.0
+        # capacity_tightness has no live source, so the normalizer imputes 0.5.
+        assert score.sub_scores["capacity_tightness"] == pytest.approx(0.5)
+        # Score reflects the live lead_time data, not the seed alone.
         assert score.score is not None

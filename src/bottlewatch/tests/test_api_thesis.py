@@ -129,6 +129,46 @@ async def test_delete_thesis(client: AsyncClient, seeded_factory) -> None:
 
 
 @pytest.mark.asyncio
+async def test_put_thesis_updates_row(client: AsyncClient, seeded_factory) -> None:
+    created = (
+        await client.post(
+            "/api/v1/thesis",
+            json={"segment": "advanced_packaging", "side": "long", "body_md": "Original"},
+        )
+    ).json()
+    thesis_id = created["id"]
+
+    resp = await client.put(
+        f"/api/v1/thesis/{thesis_id}",
+        json={
+            "segment": "advanced_packaging",
+            "ticker": "TSM",
+            "side": "short",
+            "body_md": "Updated thesis",
+        },
+    )
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["id"] == thesis_id
+    assert body["ticker"] == "TSM"
+    assert body["side"] == "short"
+    assert body["body_md"] == "Updated thesis"
+    assert body["updated_at"] != created["updated_at"]
+
+    rows = (await client.get("/api/v1/thesis")).json()
+    assert any(r["id"] == thesis_id and r["body_md"] == "Updated thesis" for r in rows)
+
+
+@pytest.mark.asyncio
+async def test_put_thesis_not_found(client: AsyncClient, seeded_factory) -> None:
+    resp = await client.put(
+        "/api/v1/thesis/99999",
+        json={"segment": "advanced_packaging", "body_md": "Updated"},
+    )
+    assert resp.status_code == 404
+
+
+@pytest.mark.asyncio
 async def test_delete_thesis_not_found(client: AsyncClient, seeded_factory) -> None:
     resp = await client.delete("/api/v1/thesis/99999")
     assert resp.status_code == 404

@@ -6,7 +6,7 @@
 
 import dagre from "dagre";
 
-const NODE_WIDTH = 180;
+const NODE_WIDTH = 200;
 const NODE_HEIGHT = 60;
 
 export interface ChainNode {
@@ -22,6 +22,12 @@ export interface ChainNode {
 export interface ChainEdge {
   source: string;
   target: string;
+  /** Optional relationship label shown on the edge. */
+  role_kind?: string | null;
+  /** Optional commodity label for supply relationships. */
+  commodity?: string | null;
+  /** Generic future edge label. */
+  label?: string | null;
 }
 
 export interface PositionedNode extends ChainNode {

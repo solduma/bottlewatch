@@ -58,6 +58,19 @@ REGIMES: tuple[Regime, ...] = (
 )
 
 
+def regime_from_value(value: str) -> Regime:
+    """Parse a regime string (e.g. from ScoreHistory) into a Regime enum.
+
+    Falls back to NO_DATA for unknown values so the backtest job doesn't
+    crash on legacy rows.
+    """
+    try:
+        return Regime(value)
+    except ValueError:
+        _LOGGER.warning("unknown regime value %r; falling back to NO_DATA", value)
+        return Regime.NO_DATA
+
+
 # ---------------------------------------------------------------------------
 # Load calibration from research/06_regime_thresholds.json
 # ---------------------------------------------------------------------------
@@ -86,7 +99,12 @@ _THRESHOLDS = _load_thresholds(_DEFAULT_THRESHOLDS)
 NO_DATA_THRESHOLD: float = _THRESHOLDS["no_data_threshold"]
 B_THRESHOLD: float = _THRESHOLDS["b_threshold"]
 FAST_RESOLVE_THRESHOLD: float = _THRESHOLDS["fast_resolve_momentum_max"]
-_THRESHOLDS_VERSION: str = _THRESHOLDS.get("version", "unknown")
+THRESHOLDS_VERSION: str = _THRESHOLDS.get("version", "unknown")
+THRESHOLDS_FROZEN_SINCE: str | None = _THRESHOLDS.get("frozen_since")
+THRESHOLDS_CHANGELOG: list[dict] = _THRESHOLDS.get("changelog", [])
+
+# Backward-compat alias for tests/code that imported the private name.
+_THRESHOLDS_VERSION = THRESHOLDS_VERSION
 
 
 @dataclass(frozen=True)

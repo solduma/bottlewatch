@@ -18,11 +18,13 @@ conviction pick, and (6) a backtest plan.
 For each segment `s` and each horizon `h ∈ {near, med, long}`:
 
 ```
-B(s, h) = 100 * Σ_i w_i(h) * normalize_5y(s_i)
+B(s, h) = 100 * Σ_i w_i(h) * normalize(s_i)
 ```
 
-where `s_i` is the raw value of sub-score `i`, `normalize_5y` maps
-the raw value to [0,1] using a 5-year rolling min/max band, and
+where `s_i` is the raw value of sub-score `i`, `normalize` maps
+the raw value to [0,1] using either a fixed band from
+`research/config/score_bands.json` or a 5-year rolling min/max band
+(depending on the `SCORE_NORMALIZATION_MODE` setting), and
 `w_i(h)` is the horizon weight for sub-score `i` (the weights sum
 to 1.0 within each horizon). The `100 *` factor scales the [0,1]
 sum to a 0-100 score for readability.
@@ -41,9 +43,20 @@ sum to a 0-100 score for readability.
   sub-scores. A reader can disagree with one input and see the
   effect on the total.
 
+**Normalization pipeline** — `normalize(s_i)` is implemented by
+`SubScoreNormalizer` in `src/bottlewatch/app/score/normalize.py`:
+- `SCORE_NORMALIZATION_MODE=fixed` (default): externalized bands from
+  `research/config/score_bands.json` per sub-score and source key.
+- `SCORE_NORMALIZATION_MODE=rolling`: 5-year min/max band with 5th/95th
+  winsorization. Gated at 1 year (medium confidence) and 2 years
+  (high confidence); falls back to fixed bands when history is short.
+- Every raw value is persisted in `sub_score_history` so historical
+  recomputes can rebuild point-in-time bands.
+
 **Edge cases** — explicit defaults:
-- A sub-score with <2 years of history gets the median of the
-  universe (0.5) until the band fills.
+- A sub-score with no live source gets the median of the universe
+  (`0.5`) and is flagged as `imputed` in provenance.
+- A sub-score with <1 year of history falls back to fixed bands.
 - A sub-score that's flat (no variation) is treated as `0.5`.
 - A segment with all-zero sub-scores returns `B=0` (ample capacity).
 - The score is **directional, not predictive**: we rank segments;
@@ -83,6 +96,16 @@ with its **raw value**, **source(s)**, and the **direction**
     for US DC slots (vs 18-24 months pre-2022)
 - **Smoothed**: 3-month moving average (plan §9: "single-vendor
   methodologies make tightness lumpy; smooth with 3-month MA").
+- **M2 Phase 2 implementation**:
+  - Extractors emit raw values and a source key; normalization is
+    performed by `SubScoreNormalizer` using `research/config/score_bands.json`.
+  - `transformers_tnd`: FRED `WPU1321` absolute PPI level, source key
+    `transformers_ppi` (fixed band [80, 350], MEDIUM confidence).
+  - Semi segments (`advanced_node_fabs`, `hbm_memory`, etc.): SEMI
+    book-to-bill ratio, source key `semi_book_to_bill` (primary), with
+    FRED `WPU31132506` YoY as `semi_ppi` fallback.
+  - Cross-segment SEC EDGAR `lead_time_mentions` count z-score
+    (`edgar_keyword`) provides a fallback for other segments.
 
 ### 2.2 `capacity_tightness` (orders-to-capacity or utilization vs long-run mean)
 
@@ -107,18 +130,37 @@ with its **raw value**, **source(s)**, and the **direction**
     very tight
   - US reserve margin: ~17% (2024) vs 15% NERC target → in target
     band but trending down
+- **M2 Phase 2 implementation**:
+  - Extractors emit raw values and source keys; normalization is
+    performed by `SubScoreNormalizer`.
+  - `power_generation_oem`: EIA 860M planned additions / EIA v2
+    operating capacity, source key `power_ratio`.
+  - `data_center_shell`: EIA v2 retail sales YoY, source key
+    `retail_sales_yoy` (LOW confidence).
+  - `transformers_tnd`, `hbm_memory`, `advanced_packaging`: UN
+    Comtrade HS-code import value YoY, source key `comtrade_volume`
+    (LOW confidence).
+  - Manufacturing/utility segments: FRED `TCU` capacity utilization,
+    source key `manufacturing_utilization`.
+  - SEC EDGAR keyword counts (`shortage_mentions`,
+    `capacity_expansion_mentions`) provide a cross-segment fallback
+    (`edgar_keyword`) where no primary signal exists.
 
 ### 2.3 `geo_concentration` (Herfindahl of supplier geography)
 
 - **Raw value**: Herfindahl-Hirschman Index (HHI) of the segment's
-  supplier geography, computed from the ontology's
-  `Role:operatesIn:GeographicRegion` claims. HHI = sum of squared
-  market shares by region. Range [0, 1].
+  supplier geography, computed from the investable universe
+  (`research/02_universe.csv`). Each company is weighted by
+  `exposure_pct × mcap_usd`, regions are assigned from exchange or
+  from curated overrides (`research/07_geo_overrides.json`), and
+  HHI = Σ share². Range [0, 1].
 - **Source(s)**:
-  - **Primary**: ontology (`research/05_ontology/instances.ttl`),
-    aggregated via SPARQL — see plan §10.5.
-  - **Cross-check**: trade-flow mirror from Comtrade
-    (`03_data_sources.md` #5) — top-3 partner concentration.
+  - **Primary**: universe CSV, grouped by canonical company and
+    region-weighted by economic exposure.
+  - **Cross-check**: ontology (`research/05_ontology/instances.ttl`)
+    remains available via `GEO_CONCENTRATION_SOURCE=ontology`.
+  - **Comtrade**: trade-flow mirror from `03_data_sources.md` #5 —
+    top-3 partner concentration.
 - **Direction**: higher = more concentrated = tighter (single
   point of failure).
 - **Range in 2024-2025 sample** (estimates, see §5 worked example
@@ -134,7 +176,9 @@ with its **raw value**, **source(s)**, and the **direction**
     consider top-3 city level = higher)
 - **Caveat**: HHI in the [0,1] range assumes 7 regions. We use
   0.05 as a "diversified floor" and treat 0.05 below that as
-  effectively zero.
+  effectively zero. If the live universe HHI diverges from the
+  research seed by more than 0.30 (absolute), the seed value is kept
+  while the override file is being curated.
 
 ### 2.4 `regulatory_friction` (expert rubric)
 
@@ -195,6 +239,34 @@ with its **raw value**, **source(s)**, and the **direction**
   - Sovereign AI 2025-2026: ~$80-100B announced → +2.0+ z.
   - AI-specific capex share at hyperscalers: 30-45% in 2025-2026, up
     from 15-20% two years ago.
+- **M2 Phase 1 implementation**: `demand_signal` is sourced from a
+  manually maintained ledger at `research/06_capacity_ledger.json`
+  covering MSFT/GOOG/AMZN/META/ORCL AI-specific capex. The ledger is
+  updated within 5 business days of each quarterly filing. A YoY
+  growth band of [-10%, +40%] maps to [0, 1]. Confidence is LOW
+  because the ledger is hand-curated. Sovereign AI commitments and
+  IDC pre-lease rates are not yet included.
+- **M2 Phase 1 cross-segment proxies**:
+  - Manufacturing/utility segments use FRED `INDPRO` YoY.
+  - `transformers_tnd` uses FRED `A35SNO` (electrical equipment new
+    orders) YoY.
+  - These are LOW-confidence cross-segment proxies; they do not
+    override seed values without review.
+
+### 2.6 Sub-score provenance and confidence (Phase 1)
+
+Every persisted score row now carries provenance for each sub-score:
+
+- `source`: `"extractor"` | `"seed"` | `"imputed"`
+- `confidence`: `"high"` | `"medium"` | `"low"`
+- `imputed`: true when no extractor or seed value was available and
+  the score substituted the universe median (0.5).
+
+The API exposes this via `/api/v1/segments/{slug}` and the UI shows
+a `seed`/`live`/`imputed` badge next to each sub-score. A segment
+whose `static_seed_share` is >50% is flagged in the scoreboard. This
+is a transparency layer, not a scoring change: the goal is to kill
+false precision.
 
 ---
 
@@ -632,11 +704,17 @@ label is the trade signal, not the absolute level.
 (`B = 70`, the `B'` bands, the `data_completeness` gate) are
 pinned in `research/06_regime_thresholds.json`. The runtime
 (`app/score/regime.py`) reads that JSON at import time; if you
-recalibrate, edit the JSON and bump its `version` field, then
-update this table in the same commit. The JSON also includes
-the `fast_resolve` flag (an extra `B' < -50` override) and the
-`NO_DATA` synthetic label — both of which the 6-cell table
-above elides for clarity.
+recalibrate, edit the JSON, bump its `version` field, add a
+`changelog` entry, and update this table in the same commit.
+
+**M2-v2 freeze (2026-06-14).** The current calibration is frozen
+pending a true hold-out backtest. Recalibrating on 2024-2026 and
+then "backtesting" 2024-2026 is circular, so any future change to
+`b_threshold`, `fast_resolve_momentum_max`, or the cell boundaries
+must be justified on data collected after the recalibration date.
+The `frozen_since` field in `research/06_regime_thresholds.json`
+records this lock. The `fast_resolve` flag (`B' < -50` override)
+and the `NO_DATA` synthetic label are also pinned in the JSON.
 
 **M2 momentum implementation note.** The worked examples in §8
 and §9 use a point-to-point formula

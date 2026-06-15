@@ -28,7 +28,19 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import sessionmaker
 
-from bottlewatch.app.api import eta, health, map, scores, screener, segments, signals, thesis, tickers
+from bottlewatch.app.api import (
+    backtest,
+    eta,
+    health,
+    map,
+    research,
+    scores,
+    screener,
+    segments,
+    signals,
+    thesis,
+    tickers,
+)
 from bottlewatch.app.db import make_engine, make_session_factory
 from bottlewatch.config import Settings, get_settings
 
@@ -64,7 +76,9 @@ def create_app(
     app.include_router(screener.router, prefix="/api/v1")
     app.include_router(map.router, prefix="/api/v1")
     app.include_router(eta.router, prefix="/api/v1")
+    app.include_router(research.router, prefix="/api/v1")
     app.include_router(thesis.router, prefix="/api/v1")
+    app.include_router(backtest.router, prefix="/api/v1")
     return app
 
 

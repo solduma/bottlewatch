@@ -1,11 +1,15 @@
 "use client";
 
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import Link from "next/link";
-import type { TickerRow, Regime, Horizon, SegmentScore } from "../lib/api";
+import type { TickerRow } from "../lib/api";
 import { listTickers, listSegments } from "../lib/api";
 import { regimePill } from "../lib/colors";
 import { displayName } from "../lib/score_help";
+import { EmptyState } from "../components/ui/EmptyState";
+import { ErrorState } from "../components/ui/ErrorState";
+import { Skeleton } from "../components/ui/Skeleton";
+import { PageHeader } from "../components/ui/PageHeader";
 
 type SectorFilter = "all" | "Materials" | "Hardware" | "Infrastructure" | "Downstream";
 
@@ -32,16 +36,16 @@ export default function TickersPage() {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [showDropdown, setShowDropdown] = useState<boolean>(false);
   const [highlightedIndex, setHighlightedIndex] = useState<number>(-1);
+  const searchRef = useRef<HTMLDivElement>(null);
 
-  // Hide dropdown when clicking outside
+  // Hide dropdown when clicking outside the search container.
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as HTMLElement;
-      const searchInput = target.closest('.relative');
-      if (!searchInput) {
+    function handleClickOutside(event: MouseEvent) {
+      if (!searchRef.current) return;
+      if (!searchRef.current.contains(event.target as Node)) {
         setShowDropdown(false);
       }
-    };
+    }
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
@@ -281,16 +285,34 @@ export default function TickersPage() {
     { label: "Short", value: "short" },
   ];
 
+  if (loading) {
+    return (
+      <section>
+        <div className="mb-4 flex items-center justify-between">
+          <Skeleton className="h-8 w-32" />
+          <Skeleton className="h-5 w-32" />
+        </div>
+        <Skeleton className="mb-4 h-9 w-full max-w-2xl" />
+        <div className="rounded border border-gray-200 bg-white p-3">
+          <Skeleton className="mb-3 h-8 w-full" />
+          {Array.from({ length: 8 }).map((_, i) => (
+            <Skeleton key={i} className="mb-2 h-10 w-full" />
+          ))}
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section>
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Tickers</h1>
-        <Link href="/" className="text-sm text-blue-700 hover:underline">← Back to quadrant</Link>
-      </div>
+      <PageHeader
+        title="Tickers"
+        action={<Link href="/" className="text-sm text-blue-700 hover:underline">← Back to quadrant</Link>}
+      />
 
       <div className="mb-4 flex flex-wrap gap-3">
         {/* Search input */}
-        <div className="relative flex-1 min-w-[200px]">
+        <div ref={searchRef} className="relative flex-1 min-w-[200px]">
           <input
             type="text"
             placeholder="Search tickers, companies, segments…"
@@ -404,16 +426,22 @@ export default function TickersPage() {
         </select>
 
         <span className="ml-auto text-xs text-gray-500">
-          {loading ? "Loading…" : `${filtered.length} of ${tickers.length} tickers`}
+          {`${filtered.length} of ${tickers.length} tickers`}
         </span>
       </div>
 
       {error && (
-        <div className="mb-4 rounded border border-red-200 bg-red-50 p-3 text-sm text-red-800">{error}</div>
+        <div className="mb-4">
+          <ErrorState
+            title="Failed to load tickers"
+            message={error}
+            onRetry={load}
+          />
+        </div>
       )}
 
       <div className="overflow-x-auto rounded border border-gray-200 bg-white">
-        <table className="w-full text-sm">
+        <table className="sticky-first-col w-full text-sm">
           <thead className="bg-gray-50 text-left text-xs uppercase tracking-wide text-gray-500">
             <tr>
               {[
@@ -460,10 +488,13 @@ export default function TickersPage() {
                 </td>
               </tr>
             ))}
-            {filtered.length === 0 && !loading && (
+            {filtered.length === 0 && !error && (
               <tr>
-                <td colSpan={7} className="px-3 py-8 text-center text-sm text-gray-400 italic">
-                  No tickers match the current filters.
+                <td colSpan={7} className="px-3 py-6">
+                  <EmptyState
+                    title="No tickers match the current filters"
+                    description="Try adjusting the search, sector, segment, regime, or side filters."
+                  />
                 </td>
               </tr>
             )}

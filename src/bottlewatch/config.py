@@ -15,6 +15,7 @@ here, not fork the class.
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Literal
 
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -44,6 +45,12 @@ class Settings(BaseSettings):
     eia_api_key: str | None = Field(default=None, description="EIA Open Data v2 API key")
     fred_api_key: str | None = Field(default=None, description="FRED API key")
     comtrade_api_key: str | None = Field(default=None, description="UN Comtrade API key")
+    ollama_api_key: str | None = Field(default=None, description="Ollama Cloud API key for daily research reasoning")
+    ollama_base_url: str = Field(
+        default="https://api.ollama.com/v1",
+        description="Ollama Cloud API base URL",
+    )
+    ollama_model: str = Field(default="llama3.2", description="Ollama model for daily research reasoning")
 
     # sqlite:///./relative is interpreted relative to CWD by SQLAlchemy
     # by default; using an absolute path keeps the orchestrator location-
@@ -74,6 +81,20 @@ class Settings(BaseSettings):
     score_horizons: list[str] = Field(
         default_factory=lambda: ["near", "med", "long"],
         description="Horizon labels; the scoreboard renders one column per entry.",
+    )
+
+    # Phase 2 scoring-engine feature flags.
+    geo_concentration_source: Literal["ontology", "universe_weighted"] = Field(
+        default="universe_weighted",
+        description="Source for the geo_concentration sub-score. universe_weighted uses 02_universe.csv; ontology uses the OWL ABox.",
+    )
+    score_normalization_mode: Literal["fixed", "rolling"] = Field(
+        default="fixed",
+        description="Sub-score normalization: fixed bands (current behavior) or 5-year rolling bands.",
+    )
+    score_bands_path: Path = Field(
+        default=_PROJECT_ROOT / "research" / "config" / "score_bands.json",
+        description="JSON calibration file for fixed sub-score bands.",
     )
 
 

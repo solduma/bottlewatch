@@ -95,7 +95,7 @@ def get_segment_detail(factory: sessionmaker, slug: str) -> dict[str, Any] | Non
     return {
         "segment": slug,
         "horizons": [_score_to_dict(r) for r in score_rows],
-        "sub_scores": score_rows[0].sub_scores,  # all 3 horizons share the same sub-scores
+        "sub_scores": _sub_scores_to_api(score_rows[0]),  # all 3 horizons share the same sub-scores
         "signals": [_signal_to_dict(s) for s in signal_rows],
     }
 
@@ -128,8 +128,32 @@ def _score_to_dict(s: Score) -> dict[str, Any]:
         "regime": s.regime,
         "regime_confidence": s.regime_confidence,
         "data_completeness": s.data_completeness,
+        "static_seed_share": s.static_seed_share,
         "computed_at": s.computed_at,
     }
+
+
+def _sub_scores_to_api(s: Score) -> dict[str, Any]:
+    """Return sub-scores with provenance for the segment detail API.
+
+    Legacy rows that lack `sub_score_provenance` are treated as
+    all-seed with low confidence. Raw values and the active
+    normalization mode are surfaced for audit.
+    """
+    provenance = s.sub_score_provenance or {}
+    raw_values = s.raw_sub_scores or {}
+    out: dict[str, Any] = {}
+    for name, value in s.sub_scores.items():
+        p = provenance.get(name, {"source": "seed", "confidence": "low", "imputed": False})
+        out[name] = {
+            "value": value,
+            "raw_value": raw_values.get(name),
+            "source": p.get("source", "seed"),
+            "confidence": p.get("confidence", "low"),
+            "imputed": p.get("imputed", False),
+            "normalization_mode": s.normalization_mode,
+        }
+    return out
 
 
 def _signal_to_dict(s: Signal) -> dict[str, Any]:

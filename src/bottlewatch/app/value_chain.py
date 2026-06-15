@@ -51,14 +51,12 @@ NODE_ID_TO_SEGMENT: dict[str, str] = {
     "power_generation_oem": "power_generation_oem",
     "cooling_water": "cooling_water",
     "rack_scale_integration": "systems_rack_scale",
-
     # Added 5 segments
     "raw_inputs": "raw_inputs",
     "fuel_power_inputs": "fuel_power_inputs",
     "td_utilities": "td_utilities",
     "semiconductor_materials": "semiconductor_materials",
     "inference_at_scale": "inference_at_scale",
-
     # Remaining 49 non-scoring nodes
     "cool_chillers": "cool_chillers",
     "cool_pumps": "cool_pumps",

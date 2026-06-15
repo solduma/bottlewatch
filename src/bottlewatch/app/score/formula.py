@@ -1,11 +1,10 @@
 """Score formula assembly (methodology §1 + §3).
 
-Pulls the 4 research sub-scores from `research_values`, the 1
-computed sub-score from `extractors`, normalizes the computed one
-if it has a time series (none in M2 — the extractors return a
-point-in-time [0,1] value), then computes:
+Pulls the 4 research sub-scores from `research_values`, the computed
+sub-scores from `extractors`, normalizes every raw value through
+`SubScoreNormalizer`, then computes:
 
-    B(s, h) = 100 * Σ_i w_i(h) * s_i
+    B(s, h) = 100 * Σ_i w_i(h) * normalize(s_i)
 
 with the horizon weights from methodology §3:
 
@@ -33,6 +32,7 @@ from datetime import datetime, timedelta
 from typing import Iterable
 
 from bottlewatch.app.score import extractors
+from bottlewatch.app.score.normalize import normalize_subscore
 from bottlewatch.app.score.regime import (
     FAST_RESOLVE_THRESHOLD,
     NO_DATA_THRESHOLD,
@@ -84,6 +84,20 @@ _SUB_SCORE_NAMES: tuple[str, ...] = (
 _CONFIDENCE_LOW_DAYS = 90
 _CONFIDENCE_MEDIUM_DAYS = 180
 
+# If the live universe HHI diverges from the research seed by more than
+# this (absolute), keep the seed value while the override file is being
+# curated.
+_HHI_SEED_DIVERGENCE_THRESHOLD = 0.30
+
+
+@dataclass(frozen=True)
+class SubScoreProvenance:
+    """Provenance for one sub-score value."""
+
+    source: str  # "extractor" | "seed" | "imputed"
+    confidence: str  # "high" | "medium" | "low"
+    imputed: bool
+
 
 @dataclass(frozen=True)
 class SubScore:
@@ -94,16 +108,19 @@ class SubScore:
 
     name: str
     value: float | None
-    source: str  # "research" | "extractor" | "missing"
+    source: str  # "extractor" | "seed" | "imputed"
+    confidence: str  # "high" | "medium" | "low"
+    imputed: bool = False
 
 
 @dataclass(frozen=True)
 class ScoreResult:
     """The output of `compute_segment_score` for one (segment, horizon).
 
-    `sub_scores` is a 5-tuple dict keyed by sub-score name. `score`
-    and `momentum` are None for NO_DATA rows. `data_completeness`
-    is the fraction of sub-scores with non-None values.
+    `sub_scores` is a 5-tuple dict keyed by sub-score name; values are
+    always floats because the normalizer substitutes 0.5 for missing
+    values and flags them as imputed. `score` and `momentum` are None
+    for NO_DATA rows.
     """
 
     segment: str
@@ -112,7 +129,11 @@ class ScoreResult:
     momentum: float | None
     regime: Regime
     regime_confidence: str
-    sub_scores: dict[str, float | None]
+    sub_scores: dict[str, float]
+    raw_sub_scores: dict[str, float | None]
+    sub_score_provenance: dict[str, SubScoreProvenance]
+    normalization_mode: str
+    static_seed_share: float
     data_completeness: float
     fast_resolve: bool
     first_computed_at: datetime
@@ -128,6 +149,13 @@ class ScoreResult:
             "regime": self.regime.value,
             "regime_confidence": self.regime_confidence,
             "sub_scores": self.sub_scores,
+            "raw_sub_scores": self.raw_sub_scores,
+            "sub_score_provenance": {
+                name: {"source": p.source, "confidence": p.confidence, "imputed": p.imputed}
+                for name, p in self.sub_score_provenance.items()
+            },
+            "normalization_mode": self.normalization_mode,
+            "static_seed_share": self.static_seed_share,
             "data_completeness": self.data_completeness,
             "first_computed_at": self.first_computed_at,
             "computed_at": self.computed_at,
@@ -144,8 +172,11 @@ def compute_segment_score(
     first_computed_at: datetime | None = None,
     now: datetime,
     geo_concentration: float | None = None,
-    demand_signal: float | None = None,
-    lead_time_growth: float | None = None,
+    demand_signal: extractors.ExtractorResult | None = None,
+    lead_time_growth: extractors.ExtractorResult | None = None,
+    capacity_tightness: extractors.ExtractorResult | None = None,
+    normalization_mode: str = "fixed",
+    sub_score_history: dict[tuple[str, str], list[tuple[float, float]]] | None = None,
 ) -> ScoreResult:
     """Compute B(s, h) and the regime per the methodology.
 
@@ -160,43 +191,87 @@ def compute_segment_score(
         first_computed_at: when this segment's score was first written.
             The recompute job reads the existing row to set this.
         now: the recompute timestamp (caller passes utcnow()).
-        geo_concentration: ontology-derived HHI override. When not
-            None, replaces the seed value for this sub-score. The
-            recompute job pre-computes one HHI per segment from the
-            ABox; passing None preserves the M2 stopgap behavior
-            (seed-only) for tests that don't load the ontology.
-        demand_signal: dynamically-extracted demand_signal override
-            (currently only `transformers_tnd` has one — FRED
-            `A35SNO` manufacturers' new orders for electrical
-            equipment). When not None, replaces the seed value.
-            Same fallback semantics as `geo_concentration`.
-        lead_time_growth: dynamically-extracted lead_time_growth
-            override (currently only `transformers_tnd` has one —
-            FRED `WPU1321` producer price index for transformers).
-            When not None, replaces the seed value. Same
-            fallback semantics as `geo_concentration` and
-            `demand_signal`.
+        geo_concentration: live HHI value in [0, 1] (already normalized).
+            When None, falls back to the research seed.
+        demand_signal: raw extractor result for demand_signal, or None
+            to fall back to the research seed.
+        lead_time_growth: raw extractor result for lead_time_growth, or
+            None to fall back to the research seed.
+        capacity_tightness: raw extractor result for capacity_tightness,
+            or None to let the extractor run on `signals`.
+        normalization_mode: "fixed" or "rolling". Passed to the normalizer.
+        sub_score_history: trailing history per (segment, sub_score_name)
+            used by rolling normalization. Keys are tuples.
     """
     if horizon not in _WEIGHTS:
         raise ValueError(f"unknown horizon: {horizon!r}; expected one of {HORIZONS}")
 
+    history_lookup = sub_score_history or {}
     research: SeedEntry = for_segment(segment, seed)
-    computed_capacity = extractors.capacity_tightness(segment, list(signals))
 
-    sub_scores: dict[str, float | None] = {
-        "lead_time_growth": (lead_time_growth if lead_time_growth is not None else research["lead_time_growth"]),
-        "capacity_tightness": computed_capacity,
-        "geo_concentration": (geo_concentration if geo_concentration is not None else research["geo_concentration"]),
-        "regulatory_friction": research["regulatory_friction"],
-        "demand_signal": (demand_signal if demand_signal is not None else research["demand_signal"]),
+    # Run the capacity_tightness extractor if no override was passed.
+    computed_capacity = capacity_tightness
+    if computed_capacity is None:
+        computed_capacity = extractors.capacity_tightness(segment, list(signals))
+
+    # Build raw sub-score inputs. geo_concentration is already a [0,1]
+    # HHI; the other sub-scores are raw values that need normalization.
+    # If no live override exists, use the research seed.
+    raw_inputs: dict[str, extractors.ExtractorResult] = {
+        "lead_time_growth": (
+            lead_time_growth
+            if lead_time_growth is not None
+            else extractors.ExtractorResult(research["lead_time_growth"], "seed")
+        ),
+        "capacity_tightness": (
+            computed_capacity if computed_capacity is not None else extractors.ExtractorResult(None, "imputed")
+        ),
+        "geo_concentration": _geo_input(segment, research, geo_concentration),
+        "regulatory_friction": extractors.ExtractorResult(research["regulatory_friction"], "seed"),
+        "demand_signal": (
+            demand_signal
+            if demand_signal is not None
+            else extractors.ExtractorResult(research["demand_signal"], "seed")
+        ),
     }
+
+    # Normalize every raw value. The normalizer handles None → 0.5 with
+    # explicit imputed provenance, seed passthrough, and fixed/rolling bands.
+    sub_scores: dict[str, float] = {}
+    raw_sub_scores: dict[str, float | None] = {}
+    provenance: dict[str, SubScoreProvenance] = {}
+    for name in _SUB_SCORE_NAMES:
+        inp = raw_inputs[name]
+        normalized = normalize_subscore(
+            name,
+            inp.raw_value,
+            inp.source_key,
+            normalization_mode,  # type: ignore[arg-type]
+            history=history_lookup.get((segment, name)),
+            log_prefix=f"{segment}/{horizon}: ",
+        )
+        sub_scores[name] = normalized.value
+        raw_sub_scores[name] = normalized.raw_value
+        provenance[name] = SubScoreProvenance(
+            source=normalized.source,
+            confidence=normalized.confidence,
+            imputed=normalized.imputed,
+        )
+
     completeness = sum(1 for v in sub_scores.values() if v is not None) / len(sub_scores)
 
-    # Score: 100 * Σ w_i * s_i. Per methodology §7.3, a sub-score
-    # with <2y history gets 0.5 (the median of the universe) — NOT
-    # weight renormalization. Substitute None → 0.5 before summing.
-    adjusted = {name: (v if v is not None else 0.5) for name, v in sub_scores.items()}
-    b = 100.0 * sum(_WEIGHTS[horizon][name] * adjusted[name] for name in _SUB_SCORE_NAMES)
+    # Score: 100 * Σ w_i * s_i. The normalizer has already substituted
+    # missing values with 0.5 and flagged them as imputed, so every
+    # sub_score here is a usable float.
+    b = 100.0 * sum(_WEIGHTS[horizon][name] * sub_scores[name] for name in _SUB_SCORE_NAMES)
+
+    # Share of the weighted score driven by static seeds.
+    seed_weight = sum(
+        _WEIGHTS[horizon][name]
+        for name in _SUB_SCORE_NAMES
+        if provenance[name].source == "seed" and not provenance[name].imputed
+    )
+    static_seed_share = seed_weight
 
     momentum = _momentum(b, b_history or [], now)
     classified: RegimeResult = classify(b, momentum, completeness)
@@ -210,11 +285,29 @@ def compute_segment_score(
         regime=classified.regime,
         regime_confidence=confidence,
         sub_scores=sub_scores,
+        raw_sub_scores=raw_sub_scores,
+        sub_score_provenance=provenance,
+        normalization_mode=normalization_mode,
+        static_seed_share=static_seed_share,
         data_completeness=completeness,
         fast_resolve=classified.fast_resolve,
         first_computed_at=first_computed_at or now,
         computed_at=now,
     )
+
+
+def _geo_input(
+    segment: str,
+    research: SeedEntry,
+    geo_concentration: float | None,
+) -> extractors.ExtractorResult:
+    """Build the geo_concentration input, falling back to seed on large divergence."""
+    seed_hhi = research["geo_concentration"]
+    if geo_concentration is None:
+        return extractors.ExtractorResult(seed_hhi, "seed")
+    if abs(geo_concentration - seed_hhi) > _HHI_SEED_DIVERGENCE_THRESHOLD:
+        return extractors.ExtractorResult(seed_hhi, "seed")
+    return extractors.ExtractorResult(geo_concentration, "hhi")
 
 
 def _momentum(
@@ -272,5 +365,6 @@ __all__ = [
     "FAST_RESOLVE_THRESHOLD",
     "ScoreResult",
     "SubScore",
+    "SubScoreProvenance",
     "compute_segment_score",
 ]

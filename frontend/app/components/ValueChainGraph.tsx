@@ -83,8 +83,8 @@ function ValueChainNode({ data }: NodeProps) {
         border: `${borderWidth}px solid ${border}`,
         color: "#1f2937",
         padding: "8px 10px",
-        width: 180,
-        fontSize: 12,
+        width: 200,
+        fontSize: 13,
         lineHeight: 1.3,
         fontWeight: 500,
         opacity,
@@ -103,8 +103,7 @@ function ValueChainNode({ data }: NodeProps) {
 // without removing them from the layout (so the graph
 // doesn't reflow on every keystroke).
 function isFiltered(d: ValueChainNodeData): boolean {
-  // The actual filter state lives in the page; the node
-  // receives `isMatch: false` for non-matches. If `isMatch`
+  // The node receives `isMatch: false` for non-matches. If `isMatch`
   // is undefined (legacy prop), assume not filtered.
   return d.isMatch === false;
 }
@@ -128,6 +127,14 @@ export function ValueChainGraph({
   const searchQuery = useMapStore((s) => s.searchQuery);
   const sectorFilter = useMapStore((s) => s.sectorFilter);
   const cohortSegment = useMapStore((s) => s.cohortSegment);
+
+  // Debounce the search query so fast typing doesn't recompute the
+  // match set (and therefore node dimming) on every keystroke.
+  const [debouncedQuery, setDebouncedQuery] = useState(searchQuery);
+  useEffect(() => {
+    const id = setTimeout(() => setDebouncedQuery(searchQuery), 300);
+    return () => clearTimeout(id);
+  }, [searchQuery]);
 
   // Sector → friendly filter string. The map's `sector`
   // values are like "MaterialsSector", "HardwareSector", etc.
@@ -195,10 +202,10 @@ export function ValueChainGraph({
     });
   }, [nodes, allowedSectors]);
 
-  // Search filter — compute the match set.
+  // Search filter — compute the match set from the debounced query.
   const searchMatchSet = useMemo(() => {
-    if (!searchQuery.trim()) return null;
-    const q = searchQuery.toLowerCase();
+    if (!debouncedQuery.trim()) return null;
+    const q = debouncedQuery.toLowerCase();
     const matched = new Set<string>();
     for (const n of nodes) {
       if (
@@ -214,36 +221,25 @@ export function ValueChainGraph({
       }
     }
     return matched;
-  }, [nodes, searchQuery]);
+  }, [nodes, debouncedQuery]);
 
-  // Set of node ids that survive both filters.
-  const visibleSet = useMemo(() => {
-    const set = new Set<string>(sectorFilteredNodes.map((n) => n.id));
-    if (searchMatchSet !== null) {
-      // Intersect with matches when a query is active.
-      const out = new Set<string>();
-      for (const id of set) {
-        if (searchMatchSet.has(id)) out.add(id);
-      }
-      return out;
-    }
-    return set;
-  }, [sectorFilteredNodes, searchMatchSet]);
+  // Search no longer removes nodes/edges from the layout — it only dims
+  // non-matching nodes. The sector filter is the only filter that
+  // changes the graph topology (and therefore triggers a re-layout).
+  const sectorVisibleSet = useMemo(() => {
+    return new Set<string>(sectorFilteredNodes.map((n) => n.id));
+  }, [sectorFilteredNodes]);
 
-  // Filter nodes and edges to only those that are visible (survive both sector and search filters)
-  const filteredNodes = useMemo(() => {
-    return sectorFilteredNodes.filter((n) => {
-      if (searchMatchSet === null) return true;
-      return searchMatchSet.has(n.id);
-    });
-  }, [sectorFilteredNodes, searchMatchSet]);
+  const sectorFilteredEdges = useMemo(() => {
+    return reactFlowEdges.filter(
+      (e) => sectorVisibleSet.has(e.source) && sectorVisibleSet.has(e.target),
+    );
+  }, [reactFlowEdges, sectorVisibleSet]);
 
-  const filteredEdges = useMemo(() => {
-    return reactFlowEdges.filter((e) => visibleSet.has(e.source) && visibleSet.has(e.target));
-  }, [reactFlowEdges, visibleSet]);
-
-  // Re-layout the graph with only the filtered nodes and edges to avoid empty spaces
-  const positioned = useMemo(() => layoutChain(filteredNodes, filteredEdges), [filteredNodes, filteredEdges]);
+  const positioned = useMemo(
+    () => layoutChain(sectorFilteredNodes, sectorFilteredEdges),
+    [sectorFilteredNodes, sectorFilteredEdges],
+  );
 
   const { upstream, downstream } = useMemo(
     () => buildNeighborIndex(reactFlowEdges),
@@ -289,44 +285,51 @@ export function ValueChainGraph({
     [positioned, selected, inPath, handleSelect, searchMatchSet, cohortScore],
   );
 
-  // Zoom to fit the filtered nodes whenever the sector filter or search query changes.
-  useEffect(() => {
-    const id = setTimeout(() => {
-      rfInstanceRef.current?.fitView({
-        padding: 0.15,
-        duration: 300,
-      });
-    }, 50);
-    return () => clearTimeout(id);
-  }, [sectorFilter, searchQuery]);
+  // Explicit camera reset only — no automatic fit on filter changes.
+  const handleFitToResults = useCallback(() => {
+    rfInstanceRef.current?.fitView({
+      padding: 0.15,
+      duration: 300,
+    });
+  }, []);
 
   const flowEdges: Edge[] = useMemo(
     () =>
-      filteredEdges.map((e) => {
+      sectorFilteredEdges.map((e) => {
         const isOnPath = selected !== null && inPath.has(e.source) && inPath.has(e.target);
+        const sourceMatch = searchMatchSet === null || searchMatchSet.has(e.source);
+        const targetMatch = searchMatchSet === null || searchMatchSet.has(e.target);
+        const isDimmed = !sourceMatch || !targetMatch;
+        // Use any explicit relationship label the edge carries; skip gracefully otherwise.
+        const label = e.role_kind || e.label || undefined;
         return {
           id: `${e.source}-${e.target}`,
           source: e.source,
           target: e.target,
           type: "smoothstep",
           animated: false,
+          label,
+          labelStyle: { fontSize: 10, fill: "#6b7280" },
+          labelBgStyle: { fill: "#ffffff", fillOpacity: 0.8 },
+          labelBgPadding: [4, 2],
+          labelBgBorderRadius: 4,
           style: {
             stroke: isOnPath ? "#1d4ed8" : "#9ca3af",
             strokeWidth: isOnPath ? 2 : 1,
-            opacity: 1,
+            opacity: isDimmed ? 0.25 : 1,
           },
         };
       }),
-    [filteredEdges, selected, inPath],
+    [sectorFilteredEdges, selected, inPath, searchMatchSet],
   );
 
-  // Tier 4: PNG export. We capture the React Flow's SVG
+  // Tier 4: SVG export. We capture the React Flow's SVG
   // element, serialize to a data URL, and trigger download.
   // The exported file has a white background so it's
   // printable / slide-deckable.
   const [exporting, setExporting] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const handleExportPng = useCallback(() => {
+  const handleExportSvg = useCallback(() => {
     if (!containerRef.current) return;
     setExporting(true);
     try {
@@ -362,24 +365,33 @@ export function ValueChainGraph({
 
   return (
     <div ref={containerRef} className="relative h-full">
-      {/* Export button — top-right of the graph panel. */}
-      <button
-        type="button"
-        onClick={handleExportPng}
-        disabled={exporting}
-        className="absolute right-3 top-3 z-10 rounded border border-gray-300 bg-white px-2.5 py-1 text-xs font-medium text-gray-700 shadow-sm hover:bg-gray-50 disabled:opacity-50"
-        aria-label="Export value chain as image"
-      >
-        {exporting ? "Exporting…" : "Export SVG"}
-      </button>
+      {/* Camera + export controls — top-right of the graph panel. */}
+      <div className="absolute right-3 top-3 z-10 flex items-center gap-2">
+        <button
+          type="button"
+          onClick={handleFitToResults}
+          className="rounded border border-gray-300 bg-white px-2.5 py-1 text-xs font-medium text-gray-700 shadow-sm hover:bg-gray-50"
+        >
+          Fit to results
+        </button>
+        <button
+          type="button"
+          onClick={handleExportSvg}
+          disabled={exporting}
+          className="rounded border border-gray-300 bg-white px-2.5 py-1 text-xs font-medium text-gray-700 shadow-sm hover:bg-gray-50 disabled:opacity-50"
+          aria-label="Export value chain as image"
+        >
+          {exporting ? "Exporting…" : "Export SVG"}
+        </button>
+      </div>
 
       {/* Cohort legend — bottom-left, only when a cohort is
           active. Explains what the color recoloring means. */}
       {cohortSegment && (
         <div className="absolute bottom-3 left-3 z-10 max-w-xs rounded border border-gray-300 bg-white/95 px-2.5 py-1.5 text-xs text-gray-700 shadow-sm">
-          <strong>Cohort:</strong> colored by the regime of{" "}
-          <span className="font-mono">{cohortSegment}</span>. Nodes
-          without that segment's own data render grey.
+          <strong>Color mode:</strong> every node is colored by the regime of{" "}
+          <span className="font-mono">{cohortSegment}</span>. Nodes without
+          data for that segment render grey.
         </div>
       )}
 

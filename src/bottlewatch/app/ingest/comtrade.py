@@ -26,11 +26,13 @@ class CommoditySpec:
     unit: str
 
 
+# HS codes mapped to canonical scoring segment slugs so downstream
+# extractors can consume them without a second translation layer.
 _COMMODITY_SPEC = [
-    CommoditySpec("8541", "hbm", "trade_volume", "USD"),
-    CommoditySpec("8542", "hbm", "trade_volume", "USD"),
-    CommoditySpec("8486", "lithography", "trade_volume", "USD"),
-    CommoditySpec("8504", "transformers", "trade_volume", "USD"),
+    CommoditySpec("8541", "hbm_memory", "trade_volume", "USD"),
+    CommoditySpec("8542", "hbm_memory", "trade_volume", "USD"),
+    CommoditySpec("8486", "advanced_packaging", "trade_volume", "USD"),
+    CommoditySpec("8504", "transformers_tnd", "trade_volume", "USD"),
 ]
 
 

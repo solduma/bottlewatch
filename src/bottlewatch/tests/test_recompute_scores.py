@@ -169,8 +169,10 @@ def test_idempotent_recompute_overwrites_existing_rows(settings, factory: sessio
 
 
 def test_power_segment_gets_computed_capacity(settings, factory: sessionmaker) -> None:
-    """power_generation_oem should have data_completeness=1.0 (all
-    5 sub-scores populated), other segments 0.8 (no extractor).
+    """power_generation_oem and data_center_shell should have live
+    capacity_tightness; transformers_tnd falls back to imputed 0.5.
+    data_completeness is now always 1.0 because the normalizer fills
+    missing values with the universe median.
     """
     _seed_signals(factory)
     recompute_scores.run(settings=settings, factory=factory)
@@ -180,7 +182,11 @@ def test_power_segment_gets_computed_capacity(settings, factory: sessionmaker) -
         for horizon in settings.score_horizons:
             assert by_segment[("power_generation_oem", horizon)].data_completeness == 1.0
             assert by_segment[("data_center_shell", horizon)].data_completeness == 1.0
-            assert by_segment[("transformers_tnd", horizon)].data_completeness == 0.8
+            assert by_segment[("transformers_tnd", horizon)].data_completeness == 1.0
+            assert (
+                by_segment[("transformers_tnd", horizon)].sub_score_provenance["capacity_tightness"]["source"]
+                == "imputed"
+            )
 
 
 def test_recompute_preserves_horizon_subset(settings, factory: sessionmaker) -> None:
@@ -199,17 +205,18 @@ def test_recompute_preserves_horizon_subset(settings, factory: sessionmaker) -> 
 
 def test_no_signals_still_writes_research_only_scores(settings, factory: sessionmaker) -> None:
     """A fresh DB with zero signals still gets 30 rows: 4 research
-    sub-scores per segment × 3 horizons. The capacity_tightness
-    is None, data_completeness=0.8.
+    sub-scores per segment × 3 horizons. The capacity_tightness is
+    imputed from the universe median (0.5), so data_completeness=1.0.
     """
     report = recompute_scores.run(settings=settings, factory=factory)
     assert report.rows_written == len(known_segments()) * 3
-    assert report.no_data_count == 0  # 0.8 completeness > 0.4 NO_DATA threshold
+    assert report.no_data_count == 0
     with factory() as session:
         rows = session.execute(select(Score)).scalars().all()
         for r in rows:
-            assert r.data_completeness == 0.8
-            assert r.sub_scores["capacity_tightness"] is None
+            assert r.data_completeness == 1.0
+            assert r.sub_scores["capacity_tightness"] == pytest.approx(0.5)
+            assert r.sub_score_provenance["capacity_tightness"]["source"] == "imputed"
             assert r.regime != "NO_DATA"
 
 
@@ -317,28 +324,73 @@ def test_signals_are_deduped_to_latest_observed_at(settings, factory: sessionmak
                 assert cap == pytest.approx(0.1, abs=1e-6), f"expected dedup'd capacity_tightness=0.1, got {cap}"
 
 
+def test_future_planned_capacity_is_included(settings, factory: sessionmaker) -> None:
+    """EIA-860M stores `observed_at` as the planned operation date,
+    which can be years in the future. The recompute job must load
+    these future rows when computing `_power_tightness`; otherwise
+    the planned/operating ratio is near zero.
+    """
+    now = datetime.now(tz=timezone.utc).replace(tzinfo=None)
+    today = now.date().replace(day=1)
+    rows = [
+        # Planned addition whose operation date is 1 year in the future.
+        Signal(
+            segment="power_generation_oem",
+            subsegment=None,
+            signal_name="planned_capacity_mw",
+            value_num=5000.0,
+            unit="MW",
+            source="eia_860m",
+            source_id="p_future",
+            observed_at=today + timedelta(days=365),
+            ingested_at=now,
+        ),
+        # Operating capacity as of today.
+        Signal(
+            segment="power_generation_oem",
+            subsegment=None,
+            signal_name="capacity_mw",
+            value_num=20000.0,
+            unit="MW",
+            source="eia_v2_capacity",
+            source_id="c1",
+            observed_at=today,
+            ingested_at=now,
+        ),
+    ]
+    with session_scope(factory) as session:
+        session.add_all(rows)
+    recompute_scores.run(settings=settings, factory=factory)
+    with factory() as session:
+        rows_out = session.execute(select(Score)).scalars().all()
+        for r in rows_out:
+            if r.segment == "power_generation_oem":
+                cap = r.sub_scores["capacity_tightness"]
+                assert cap is not None
+                assert cap == pytest.approx(0.25, abs=1e-6), (
+                    f"expected future planned capacity to give tightness=0.25, got {cap}"
+                )
+
+
 def test_geo_concentration_computed_when_ontology_available(settings, factory: sessionmaker) -> None:
-    """When the recompute job is given a pre-loaded ontology world,
-    the score rows for the matching segment reflect the computed
-    HHI, not the seed value.
+    """When the recompute job is given a pre-loaded ontology world and
+    the ontology HHI source is selected, the score rows for the
+    matching segment reflect the computed HHI, not the seed value.
 
     Foundry instances: 3 in US, 1 in TW → HHI = 0.625 (no floor drop).
     The advanced_node_fabs seed is 0.65, so the override produces a
     slightly lower value (0.625) — that delta is what we assert on.
     """
     mock_world = _MockWorld({"Foundry": [("US", 3), ("TW", 1)]})
-    recompute_scores.run(settings=settings, factory=factory, ontology_world=mock_world)
+    ontology_settings = settings.model_copy(update={"geo_concentration_source": "ontology"})
+    recompute_scores.run(settings=ontology_settings, factory=factory, ontology_world=mock_world)
     with factory() as session:
         rows = session.execute(select(Score)).scalars().all()
         by_segment = {(s.segment, s.horizon): s for s in rows}
-        # The advanced_node_fabs segment should have the computed HHI.
         for horizon in settings.score_horizons:
             assert by_segment[("advanced_node_fabs", horizon)].sub_scores["geo_concentration"] == pytest.approx(
                 0.625, abs=1e-3
             )
-        # Other segments (no Foundry role class in the mock) fall back
-        # to the seed because their SPARQL query returns no rows.
-        # transformers_tnd seed is 0.35 — confirm the seed path is taken.
         for horizon in settings.score_horizons:
             assert by_segment[("transformers_tnd", horizon)].sub_scores["geo_concentration"] == pytest.approx(0.35)
 
@@ -367,10 +419,16 @@ def test_demand_signal_override_when_fred_signal_present(settings, factory: sess
             ), (
                 f"expected dynamic demand_signal=1.0, got {by_segment[('transformers_tnd', horizon)].sub_scores['demand_signal']}"
             )
-        # Other segments (no dynamic demand_signal extractor)
-        # fall back to the seed. e.g. advanced_node_fabs seed = 0.90.
+        # Hyperscaler-linked segments now get a ledger-derived demand_signal
+        # instead of the seed. e.g. advanced_node_fabs seed = 0.90.
         for horizon in settings.score_horizons:
-            assert by_segment[("advanced_node_fabs", horizon)].sub_scores["demand_signal"] == pytest.approx(0.90)
+            ledger_value = by_segment[("advanced_node_fabs", horizon)].sub_scores["demand_signal"]
+            assert ledger_value is not None
+            assert ledger_value != pytest.approx(0.90)
+        # Segments with no dynamic source and no signals fall back to seed.
+        # cooling_water seed = 0.70; no INDPRO signals in this test.
+        for horizon in settings.score_horizons:
+            assert by_segment[("cooling_water", horizon)].sub_scores["demand_signal"] == pytest.approx(0.70)
 
 
 def test_demand_signal_falls_back_to_seed_without_fred_signals(settings, factory: sessionmaker) -> None:
@@ -471,11 +529,9 @@ def test_lead_time_growth_falls_back_to_seed_without_fred_signals(settings, fact
 
 def test_geo_concentration_end_to_end_against_real_abox(settings, factory: sessionmaker) -> None:
     """Live integration test: load the real ABox from
-    `research/05_ontology/instances.ttl`, run recompute, and
-    assert that all 10 segments get a non-None HHI for
-    `geo_concentration` (the ABox is the system-under-test's
-    population; if it's missing, the test will surface that
-    with a clear assertion failure rather than a silent skip).
+    `research/05_ontology/instances.ttl`, run recompute with the
+    ontology HHI source, and assert that all 10 segments get a
+    non-None HHI for `geo_concentration`.
 
     This is the only test that exercises the real
     `instances.ttl` (every other test uses `_MockWorld`). It
@@ -490,7 +546,8 @@ def test_geo_concentration_end_to_end_against_real_abox(settings, factory: sessi
         pytest.skip(f"ABox not built yet ({abox}); run `make ontology` first")
     world = recompute_scores.load_ontology_world()
     assert world is not None, f"load_ontology_world returned None; check {abox} is well-formed"
-    recompute_scores.run(settings=settings, factory=factory, ontology_world=world)
+    ontology_settings = settings.model_copy(update={"geo_concentration_source": "ontology"})
+    recompute_scores.run(settings=ontology_settings, factory=factory, ontology_world=world)
     with factory() as session:
         rows = session.execute(select(Score)).scalars().all()
         by_segment = {(s.segment, s.horizon): s for s in rows}

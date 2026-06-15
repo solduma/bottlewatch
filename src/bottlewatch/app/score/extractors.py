@@ -1,33 +1,64 @@
-"""Per-segment capacity_tightness extractors (M2 stopgap).
+"""Per-segment raw sub-score extractors.
 
-`capacity_tightness` is the one sub-score computed from the
-`signals` table. Only 2 of 10 segments have meaningful extractors
-in M2:
+Each public extractor returns an `ExtractorResult` containing the raw
+metric value in its natural units and a source key that identifies which
+band to use for normalization. The normalization itself (fixed band or
+5-year rolling band) lives in `bottlewatch.app.score.normalize`.
 
-- `power_generation_oem`: combine `planned_capacity_mw` (forward
-  additions from 860M) and `capacity_mw` (operating capacity from
-  eia_v2_capacity). The score reflects the ratio of forward
-  additions to operating capacity — high ratio = supply is racing
-  to catch demand = tighter.
-
-- `data_center_shell`: use `retail_sales_mwh` YoY growth from
-  eia_v2 as a proxy for shell demand pull. A 25% YoY is at the
-  top of the band; flat is in the middle.
-
-The other 8 segments return None. The formula treats None as
-"no value" and the segment gets `data_completeness = 4/5 = 0.8`.
-The classifier still produces a regime from the 4 research
-sub-scores; NO_DATA is reserved for `data_completeness < 0.4`.
-
-All extractors clamp their output to [0, 1].
+`geo_concentration` is the exception: HHI is already a [0, 1]
+concentration index, so it returns `float | None` directly.
 """
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from datetime import date
 from typing import Any, Iterable, Protocol
 
+from bottlewatch.app.score.capex_ledger import Ledger, load_ledger, series_for_segment
 from bottlewatch.app.score.ontology_segments import SEGMENT_TO_ROLE_CLASS
+
+
+# Segments whose demand_signal is driven by the manual hyperscaler AI capex ledger.
+_HYPERSCALER_DEMAND_SEGMENTS: frozenset[str] = frozenset(
+    {
+        "data_center_shell",
+        "gpu_asic_silicon",
+        "advanced_node_fabs",
+        "hbm_memory",
+        "networking_interconnect",
+        "advanced_packaging",
+    }
+)
+
+
+# Segments that can use FRED cross-segment proxies in Phase 1.
+# These are stopgaps until segment-specific primary sources land.
+_SEMI_SEGMENTS: frozenset[str] = frozenset(
+    {
+        "advanced_node_fabs",
+        "hbm_memory",
+        "gpu_asic_silicon",
+        "networking_interconnect",
+        "advanced_packaging",
+    }
+)
+
+_MANUFACTURING_SEGMENTS: frozenset[str] = frozenset(
+    {
+        "systems_rack_scale",
+        "cooling_water",
+        "power_generation_oem",
+    }
+)
+
+
+@dataclass(frozen=True)
+class ExtractorResult:
+    """Raw extractor output and the band key used for normalization."""
+
+    raw_value: float | None
+    source_key: str
 
 
 class SignalLike(Protocol):
@@ -43,70 +74,118 @@ class SignalLike(Protocol):
     observed_at: object  # datetime.date or str; extractors use only the float
 
 
-def capacity_tightness(segment: str, signals: Iterable[SignalLike]) -> float | None:
-    """Dispatch to the per-segment extractor. Returns a value in
-    [0, 1] or None if the segment has no extractor in M2.
+# Segments that can use Comtrade trade-volume YoY as a capacity proxy.
+_COMTRADE_CAPACITY_SEGMENTS: frozenset[str] = frozenset(
+    {
+        "hbm_memory",
+        "advanced_packaging",
+        "transformers_tnd",
+    }
+)
+
+
+def capacity_tightness(segment: str, signals: Iterable[SignalLike]) -> ExtractorResult | None:
+    """Dispatch to the per-segment capacity_tightness extractor.
+
+    Returns the raw capacity metric and a source key, or None if the
+    segment has no extractor. The normalizer will convert the raw value
+    to [0, 1].
+
+    Order of priority:
+    1. Segment-specific primary extractor (EIA, Comtrade, manufacturing).
+    2. SEC EDGAR keyword-count fallback (cross-segment).
+    3. None → normalizer imputes 0.5.
     """
+    seg_signals = list(signals)
+    raw: float | None = None
+    source_key = "edgar_keyword"
     match segment:
         case "power_generation_oem":
-            return _power_tightness(list(signals))
+            raw = _power_tightness(seg_signals)
+            source_key = "power_ratio"
         case "data_center_shell":
-            return _data_center_shell_tightness(list(signals))
-        case "transformers_tnd":
-            return _transformer_tightness(list(signals))
+            raw = _data_center_shell_tightness(seg_signals)
+            source_key = "retail_sales_yoy"
         case _:
-            return None
+            if segment in _COMTRADE_CAPACITY_SEGMENTS:
+                raw = _comtrade_capacity_tightness(seg_signals)
+                source_key = "comtrade_volume"
+            elif segment in _MANUFACTURING_SEGMENTS:
+                raw = _manufacturing_capacity_tightness(seg_signals)
+                source_key = "manufacturing_utilization"
+    if raw is not None:
+        return ExtractorResult(raw, source_key)
+    edgar = _edgar_capacity_tightness(seg_signals)
+    if edgar is not None:
+        return ExtractorResult(edgar, "edgar_keyword")
+    return None
 
 
-def demand_signal(segment: str, signals: Iterable[SignalLike]) -> float | None:
-    """Dispatch to the per-segment demand_signal extractor. Returns
-    a value in [0, 1] or None if the segment has no dynamic
-    demand_signal in the current data set.
+def demand_signal(segment: str, signals: Iterable[SignalLike]) -> ExtractorResult | None:
+    """Dispatch to the per-segment demand_signal extractor.
 
-    Mirrors `capacity_tightness`: only `transformers_tnd` has a
-    dynamic demand_signal in v1 (FRED `A35SNO`, manufacturers' new
-    orders for electrical equipment). Other segments fall back to
-    the static seed value in `research_values`. The recompute
-    job wires this through the same `demand_signal=` override
-    parameter as `geo_concentration=`.
+    Returns the raw demand metric and a source key, or None if the
+    segment has no dynamic demand extractor in the current data set.
     """
+    seg_signals = list(signals)
     match segment:
         case "transformers_tnd":
-            return _transformer_demand_signal(list(signals))
+            raw = _transformer_demand_signal(seg_signals)
+            if raw is not None:
+                return ExtractorResult(raw, "transformer_orders")
+            return None
         case _:
+            if segment in _HYPERSCALER_DEMAND_SEGMENTS:
+                raw = _hyperscaler_demand_signal(segment)
+                if raw is not None:
+                    return ExtractorResult(raw, "hyperscaler_capex")
+                return None
+            if segment in _MANUFACTURING_SEGMENTS:
+                raw = _manufacturing_demand_signal(seg_signals)
+                if raw is not None:
+                    return ExtractorResult(raw, "manufacturing_indpro")
+                return None
             return None
 
 
-def lead_time_growth(segment: str, signals: Iterable[SignalLike]) -> float | None:
+def lead_time_growth(segment: str, signals: Iterable[SignalLike]) -> ExtractorResult | None:
     """Dispatch to the per-segment lead_time_growth extractor.
-    Returns a value in [0, 1] or None if the segment has no
-    dynamic lead_time_growth in the current data set.
 
-    Only `transformers_tnd` has a dynamic lead_time_growth in v1
-    (FRED `WPU1321` = Producer Price Index for power and
-    distribution transformers; high absolute PPI level correlates
-    with tight lead times per industry trade press). The
-    recompute job wires this through the same `lead_time_growth=`
-    override parameter as `geo_concentration=` and `demand_signal=`.
+    Returns the raw lead-time metric and a source key, or None if the
+    segment has no dynamic lead_time_growth in the current data set.
+
+    Priority:
+    - `transformers_tnd`: FRED WPU1321 absolute PPI level.
+    - Semi segments: SEMI book-to-bill ratio (primary), with FRED
+      `ppi_semis` YoY as a fallback.
+    - SEC EDGAR keyword mentions as a cross-segment fallback.
     """
+    seg_signals = list(signals)
     match segment:
         case "transformers_tnd":
-            return _transformer_lead_time_growth(list(signals))
-        case _:
+            raw = _transformer_lead_time_growth(seg_signals)
+            if raw is not None:
+                return ExtractorResult(raw, "transformers_ppi")
             return None
+        case _:
+            if segment in _SEMI_SEGMENTS:
+                b2b = _semi_book_to_bill_lead_time_growth(seg_signals)
+                if b2b is not None:
+                    return ExtractorResult(b2b, "semi_book_to_bill")
+                ppi = _semi_lead_time_growth(seg_signals)
+                if ppi is not None:
+                    return ExtractorResult(ppi, "semi_ppi")
+    edgar = _edgar_lead_time_growth(seg_signals)
+    if edgar is not None:
+        return ExtractorResult(edgar, "edgar_keyword")
+    return None
 
 
 def _transformer_demand_signal(signals: list[SignalLike]) -> float | None:
-    """Use FRED `A35SNO` (electrical equipment new orders) YoY
-    growth as a proxy for upstream demand pull on transformers.
+    """Raw YoY growth of FRED `A35SNO` (electrical equipment new orders).
 
-    Per methodology §2.5, the "true" demand_signal would be
-    hyperscaler capex YoY. FRED doesn't aggregate the Big Four's
-    capex, so we use the closest direct proxy: manufacturers'
-    new orders for the electrical equipment class that includes
-    transformers. A 0% YoY reads as 0.5 (median); +25% YoY reads
-    as 1.0 (max demand pull); -10% YoY reads as 0.0 (demand
-    collapse).
+    -10% YoY -> normalized 0.0; +25% YoY -> normalized 1.0 via the fixed
+    band in `score_bands.json`.
     """
     values: list[tuple[object, float]] = []
     for s in signals:
@@ -119,26 +198,17 @@ def _transformer_demand_signal(signals: list[SignalLike]) -> float | None:
     year_ago = values[-13][1]
     if year_ago <= 0:
         return None
-    yoy = (latest - year_ago) / year_ago
-    if yoy <= -0.10:
-        return 0.0
-    if yoy >= 0.25:
-        return 1.0
-    return (yoy + 0.10) / 0.35
+    return (latest - year_ago) / year_ago
 
 
-def _transformer_tightness(signals: list[SignalLike]) -> float | None:
-    """Use ppi_transformers growth as a proxy for T&D tightness.
+def _manufacturing_demand_signal(signals: list[SignalLike]) -> float | None:
+    """Raw YoY growth of FRED `INDPRO` (industrial production).
 
-    PPI growth is a strong lead indicator for transformer lead times
-    and supply-demand imbalance.
-    - 0% YoY growth -> 0.4 (stable/loose)
-    - 15% YoY growth -> 0.7 (tight)
-    - 30%+ YoY growth -> 1.0 (extremely tight)
+    -5% YoY -> normalized 0.0; +10% YoY -> normalized 1.0.
     """
     values: list[tuple[object, float]] = []
     for s in signals:
-        if s.signal_name == "ppi_transformers" and s.value_num is not None:
+        if s.signal_name == "industrial_production" and s.value_num is not None:
             values.append((s.observed_at, s.value_num))
     if len(values) < 13:
         return None
@@ -147,38 +217,104 @@ def _transformer_tightness(signals: list[SignalLike]) -> float | None:
     year_ago = values[-13][1]
     if year_ago <= 0:
         return None
-    yoy = (latest - year_ago) / year_ago
-    # Map [0.0, 0.30] -> [0.4, 1.0]
-    if yoy <= 0:
-        return 0.4
-    if yoy >= 0.30:
-        return 1.0
-    return 0.4 + (yoy / 0.30) * 0.6
+    return (latest - year_ago) / year_ago
+
+
+def _hyperscaler_demand_signal(
+    segment: str,
+    ledger: Ledger | None = None,
+) -> float | None:
+    """Raw trailing-4-quarter aggregate AI capex YoY growth.
+
+    Uses the manual hyperscaler AI capex ledger. Returns the YoY ratio
+    (e.g. +0.30 = +30%) which the band maps [-0.10, +0.40] -> [0, 1].
+    """
+    try:
+        ledger = ledger if ledger is not None else load_ledger()
+    except FileNotFoundError:
+        return None
+    series = series_for_segment(segment, ledger)
+    if series is None or len(series.values) < 5:
+        return None
+    current = sum(series.values[-4:])
+    prior = sum(series.values[-5:-1])
+    if prior <= 0:
+        return None
+    return (current - prior) / prior
+
+
+def _edgar_keyword_score(
+    signals: list[SignalLike],
+    keyword_signal_names: set[str],
+) -> float | None:
+    """Raw trailing-12-month z-score of SEC EDGAR keyword counts.
+
+    The fixed band maps z ∈ [-2, +2] to [0, 1]. Returns None if fewer
+    than 6 months of data or zero variance.
+    """
+    by_month: dict[str, float] = {}
+    for s in signals:
+        if s.signal_name in keyword_signal_names and s.value_num is not None:
+            d = _to_date(s.observed_at)
+            key = f"{d.year:04d}-{d.month:02d}"
+            by_month[key] = by_month.get(key, 0.0) + s.value_num
+
+    if len(by_month) < 6:
+        return None
+
+    months = sorted(by_month.keys())
+    totals = [by_month[m] for m in months]
+    window = totals[-12:]
+    if len(window) < 6:
+        return None
+    mean = sum(window[:-1]) / len(window[:-1])
+    std = _std(window[:-1])
+    if std == 0:
+        latest = window[-1]
+        if latest == mean:
+            return 0.0  # maps to 0.5 after normalization
+        return 1.0 if latest > mean else -1.0
+    return (window[-1] - mean) / std
+
+
+def _std(values: list[float]) -> float:
+    """Population standard deviation."""
+    if len(values) < 2:
+        return 0.0
+    mean = sum(values) / len(values)
+    variance = sum((x - mean) ** 2 for x in values) / len(values)
+    return variance**0.5
+
+
+def _edgar_lead_time_growth(signals: list[SignalLike]) -> float | None:
+    """Raw SEC EDGAR `lead_time_mentions` z-score."""
+    return _edgar_keyword_score(signals, {"lead_time_mentions"})
+
+
+def _edgar_capacity_tightness(signals: list[SignalLike]) -> float | None:
+    """Raw SEC EDGAR `shortage_mentions` + `capacity_expansion_mentions` z-score."""
+    return _edgar_keyword_score(signals, {"shortage_mentions", "capacity_expansion_mentions"})
+
+
+def _manufacturing_capacity_tightness(signals: list[SignalLike]) -> float | None:
+    """Raw FRED `TCU` (capacity utilization) level.
+
+    The fixed band maps [75, 90] -> [0, 1].
+    """
+    values: list[tuple[object, float]] = []
+    for s in signals:
+        if s.signal_name == "capacity_utilization" and s.value_num is not None:
+            values.append((s.observed_at, s.value_num))
+    if not values:
+        return None
+    values.sort(key=lambda x: _to_date(x[0]))
+    return values[-1][1]
 
 
 def _transformer_lead_time_growth(signals: list[SignalLike]) -> float | None:
-    """Map the FRED `WPU1321` (transformer PPI) absolute level to
-    a [0, 1] lead-time-growth tightness score.
+    """Raw FRED `WPU1321` (transformer PPI) absolute level.
 
-    The methodology calls for YoY change in quoted lead times
-    (methodology §2.1) but we don't have a free, structured
-    lead-time-quote feed. WPU1321 (Producer Price Index for
-    power and distribution transformers) is the closest direct
-    proxy: trade press consistently cites PPI absolute level as
-    the upstream driver of quoted lead times (high PPI = tight
-    market = long lead times). The relationship is not
-    perfectly linear, but it's a faithful directional signal.
-
-    The band is set from the historical WPU1321 range:
-    - 80 (deep recession; 2010 baseline) -> 0.0
-    - 350 (current 2024-2026 peak) -> 1.0
-    - Midpoint 215 (steady-state demand) -> 0.5
-
-    On recalibration: re-fit the band from FRED's WPU1321
-    time-series once a year; the 5-yr min/max is the spec.
-
-    Returns None if fewer than 2 observations are present
-    (need at least 1 data point to compute "current level").
+    The fixed band maps [80, 350] -> [0, 1].
     """
     values: list[tuple[object, float]] = []
     for s in signals:
@@ -187,32 +323,48 @@ def _transformer_lead_time_growth(signals: list[SignalLike]) -> float | None:
     if len(values) < 2:
         return None
     values.sort(key=lambda x: _to_date(x[0]))
+    return values[-1][1]
+
+
+def _semi_book_to_bill_lead_time_growth(signals: list[SignalLike]) -> float | None:
+    """Raw SEMI book-to-bill ratio.
+
+    The fixed band maps [0.8, 1.4] -> [0, 1].
+    """
+    values: list[tuple[object, float]] = []
+    for s in signals:
+        if s.signal_name == "book_to_bill_ratio" and s.value_num is not None:
+            values.append((s.observed_at, s.value_num))
+    if not values:
+        return None
+    values.sort(key=lambda x: _to_date(x[0]))
+    return values[-1][1]
+
+
+def _semi_lead_time_growth(signals: list[SignalLike]) -> float | None:
+    """Raw FRED `WPU31132506` (semiconductor PPI) YoY growth.
+
+    The fixed band maps [-10%, +25%] -> [0, 1].
+    """
+    values: list[tuple[object, float]] = []
+    for s in signals:
+        if s.signal_name == "ppi_semis" and s.value_num is not None:
+            values.append((s.observed_at, s.value_num))
+    if len(values) < 13:
+        return None
+    values.sort(key=lambda x: _to_date(x[0]))
     latest = values[-1][1]
-    # The M5 band. WPU1321 historical min is ~80 (2010);
-    # current 2024-2026 readings are 340-360.
-    _BAND_MIN = 80.0
-    _BAND_MAX = 350.0
-    if latest <= _BAND_MIN:
-        return 0.0
-    if latest >= _BAND_MAX:
-        return 1.0
-    return (latest - _BAND_MIN) / (_BAND_MAX - _BAND_MIN)
+    year_ago = values[-13][1]
+    if year_ago <= 0:
+        return None
+    return (latest - year_ago) / year_ago
 
 
 def _power_tightness(signals: list[SignalLike]) -> float | None:
-    """Combine planned_capacity_mw (forward additions) and
-    capacity_mw (operating) into a [0, 1] tightness score.
+    """Raw ratio of forward additions to operating capacity.
 
-    The methodology calls for "orders-to-capacity or utilization
-    vs long-run mean" (§2.2). Our proxy:
-        tightness = forward_additions_0_2y / operating_capacity
-    A ratio > 1 means forward additions exceed operating capacity,
-    i.e. supply is racing to catch demand → tight.
-    Clamp at 1.0 (we cap, not extrapolate).
-
-    The recompute job is expected to pass signals filtered to
-    the next 24 months for `planned_capacity_mw` and the latest
-    value for `capacity_mw`.
+    Returns the unclamped ratio so rolling normalization can use the
+    actual historical range. The fixed band maps [0, 1] -> [0, 1].
     """
     forward: list[float] = []
     operating: list[float] = []
@@ -229,41 +381,45 @@ def _power_tightness(signals: list[SignalLike]) -> float | None:
     operating_level = max(operating)
     if operating_level <= 0:
         return None
-    return min(forward_sum / operating_level, 1.0)
+    return forward_sum / operating_level
 
 
 def _data_center_shell_tightness(signals: list[SignalLike]) -> float | None:
-    """Use retail_sales_mwh YoY growth as a proxy for shell demand.
+    """Raw retail_sales_mwh YoY growth for data-center shell proxy.
 
-    The methodology doesn't give a segment-specific IDC formula;
-    the proxy is the methodology's "demand_signal" axis applied
-    to the data we have (state-level retail sales). A 0% YoY
-    reads as 0.5 (median); a 25% YoY reads as 1.0 (max tight).
-    Negative growth is clamped to 0.0.
-
-    The recompute job passes the trailing 24 months of
-    `retail_sales_mwh` signals sorted ascending by observed_at.
+    The fixed band maps [-10%, +25%] -> [0, 1].
     """
     values: list[tuple[object, float]] = []
     for s in signals:
         if s.signal_name == "retail_sales_mwh" and s.value_num is not None:
             values.append((s.observed_at, s.value_num))
-    if len(values) < 13:  # need >=12 months for a YoY delta
+    if len(values) < 13:
         return None
     values.sort(key=lambda x: _to_date(x[0]))
     latest = values[-1][1]
-    year_ago = values[-13][1]  # 12 months back
+    year_ago = values[-13][1]
     if year_ago <= 0:
         return None
-    yoy = (latest - year_ago) / year_ago
-    # Map [-0.10, +0.25] → [0.0, 1.0]; 0.0 YoY → 0.286.
-    # The 0.5 midpoint falls at ~+0.075 YoY growth, which is the
-    # methodology's median demand-pull case.
-    if yoy <= -0.10:
-        return 0.0
-    if yoy >= 0.25:
-        return 1.0
-    return (yoy + 0.10) / 0.35
+    return (latest - year_ago) / year_ago
+
+
+def _comtrade_capacity_tightness(signals: list[SignalLike]) -> float | None:
+    """Raw UN Comtrade `trade_volume` YoY growth.
+
+    The fixed band maps [-20%, +40%] -> [0, 1].
+    """
+    values: list[tuple[object, float]] = []
+    for s in signals:
+        if s.signal_name == "trade_volume" and s.value_num is not None:
+            values.append((s.observed_at, s.value_num))
+    if len(values) < 13:
+        return None
+    values.sort(key=lambda x: _to_date(x[0]))
+    latest = values[-1][1]
+    year_ago = values[-13][1]
+    if year_ago <= 0:
+        return None
+    return (latest - year_ago) / year_ago
 
 
 def _to_date(d: object) -> date:
@@ -274,28 +430,21 @@ def _to_date(d: object) -> date:
 
 
 # ---------------------------------------------------------------------------
-# geo_concentration (ontology-derived, methodology §2.3)
+# geo_concentration (ontology-derived fallback; methodology §2.3)
 # ---------------------------------------------------------------------------
 
 
 # Methodology §2.3 floor: regions with <5% share are treated as
-# effectively zero. We drop the role instance entirely from the
-# count map (a small win for noisy counts where one outlier role
-# instance per region would otherwise inflate HHI by 1/n).
+# effectively zero.
 _HHI_FLOOR_SHARE = 0.05
 
 
 def _hhi_from_counts(counts: dict[str, int]) -> float | None:
     """Herfindahl-Hirschman Index from per-region role counts.
 
-    HHI = Σ share_i^2 where share_i = count_i / Σ count_j. Range
-    is [1/n, 1] (a single concentrated region -> 1.0; perfectly
-    equal across n regions -> 1/n).
-
-    Per methodology §2.3, we apply a 5% floor: any region with
-    share < 5% is dropped from the computation. This dampens
-    noise from a single role instance registered against an
-    unusual region. Returns None if the surviving total is 0.
+    HHI = Σ share_i^2 where share_i = count_i / Σ count_j. Applies the
+    5% share floor from methodology §2.3. Returns None if the surviving
+    total is 0.
     """
     if not counts:
         return None
@@ -314,12 +463,9 @@ def _hhi_from_counts(counts: dict[str, int]) -> float | None:
 def _count_regions_for_role(world: Any, role_class: str) -> dict[str, int]:
     """Count role instances per region for the given role class.
 
-    SPARQL aggregation against the ABox. We use the bare prefix
-    `<>` (the ontology's default namespace) since the ABox
-    individuals all live in `http://bottlewatch.org/ontology#`.
-    Returns a dict {region_local_name: count}. An empty dict
-    means the role class has no instances or no `operatesIn`
-    edges — the caller treats this as "no data" and returns None.
+    SPARQL aggregation against the ABox. Returns a dict
+    {region_local_name: count}. An empty dict means the role class has
+    no instances or no `operatesIn` edges.
     """
     query = (
         "PREFIX : <http://bottlewatch.org/ontology#> "
@@ -333,9 +479,6 @@ def _count_regions_for_role(world: Any, role_class: str) -> dict[str, int]:
         if not row or len(row) < 2:
             continue
         region, n = row[0], row[1]
-        # owlready2 may return either URIRef-ish objects or strings
-        # depending on the parser version. Normalize to a local
-        # name; if it's already a string, leave it alone.
         if hasattr(region, "name"):
             region_name = region.name
         else:
@@ -352,17 +495,10 @@ def _count_regions_for_role(world: Any, role_class: str) -> dict[str, int]:
 def geo_concentration(segment: str, world: Any | None = None) -> float | None:
     """Per-segment geographic concentration (HHI of supplier geography).
 
-    Methodology §2.3: HHI by supplier geography in [0, 1]. A segment
-    with all its role instances in one region scores 1.0; perfectly
-    diversified (post-floor) approaches 1/n. The 5% share floor
-    (methodology) drops noisy tail regions.
-
-    The segment→role-class bridge is in `ontology_segments`. A
-    segment without a role mapping returns None (the formula
-    then falls back to the seed value). `world` is an
-    `owlready2.World` whose ontology has been loaded from the
-    TBox + ABox. The recompute job loads this once; the
-    function is called once per segment.
+    This is the ontology fallback path. The preferred path in Phase 2
+    is `bottlewatch.app.score.geo.geo_concentration()`, which uses the
+    universe CSV directly. This function is kept for comparison and for
+    the `GEO_CONCENTRATION_SOURCE=ontology` feature flag.
     """
     if world is None:
         return None

@@ -257,3 +257,444 @@ EDN,OTCQX,Edwards Vacuum,fee_vacuum_pumps,vacuum_pumps,90,mid,10000000000,manual
 PFEI,OTCQX,Pfeiffer Vacuum,fee_vacuum_pumps,vacuum_pumps,85,mid,5000000000,manual FX 6M,German vacuum pump supplier; 85% semi
 AMAT,NASDAQ,Applied Materials,fee_vacuum_robotics,vacuum_robotics,15,large,150000000000,USD,Vacuum robotics for fabs; 15% AI/semi
 7733.TSE,TSE,Nidec,fee_vacuum_robotics,vacuum_robotics,20,large,50000000000,USD proxy: SOXX,Japanese vacuum robotics supplier; 20% semi
+000660.KS,KRX,SK hynix,advanced_node_fabs,hbm_dram_base_layer,60,large,95500000000,unhedged,"Produces 1y/1z/1c DRAM base wafers used in HBM stacks; the advanced-node-fabs brief explicitly includes the DRAM base layers that feed HBM stacks. HBM is the highest-margin SK hynix product line and already represented in hbm-memory/hbm-dram-platform, but not yet in this segment."
+036930.KQ,KRX,"Jusung Engineering Co., Ltd.",front_end_equipment,cvd_ald_equipment,60,mid,6300000000,unhedged,"Korean front-end semiconductor equipment maker specializing in ALD, CVD and etch systems used in memory and foundry fabs. Captures AI-driven capex for advanced-node capacity without being a global equipment monopoly."
+031980.KQ,KRX,PSK Holdings Inc.,front_end_equipment,dry_strip_descum,50,small,2100000000,unhedged,"Korean process equipment supplier with #1 global share in dry strip/descum systems for front-end wafer processing. Also supplies reflow equipment used in HBM advanced packaging, giving it credible AI semi exposure."
+042700.KS,KRX,"Hanmi Semiconductor Co., Ltd.",advanced_packaging,tsv_bonder,85,large,22000000000,unhedged,"Dominant global supplier of thermocompression bonders for HBM stacking (~71% HBM TC bonder share, >90% in 12-layer HBM3E). Announced HBM4 TC bonder orders from SK hynix in June 2026. Core 2.5D/3D advanced-packaging equipment exposure."
+009150.KS,KRX,"Samsung Electro-Mechanics Co., Ltd.",advanced_packaging,fc_bga_substrate,50,large,53900000000,unhedged,Major Korean FC-BGA/ABF substrate and silicon capacitor supplier for AI chips. Secured ~KRW 1.5 trillion silicon capacitor contract for 2027-2028; FC-BGA revenue is forecast to grow ~45% YoY in 2026 on AI server demand.
+042700.KS,KRX,"Hanmi Semiconductor Co., Ltd.",hbm_tsv_equipment,hbm_tcb_bonder,85,large,22000000000,unhedged,The same TC-bonder leader viewed through the HBM TSV equipment lens: HBM4 TC Bonder 4.5 Griffin order from SK hynix in June 2026 is a direct read on TSV/HBM stacking equipment demand.
+031980.KQ,KRX,PSK Holdings Inc.,hbm_tsv_equipment,mr_muf_reflow,65,small,2100000000,unhedged,"Supplies Ecolite descum and Geneva reflow systems used in SK hynix's MR-MUF HBM packaging flow. Reflow equipment ASP is reported as 3-5x higher for HBM vs general DRAM, making it a direct HBM TSV/packaging equipment play."
+007660.KS,KRX,"ISU Petasys Co., Ltd.",net_high_speed_pcb,ai_switch_pcb,80,mid,6100000000,unhedged,"Korean leader in ultra-high multilayer PCBs (up to 52 layers), ranked #3 globally alongside TTM Technologies. Supplies AI accelerator and network switch boards to NVIDIA, Google, Microsoft, Meta and Amazon; preparing 800G/1.6T switch PCBs."
+007810.KS,KRX,"Korea Circuit Co., Ltd.",net_high_speed_pcb,server_pcb,60,small,1700000000,unhedged,Korean PCB/substrate manufacturer with SOCAMM2 and Broadcom FC-BGA qualifications plus server PCB exposure. AI server and advanced substrate demand are the growth drivers.
+353200.KS,KRX,"Daeduck Electronics Co., Ltd.",net_high_speed_pcb,server_network_pcb,55,mid,5200000000,unhedged,Korean PCB manufacturer producing FC-BGA and high-layer server/network PCBs. Expanding AI server PCB capacity; market cap has rerated on AI-related PCB demand.
+394280.KQ,KRX,"OpenEdges Technology, Inc.",sil_ip_eda,memory_subsystem_ip,85,small,274000000,unhedged,Korean fabless IP company providing integrated memory subsystem IP (DDR/LPDDR controller + PHY + NoC) for AI inference SoCs. Samsung Foundry SAFE partner and direct play on LPDDR-based AI inference server memory.
+009150.KS,KRX,"Samsung Electro-Mechanics Co., Ltd.",sil_power_delivery,package_power_passives,35,large,53900000000,unhedged,MLCCs and silicon capacitors are critical for on-package power integrity in AI GPUs/HBM packages. KRW 1.5 trillion silicon capacitor contract for 2027-2028 underpins direct AI power-delivery component exposure.
+355150.KQ,KRX,"KOSTECSYS Co., Ltd.",sil_power_delivery,power_module_thermal,55,small,1200000000,unhedged,"Korean materials company specializing in low-CTE/high-thermal-conductivity substrates (KCMC) for SiC/GaN power modules. IR book explicitly cites AI accelerator power modules, HBM-integrated high-density computing and hyperscale data center power systems as target markets."
+037030.KQ,KRX,Powernet Technologies Corporation,sys_psu,ai_server_psu,60,small,137000000,unhedged,Korean SMPS/PSU manufacturer moving from appliance power supplies into 8kW-class GaN-based AI server PSUs and rack-level power shelves. Transition is still underway; AI data center power is the stated growth vector.
+005290.KQ,KRX,Dongjin Semichem,semiconductor_materials,photoresist,70,mid,1780000000,unhedged,"Korea's first domestic formulated photoresist maker (ArF immersion, KrF, i-line, EUV PR in development); key supplier to Samsung/SK hynix lithography; fits upstream semiconductor materials cluster."
+104830.KQ,KRX,Wonik Materials,semiconductor_materials,process_gases,80,small,380000000,unhedged,"Korean specialty/process gas supplier (NH3, N2O, C3H6, PH3, precursors) to memory/logic fabs; localizes gas supply for AI/memory wafer production."
+357780.KQ,KRX,Soulbrain,semiconductor_materials,process_chemicals,65,mid,2000000000,unhedged,Korean semiconductor wet chemicals/CMP/precursors supplier; dominant share in HF/phosphoric acid etchants at Samsung/SK hynix; building US Taylor plant for Samsung.
+281820.KS,KRX,KC Tech,semiconductor_materials,cmp_slurries,45,mid,1000000000,unhedged,Korean CMP equipment and slurry supplier (ceria/silica slurries); ships CMP systems and materials to Samsung/SK hynix; AI/memory wafer planarization exposure.
+104830.KQ,KRX,Wonik Materials,mat_process_gases,process_gases,85,small,380000000,unhedged,Pure-play Korean specialty/process gas supplier to memory/logic fabs; NH3/N2O/diffusion/etch gases are core revenue.
+093370.KS,KRX,Foosung,mat_process_gases,specialty_gases,55,small,950000000,unhedged,"Korean producer of C4F6, WF6, CH2F2 and other fluorinated specialty gases used in semiconductor etch/deposition; only domestic source for some gases."
+005290.KQ,KRX,Dongjin Semichem,mat_photoresist,photoresist,70,mid,1780000000,unhedged,"Korea's first domestic photoresist maker (ArF immersion, KrF, i-line, EUV PR development); key local supplier to Samsung/SK hynix lithography."
+482630.KQ,KRX,Samyang NCChem,mat_photoresist,photoresist_materials,40,small,220000000,unhedged,"Korean supplier of photoresist raw materials (polymers, PAG, monomers, additives, BARC polymers) to domestic PR formulators; upstream of lithography materials."
+357780.KQ,KRX,Soulbrain,mat_cmp_slurries,cmp_slurries,55,mid,2000000000,unhedged,Develops CMP slurries for ILD/STI/W/Cu/TSV polishing; supplies Samsung/SK hynix memory/logic planarization.
+102710.KQ,KRX,ENF Technology,mat_cmp_slurries,cmp_slurries,30,small,460000000,unhedged,Korean semiconductor process chemical maker with CMP slurry line; expanding into Samsung Taylor fab materials.
+005290.KQ,KRX,Dongjin Semichem,mat_cmp_slurries,cmp_slurries,20,mid,1780000000,unhedged,Diversified materials maker with CMP slurry product line; smaller share versus photoresist but adds local supply-chain coverage.
+281820.KS,KRX,KC Tech,mat_cmp_slurries,cmp_slurries,25,mid,1000000000,unhedged,Supplies ceria/silica CMP slurries alongside CMP equipment; revenue from slurry growing with memory capex.
+357780.KQ,KRX,Soulbrain,fab_process_chemicals,process_chemicals,55,mid,2000000000,unhedged,"Core Korean wet chemicals supplier (etchants, cleaners, HF/BOE, phosphoric acid) for Samsung/SK hynix fabs; US Taylor expansion."
+102710.KQ,KRX,ENF Technology,fab_process_chemicals,process_chemicals,40,small,460000000,unhedged,"Supplies thinners, developers, strippers, Cu etchant and fine chemicals to Samsung's Taylor fab; display chemicals are dilutive."
+005290.KQ,KRX,Dongjin Semichem,fab_process_chemicals,process_chemicals,30,mid,1780000000,unhedged,"Produces thinners, developers, wet chemicals and photoresist ancillary materials for domestic and US Samsung fabs."
+009150.KS,KRX,Samsung Electro-Mechanics,pkg_substrates,abf_substrates,60,mega,98000000000,unhedged,"Korean leader in ABF/FC-BGA package substrates for AI accelerators, servers, smartphones; only global player top-tier in both substrates and MLCC; ABF supply tight on AI demand."
+353200.KS,KRX,Daeduck Electronics,pkg_substrates,abf_substrates,70,mid,5700000000,unhedged,Korean FC-BGA/FCCSP package substrate and MLB supplier; Q4 2025 package substrate sales up 54% YoY on AI/data-center demand.
+222800.KQ,KRX,Simmtech,pkg_substrates,memory_substrates,65,mid,3130000000,unhedged,Korean memory package substrate/BOC board leader (~30% share in memory module substrates); key to HBM and DRAM packaging at SK hynix/Samsung.
+033160.KQ,KRX,MK Electron,pkg_ubm,ubm_bonding,50,small,413000000,unhedged,Global #1 bonding wire and solder ball supplier; provides UBM-adjacent bumping metallization materials to Samsung/SK hynix/OSATs.
+077360.KQ,KRX,Duksan Hi Metal,pkg_ubm,solder_balls,60,small,467000000,unhedged,Largest domestic and #2 global solder ball supplier for semiconductor packaging; key customer Samsung/SK hynix/Samsung Electro-Mechanics.
+061970.KQ,KRX,LB Semicon,pkg_ubm,bumping_services,30,mid,2170000000,unhedged,Korean OSAT providing flip-chip wafer bumping (gold/solder/Cu pillar) and UBM-related back-end services for AI/PMIC/CIS.
+006260.KS,KRX,LS Corp,tnd_copper,copper,25,mid,7100000000,unhedged,"Korean electrical materials group producing copper cathodes/rods and magnet wire for transformers, motors, EVs and grid; downstream copper value chain."
+010130.KS,KRX,Korea Zinc,tnd_copper,copper,15,large,18000000000,unhedged,World's largest zinc smelter; produces copper cathodes as a byproduct of non-ferrous smelting; copper is a smaller revenue line but adds Korean copper supply.
+125020.KQ,KRX,TC Materials,tnd_copper,copper,60,small,167000000,unhedged,"Korean specialist in transformer/motor copper windings (CTC, rectangular wire, enameled wire); directly exposed to AI/grid transformer demand."
+005490.KS,KRX,POSCO Holdings,tnd_electrical_steel,electrical_steel,30,large,18700000000,unhedged,Global top-tier grain-oriented electrical steel (GOES) producer; named in segment brief as major GOES supplier; key upstream input for power transformers feeding data centers/grid buildout.
+010130.KS,KRX,Korea Zinc,raw_inputs,raw_commodities,30,large,18000000000,unhedged,"Major non-ferrous miner/smelter (zinc, lead, copper, silver, indium); produces AI-relevant raw metals and rare byproducts for batteries/electronics."
+005490.KS,KRX,POSCO Holdings,raw_inputs,raw_commodities,20,large,18700000000,unhedged,Integrated steel giant with captive iron ore/coal mining and trading; upstream steel/raw materials exposure to infrastructure/AI buildout.
+047050.KS,KRX,POSCO International,raw_inputs,raw_commodities,25,mid,8000000000,unhedged,"Korean trading/resources arm of POSCO with coal, iron ore, LNG and resource-development exposure; handles raw commodities tied to steel/energy infrastructure."
+010130.KS,KRX,Korea Zinc,raw_mining,mining,35,large,18000000000,unhedged,Korean non-ferrous mining/smelting leader; zinc/lead/copper/silver production is core mining exposure relevant to AI electrification.
+005490.KS,KRX,POSCO Holdings,raw_mining,mining,15,large,18700000000,unhedged,Owns mining operations and trades iron ore/coal; steel-making raw materials exposure.
+047050.KS,KRX,POSCO International,raw_mining,mining,20,mid,8000000000,unhedged,"Has mining/resource-development assets (e.g., Australian Senex gas, coal/iron ore trading) and commodity logistics; limited but real upstream mining exposure."
+096770.KS,KRX,SK Innovation,raw_oil_gas,oil_gas,85,large,12700000000,unhedged,"Korean integrated energy company with oil refining, exploration/production and petrochemicals; upstream oil/gas exposure to power/fuel inputs."
+010950.KS,KRX,S-Oil,raw_oil_gas,oil_gas,90,large,8700000000,unhedged,"Major Korean oil refiner (Aramco-backed); produces naphtha, fuels and petrochemical feedstocks tied to industrial/energy demand."
+036460.KS,KRX,Korea Gas Corp,fuel_power_inputs,natural_gas,85,mid,2130000000,unhedged,South Korea's sole natural gas wholesaler; imports and distributes LNG to power generators and city gas; directly exposed to gas-fired power/data-center fuel demand.
+015760.KS,KRX,Korea Electric Power Corp,fuel_power_inputs,natural_gas,20,large,18000000000,unhedged,State-controlled utility generating ~96% of Korea's electricity; natural gas and diversified thermal generation are part of the fuel/power input stack.
+096770.KS,KRX,SK Innovation,fuel_oil_gas,oil_gas,90,large,12700000000,unhedged,Refining and E&P operations dominate revenue; oil/gas products are fuel inputs for transport/industry/power.
+010950.KS,KRX,S-Oil,fuel_oil_gas,oil_gas,90,large,8700000000,unhedged,Refiner focused on petroleum products and petrochemicals; nearly all revenue from oil/gas fuel chain.
+009830.KS,KRX,Hanwha Solutions,fuel_renewables,solar_modules,60,mid,4700000000,unhedged,"Owns Qcells, a top global solar module/ESS/EPC player; high-quality Korean renewable exposure that improves coverage versus US-centric existing list."
+034020.KS,KRX,Doosan Enerbility Co Ltd,power_generation_oem,gas_turbine_oem,70,large,40000000000,unhedged,"Korean power-generation OEM with localized H-class gas turbines, nuclear/SMR components, offshore wind turbines and water treatment. Record US big-tech data-center gas-turbine orders (7x 380MW units to xAI; 12 total US units) and SMR partnerships with NuScale, X-energy, TerraPower and Rolls-Royce. Adds Korean geographic exposure to the broad power-generation segment."
+034020.KS,KRX,Doosan Enerbility Co Ltd,gen_gas_turbines,gas_turbines,40,large,40000000000,unhedged,"Korea's only large-scale gas-turbine OEM. Won largest-ever US big-tech data-center order for 7x 380MW H-class turbines (sequential delivery from 2029), with a target of 45 units by 2030. Gas-turbine demand from AI data centers is the dominant growth driver."
+034020.KS,KRX,Doosan Enerbility Co Ltd,gen_smr,smr,20,large,40000000000,unhedged,"Key Korean SMR component supplier to NuScale, X-energy, TerraPower and Rolls-Royce. Building a dedicated Changwon SMR plant to reach 20 units/year by 2028 and targeting KRW 1.1T in SMR orders in 2026. SMR is a strategic, non-trivial minority of the integrated power OEM."
+112610.KS,KRX,CS Wind Corporation,gen_wind,wind_towers,90,small,1100000000,unhedged,Korean KOSPI manufacturer of onshore and offshore wind towers and substructures; acquired Bladt Industries. Pure-play wind infrastructure exposure to offshore wind buildout.
+018000.KQ,KRX,Unison Co Ltd,gen_wind,wind_turbines,70,small,150000000,unhedged,"Korean KOSDAQ wind-turbine OEM and EPC/O&M provider (750kW-4.3MW units and towers). Small-cap, loss-making and undergoing restructuring, but provides direct Korean wind-generation exposure."
+034020.KS,KRX,Doosan Enerbility Co Ltd,gen_wind,wind_turbines,20,large,40000000000,unhedged,"Developing offshore wind turbines as a strategic renewable vertical within its integrated power-equipment portfolio. Wind remains a minority of consolidated revenue, but Doosan is the closest Korean large-cap wind OEM."
+009830.KS,KRX,Hanwha Solutions Corp,gen_solar,solar_modules,45,mid,4700000000,unhedged,"Qcells solar ingots/wafers/cells/modules; 8.4GW US module capacity and growing hyperscaler PPA demand. ~45% of revenue from the solar/renewables division, with perovskite-silicon tandem R&D."
+010120.KS,KRX,LS Electric Co Ltd,transformers_tnd,transformers_tnd,50,large,27000000000,unhedged,"Korean power-equipment leader with ultra-high-voltage transformers, switchgear and DC distribution for AI data centers. Recently won $100m+ contracts with US big-tech data centers and is expanding US production in Utah/Texas."
+267260.KS,KRX,HD Hyundai Electric Co Ltd,transformers_tnd,transformers_tnd,80,large,27000000000,unhedged,"Korea's largest high-voltage transformer manufacturer; holds >15% of the US HV transformer market and has production booked through H1 2031. Supplies Google, Meta and Samsung's Taylor fab."
+103590.KS,KRX,Iljin Electric Co Ltd,transformers_tnd,transformers_tnd,80,mid,4200000000,unhedged,"Korean UHV transformer and power-cable supplier; the only Korean company with both power equipment and UHV cables. Recently won data-center transformer and cable orders in Canada, Malaysia and Singapore."
+015760.KS,KRX,Korea Electric Power Corp,td_utilities,regulated_utility,60,large,20000000000,unhedged,"KEPCO, Korea's national T&D utility, plans KRW 73T of grid upgrades through 2038 to serve AI/semiconductor load growth, including HVDC transmission to the Seoul metro area and direct LVDC supply to data centers."
+093320.KQ,KRX,KINX Inc,data_center_shell,colocation,80,small,360000000,unhedged,"Korea's largest neutral internet exchange and carrier-neutral colocation provider, operating 7 IDCs in the Seoul metro area. Partners with AWS, Azure, GCP, Oracle and Naver; pure-play Korean DC/IX shell exposure."
+088980.KS,KRX,Macquarie Korea Infrastructure Fund,data_center_shell,colocation,20,mid,3600000000,unhedged,"Listed Korean infrastructure fund that owns the Hanam hyperscale colocation data center (40MW, LG CNS tenant). First digital-infrastructure asset in an otherwise transport/utility portfolio; provides Korean colo exposure via a listed vehicle."
+017670.KS,KRX,SK Telecom Co Ltd,shell_dark_fiber,dark_fiber,20,large,15000000000,unhedged,Korean telecom with nationwide fiber backbone and data-center interconnect; operates 9 data centers and is partnering with AWS on a >1GW Ulsan AI data center. Fixed-line/B2B and DCI exposure meets the 20% threshold.
+030200.KS,KRX,KT Corporation,shell_dark_fiber,dark_fiber,25,mid,9000000000,unhedged,Korean telecom/fiber operator with KT Cloud; operates 16 data centers and plans >500MW of AI data-center capacity within 5 years. Nationwide fiber and DCI exposure to hyperscaler and enterprise AI loads.
+032640.KS,KRX,LG Uplus Corp,shell_dark_fiber,dark_fiber,20,mid,4700000000,unhedged,Korean mobile/fiber operator with 13 data centers and a 200MW hyperscale Paju AI data center under development. Provides dark-fiber and DCI exposure to Korean AI data-center growth.
+083450.KQ,KRX,Global Standard Technology Co Ltd,cool_chillers,chillers_cdu,30,small,334000000,unhedged,KOSDAQ-listed semiconductor scrubber and temperature-control chiller leader pivoting to AI data-center immersion cooling. ~90% of revenue from thermal/gas-treatment equipment; chiller/immersion products fit the cool_chillers segment.
+251970.KQ,KRX,Pum Tech Korea Co Ltd,cool_pumps,industrial_pumps,60,small,283000000,unhedged,KOSDAQ industrial pump manufacturer supplying water/chemical transfer pumps for plants and infrastructure. Provides pump hardware used in industrial and data-center cooling loops.
+066980.KQ,KRX,Hansung Cleantech Co Ltd,cool_water_treatment,water_treatment,40,small,61000000,unhedged,"KOSDAQ industrial water-treatment specialist (demineralized/ultrapure water, wastewater, seawater desalination) serving semiconductors and power plants. Applicable to hyperscale data-center make-up and closed-loop water treatment."
+083450.KQ,KRX,Global Standard Technology Co Ltd,rack_cdu,cdu,25,small,334000000,unhedged,"Developing 1-phase and 2-phase immersion cooling/CDU systems for AI data centers, currently in verification with global DC clients. Direct rack-level liquid-cooling exposure, though still a minority of current revenue."
+010120.KS,KRX,LS Electric Co Ltd,rack_busbars,busbars,25,large,27000000000,unhedged,"Supplies switchgear, busways/busbars and LVDC power distribution for AI data centers. Recent $100m+ US big-tech contracts include busbar/switchgear scope; dominant Korean low-voltage equipment share."
+035420.KS,KRX,NAVER Corp,inference_at_scale,korean_cloud_ai,30,large,24000000000,unhedged,"HyperCLOVA X LLM + Naver Cloud + Gak Sejong AI data center (up to 270 MW, 4,000+ NVIDIA B200s); AI/cloud capex tripled in 2024. Segment fit: Korean hyperscaler operating inference-at-scale infrastructure (00_value_chain.json: inference_at_scale). Sources: https://koreatechtoday.com/naver-pushes-inference-ai-frontier-with-hyperclova-x-think/, https://en.infomaxai.com/news/articleView.html?idxno=124646"
+035720.KS,KRX,Kakao Corp,inference_at_scale,korean_cloud_ai,25,large,11200000000,unhedged,"Kakao Brain KoGPT LLM + Kanana AI organization + Ansan in-house data center; 2,424 NVIDIA B200 government GPU allocation. Segment fit: Korean hyperscaler inference-at-scale platform. Sources: https://www.digitaltoday.co.kr/en/view/43399/naver-kakao-expand-rd-spending-focus-on-in-house-ai, https://koreatechtoday.com/south-korea-invests-1-1b-to-build-national-ai-gpu-infrastructure/"
+017670.KS,KRX,SK Telecom Co Ltd,inference_at_scale,korean_cloud_ai,25,large,15000000000,unhedged,"A. LLM deployment + Gasan AI data center + NVIDIA partnership for gigawatt-scale AI factory; strategic stake in Rebellions/Sapeon. Segment fit: Korean hyperscaler inference-at-scale. Sources: https://koreatechtoday.com/sk-telecom-tests-rebellions-ai-chip-to-power-homegrown-ai-services/, https://www.digitaltoday.co.kr/en/view/61174/skt-to-build-gigawatt-scale-ai-factory-with-nvidia-first-operation-in-2027"
+035420.KS,KRX,NAVER Corp,inf_neocloud,neocloud,20,large,24000000000,unhedged,"Naver Cloud is the GPU cloud / rental arm; 3,056 NVIDIA H200 government allocation; 'Asian CoreWeave' strategy and 1 GW Gak Sejong expansion. Segment fit: supplies GPU rental / inference capacity to downstream users (00_value_chain.json: inf_neocloud -> inference_at_scale). Sources: https://en.infomaxai.com/news/articleView.html?idxno=124646, https://www.businesskorea.co.kr/news/articleView.html?idxno=248294"
+181710.KS,KRX,NHN Corp,inf_neocloud,neocloud,25,small,1300000000,unhedged,"NHN Cloud received the largest Korean government GPU allocation (7,656 NVIDIA B200s); integrated cloud + PAYCO fintech + AI data services. Segment fit: domestic neocloud GPU rental provider. Sources: https://www.mk.co.kr/en/stock/11379834, https://www.businesskorea.co.kr/news/articleView.html?idxno=248294"
+012510.KS,KRX,Douzone Bizon Co Ltd,inf_enterprise_saas,enterprise_saas,50,mid,2400000000,unhedged,"Korea's largest ERP / accounting SaaS provider (90%+ SME share); WEHAGO cloud platform and Smart A AI suite; transitioning from license to subscription. Segment fit: enterprise SaaS embedding AI / inference workflows. Sources: https://en.douzone.com/product/erp10.jsp, https://stockanalysis.com/quote/krx/012510/"
+030520.KQ,KRX,Hancom Inc,inf_enterprise_saas,enterprise_saas,40,small,305000000,unhedged,"Korean office-software leader pivoting to AI-optimized subscription model (Hancom Assistant, Hancom Docs AI, Hancompedia RAG); 2025 standalone revenue KRW 175B. Segment fit: enterprise productivity SaaS. NOTE: mcap ~$305M is below the project's $2B conviction-basket filter; included only to reach minimum 5-ticker coverage. Sources: https://pulse.mk.co.kr/news/english/11970061, https://finance.yahoo.com/quote/030520.KQ/key-statistics/"
+018260.KS,KRX,Samsung SDS Co Ltd,inf_enterprise_saas,enterprise_saas,20,large,8500000000,unhedged,"Enterprise IT services arm offering SAP S/4HANA, Brity worksuite, cloud migration, and AI cloud services; entered government GPU cloud second-round bidding. Segment fit: enterprise SaaS / AI cloud exposure. Sources: https://www.samsungsds.com/en/erp/erp.html, https://en.sedaily.com/technology/2026/06/08/samsung-sds-naver-cloud-elice-group-win-2-trillion-won-government-gpu-project"
+005930.KS,KRX,Samsung Electronics Co Ltd,advanced_node_fabs,foundry_hbm_base_layer,35,mega,416000000000,unhedged,Samsung Foundry 3/2nm GAA plus HBM DRAM base wafers; credible AI exposure through leading-edge logic and HBM supply.
+INTC,NASDAQ,Intel Corp,advanced_node_fabs,intel_foundry,30,large,150000000000,USD,Intel Foundry Services ramping 18A/20A for external customers; AI/custom-silicon anchor customers give foundry upside.
+MU,NASDAQ,Micron Technology Inc,advanced_node_fabs,hbm_dram_base_layer,35,large,170000000000,USD,Produces 1y/1z/1c DRAM base wafers feeding HBM stacks; one of only three HBM suppliers.
+240810.KQ,KRX,Wonik IPS Co Ltd,front_end_equipment,cvd_ald_equipment,50,mid,3900000000,unhedged,Korean ALD/CVD/etch equipment supplier to memory and foundry fabs; AI capex beneficiary.
+095610.KQ,KRX,TES Co Ltd,front_end_equipment,pecvd_clean,55,small,1600000000,unhedged,Korean PECVD and dry-cleaning equipment maker; tied to memory/foundry capacity expansion.
+348210.KQ,KRX,NEXTIN Inc,front_end_equipment,inspection_metrology,60,small,550000000,unhedged,Korean wafer defect inspection and metrology (AEGIS/IRIS); used in advanced-node and TSV processing.
+089010.KQ,KRX,Chemtronics Co Ltd,semiconductor_materials,wet_chemicals,35,small,420000000,unhedged,"Korean photoresist solvents, strippers and thinners for semiconductor/display; AI semi materials exposure."
+171010.KQ,KRX,RAM Technology Co Ltd,semiconductor_materials,wet_chemicals,30,small,40000000,unhedged,"Korean etchants, strippers and cleaners for semiconductors, HBM and TGV; micro-cap and loss-making but direct materials exposure."
+102710.KQ,KRX,ENF Technology Co Ltd,semiconductor_materials,process_chemicals,35,small,460000000,unhedged,Korean semiconductor process chemicals and thinners; expanding into Samsung Taylor fab materials.
+6488.TWO,TPEx,GlobalWafers Co Ltd,mat_silicon_wafers,silicon_wafers,80,large,12600000000,manual FX 6M,World's third-largest and largest non-Japanese silicon wafer maker; AI/memory wafer demand.
+6182.TWO,TPEx,Wafer Works Corporation,mat_silicon_wafers,silicon_wafers,65,small,1300000000,manual FX 6M,Taiwan-based silicon wafer producer of polished/EPI wafers; AI/memory wafer cycle exposure.
+3532.TW,TWSE,Formosa Sumco Technology Corporation,mat_silicon_wafers,silicon_wafers,70,mid,3900000000,manual FX 6M,"Taiwan silicon wafer JV with Sumco; supplies polished, annealed and EPI wafers for AI semis."
+WAF.DE,XETRA,Siltronic AG,mat_silicon_wafers,silicon_wafers,70,mid,3200000000,manual FX 6M,German top-tier 300mm silicon wafer supplier; AI/advanced-node wafer demand.
+SOI.PA,EPA,Soitec SA,mat_silicon_wafers,soi_wafers,60,mid,5400000000,manual FX 6M,"French SOI wafer leader; FD-SOI/RF-SOI used in AI edge, power and photonics."
+3445.TSE,TSE,RS Technologies Co Ltd,mat_silicon_wafers,silicon_wafers_reclaim,50,small,1200000000,manual FX 6M,Japanese silicon wafer reclamation and prime wafer manufacturer; memory/foundry cycle exposure.
+3016.TW,TWSE,Episil-Precision Inc,mat_silicon_wafers,epitaxial_wafers,55,small,1200000000,manual FX 6M,Taiwanese silicon and SiC/GaN epitaxial wafer supplier; power and AI semiconductor materials.
+688126.SS,SSE,National Silicon Industry Group Co Ltd,mat_silicon_wafers,silicon_wafers,30,large,15000000000,manual FX 6M,Chinese SOI/epi/300mm silicon wafer maker (Simgui); domestic AI semiconductor supply chain.
+425040.KQ,KRX,TEMC Co Ltd,mat_process_gases,specialty_gases,65,small,300000000,unhedged,Korean rare/pure/mixture gas supplier to memory and logic fabs; AI-driven specialty gas demand.
+AI.PA,EPA,Air Liquide SA,mat_process_gases,industrial_gases,30,mega,122000000000,manual FX 6M,Global industrial gas leader with electronics segment; SK hynix and TSMC AI gas supply contracts.
+4182.TSE,TSE,Mitsubishi Gas Chemical Co Inc,mat_process_gases,specialty_gases,25,mid,5800000000,manual FX 6M,Japanese electronic materials including inorganic/fluorinated gases for semiconductor manufacturing.
+4004.TSE,TSE,Resonac Holdings Corp,mat_process_gases,high_purity_gases,30,large,20000000000,manual FX 6M,Japanese high-purity etching/deposition gases; top share in etch gas; SK Materials JV for North America.
+4047.TSE,TSE,Kanto Denka Kogyo Co Inc,mat_process_gases,fluorinated_gases,60,small,1600000000,manual FX 6M,"Japanese fluorinated specialty gas producer (SF6, CF4, NF3, WF6, etc.) used in etch/deposition."
+4091.TSE,TSE,Nippon Sanso Holdings Corp,mat_process_gases,electronics_gases,35,large,18000000000,manual FX 6M,Japanese industrial/electronic gases; semiconductor gases for memory/sensor/logic fabs.
+4186.TSE,TSE,Tokyo Ohka Kogyo Co Ltd,mat_photoresist,photoresist,80,mid,9000000000,manual FX 6M,"Leading photoresist supplier (g/i-line, KrF, ArF, EUV); direct AI/advanced-node lithography exposure."
+4901.TSE,TSE,Fujifilm Holdings Corp,mat_photoresist,photoresist,30,large,25400000000,manual FX 6M,Major photoresist/EUV resist player; targeting 20% share in advanced resist by 2030.
+SHECY,OTCQX,Shin-Etsu Chemical Co Ltd,mat_photoresist,photoresist,40,mega,80000000000,manual FX 6M,#2 global photoresist/EUV resist supplier; also silicon wafer/quartz blank monopoly; AI lithography exposure.
+4063.TSE,TSE,Shin-Etsu Chemical Co Ltd,mat_photoresist,photoresist,45,mega,80000000000,manual FX 6M,Local TSE listing of Shin-Etsu; photoresist/EUV resist leader plus silicon wafers.
+MRK.DE,XETRA,Merck KGaA,mat_photoresist,photoresist,25,large,60000000000,manual FX 6M,"Electronics/semiconductor solutions including photoresists, spin-on dielectrics and anti-reflective coatings."
+4005.TSE,TSE,Sumitomo Chemical Co Inc,mat_photoresist,photoresist,40,mid,6100000000,manual FX 6M,Full-line photoresist supplier (i-line to EUV) with new Texas plant; AI lithography demand.
+DUFPY,OTCQX,DuPont de Nemours Inc,mat_cmp_slurries,cmp_slurries,30,large,35000000000,USD,Top-3 CMP slurry player and dominant CMP pads; advanced-node/AI wafer planarization.
+4901.TSE,TSE,Fujifilm Holdings Corp,mat_cmp_slurries,cmp_slurries,25,large,25400000000,manual FX 6M,#1 copper CMP slurry share; also advanced packaging CMP for hybrid bonding/RDL.
+4452.TSE,TSE,Kao Corp,mat_cmp_slurries,cmp_slurries,25,large,16800000000,manual FX 6M,Chemical business includes semiconductor manufacturing chemicals/CMP slurries.
+MRK.DE,XETRA,Merck KGaA,mat_cmp_slurries,cmp_slurries,20,large,60000000000,manual FX 6M,CMP formulations and electronic materials for advanced nodes and packaging.
+DUFPY,OTCQX,DuPont de Nemours Inc,fab_process_chemicals,process_chemicals,30,large,35000000000,USD,"Wet process chemicals, photoresists and CMP materials for AI semiconductor fabs."
+MRK.DE,XETRA,Merck KGaA,fab_process_chemicals,process_chemicals,20,large,60000000000,manual FX 6M,Electronic chemicals and specialty materials for wafer processing and advanced packaging.
+ENTG,NASDAQ,Entegris Inc,fab_process_chemicals,process_chemicals,35,mid,18000000000,USD,"Leading wet process chemicals, cleaners, precursors and filtration for advanced-node fabs."
+4004.TSE,TSE,Resonac Holdings Corp,fab_process_chemicals,process_chemicals,25,large,20000000000,manual FX 6M,"High-purity chemicals, CMP slurries and anti-charging materials for semiconductor processing."
+4452.TSE,TSE,Kao Corp,fab_process_chemicals,process_chemicals,20,large,16800000000,manual FX 6M,Semiconductor manufacturing chemicals including cleaners and thinners; chemical business ~24% of sales.
+RMBS,NASDAQ,Rambus Inc,hbm_memory,hbm_interface_ip,70,mid,9000000000,USD,HBM PHY and memory interface IP; levered to HBM attach-rate growth in AI accelerators.
+0522.HK,HKEX,ASMPT Ltd,hbm_memory,hbm_tsv_bonder,60,mid,4500000000,manual FX 6M,Thermocompression bonders for HBM/TSV stacking; dominant HBM TC bonder share.
+KLIC,NASDAQ,Kulicke & Soffa Industries Inc,hbm_memory,hbm_bonding_equipment,50,small,2500000000,USD,Ball/wedge bonding and advanced packaging equipment used in HBM stacking.
+AEHR,NASDAQ,Aehr Test Systems,hbm_memory,hbm_test,50,small,2000000000,USD,Wafer-level burn-in systems used for HBM and SiC; AI memory test demand.
+TER,NASDAQ,Teradyne Inc,hbm_memory,hbm_test,45,mid,22000000000,USD,SoC and memory/HBM test equipment; ~45% AI/semi exposure.
+6857.TSE,TSE,Advantest Corp,hbm_memory,hbm_test,55,large,90000000000,manual FX 6M,SoC and HBM test monopoly with Teradyne; direct AI memory test capex exposure.
+SNPS,NASDAQ,Synopsys Inc,hbm_memory,hbm_interface_ip,25,mega,60000000000,USD,HBM PHY/IP and design solutions for AI accelerators and custom silicon.
+0522.HK,HKEX,ASMPT Ltd,hbm_tsv_equipment,tsv_bonder,70,mid,4500000000,manual FX 6M,Dominant thermocompression bonder supplier for HBM TSV stacking; HBM4 TC bonder orders.
+KLIC,NASDAQ,Kulicke & Soffa Industries Inc,hbm_tsv_equipment,tsv_bonding,50,small,2500000000,USD,Bonding equipment used in TSV and HBM advanced packaging.
+BESI.AS,Euronext Amsterdam,BE Semiconductor Industries NV,hbm_tsv_equipment,hybrid_bonding,65,large,22000000000,manual FX 6M,Hybrid and thermocompression bonding equipment for advanced packaging/HBM.
+SMHN.DE,XETRA,SUSS MicroTec SE,hbm_tsv_equipment,temporary_bonding,60,small,1700000000,manual FX 6M,Temporary bonding/debonding and hybrid bonding tools for HBM TSV wafer thinning/stacking.
+8035.TSE,TSE,Tokyo Electron Ltd,hbm_tsv_equipment,tsv_deposition_etch,25,large,125000000000,manual FX 6M,"Etch, deposition and coater tools used in TSV formation and HBM front-end steps."
+3037.TW,TWSE,Unimicron Technology Corp,pkg_substrates,abf_substrates,75,large,42000000000,manual FX 6M,Taiwan IC substrate/ABF leader for AI/HPC chips; AI server/networking demand.
+8046.TW,TWSE,Nan Ya Printed Circuit Board Corp,pkg_substrates,abf_substrates,65,large,17000000000,manual FX 6M,"Major ABF substrate supplier; AI server/networking products, tight high-end supply."
+3189.TW,TWSE,Kinsus Interconnect Technology Corp,pkg_substrates,abf_substrates,60,large,11000000000,manual FX 6M,Taiwan ABF/BT substrate maker; AI server and HPC demand driving capex.
+ATS.VI,VIE,AT&S Austria Technologie & Systemtechnik AG,pkg_substrates,abf_substrates,70,mid,5800000000,manual FX 6M,European ABF/IC substrate leader; AI accelerator and HPC substrate supplier.
+4958.TW,TWSE,Zhen Ding Technology Holding Ltd,pkg_substrates,abf_substrates,55,large,16500000000,manual FX 6M,"Taiwan IC substrate/PCB giant; NVIDIA core supplier, expanding ABF capacity."
+033640.KQ,KRX,Nepes Corp,pkg_ubm,bumping_services,50,small,530000000,unhedged,"Korean OSAT providing flip-chip bumping, WLP and FOWLP services for AI/advanced packaging."
+170920.KQ,KRX,LTC Co Ltd,pkg_ubm,bump_stripper,50,small,350000000,unhedged,Korean polymer and bump stripper chemicals used in packaging processes.
+251370.KQ,KRX,YMT Co Ltd,pkg_ubm,ubm_plating,55,small,200000000,unhedged,Korean electroless/electrolytic copper plating chemicals for package substrates and UBM.
+DUFPY,OTCQX,DuPont de Nemours Inc,pkg_ubm,ubm_plating_chemicals,30,large,35000000000,USD,UBM/RDL plating chemistries and electronic materials for advanced packaging.
+MRK.DE,XETRA,Merck KGaA,pkg_ubm,ubm_materials,20,large,60000000000,manual FX 6M,Semiconductor thin-film and metallic materials/formulations for UBM and advanced packaging.
+MKSI,NASDAQ,MKS Instruments Inc,pkg_ubm,ubm_process_control,25,mid,12000000000,USD,Process control and subsystems for advanced packaging/UBM and semiconductor manufacturing.
+GLW,NYSE,Corning Incorporated,networking_interconnect,optical_components,30,large,160000000000,USD,"Optical fiber, glass substrates, and CPO partner for NVIDIA Spectrum-X Photonics; credible AI/cloud optical exposure."
+CIEN,NYSE,Ciena Corporation,networking_interconnect,optical_transport,55,large,70000000000,USD,Optical transport systems and coherent pluggables for AI data-center interconnect; 55% AI/cloud DCI exposure.
+3037.TW,TWSE,Unimicron Technology Corp,net_high_speed_pcb,high_speed_pcb,80,large,44000000000,manual FX 6M,Global top-tier high-layer PCB/substrate supplier for AI switches and accelerators; value-chain canonical high-speed PCB name.
+4062.TSE,TSE,Ibiden Co Ltd,net_high_speed_pcb,high_speed_pcb,75,large,35000000000,manual FX 6M,Leading ABF substrate and high-end PCB supplier for AI chips; value-chain canonical supplier.
+ATS.VI,VIE,AT&S Austria Technologie & Systemtechnik AG,net_high_speed_pcb,high_speed_pcb,70,mid,5500000000,manual FX 6M,European high-end PCB/IC substrate supplier scaling AI substrate capacity; value-chain canonical name.
+3044.TW,TWSE,Tripod Technology Corp,net_high_speed_pcb,high_speed_pcb,60,mid,8200000000,manual FX 6M,Taiwanese PCB manufacturer supplying server and networking boards; AI/data-center demand is a key growth driver.
+2313.TW,TWSE,Compeq Manufacturing Co Ltd,net_high_speed_pcb,high_speed_pcb,55,mid,10300000000,manual FX 6M,"Taiwanese PCB supplier for computers, servers, and networking equipment; expanding high-speed server PCB exposure."
+FN,NYSE,Fabrinet,net_optical_transceivers,optical_transceiver,60,mid,23000000000,USD,Precision optical/electromechanical contract manufacturing for 800G/1.6T transceivers and optical components.
+AAOI,NASDAQ,Applied Optoelectronics Inc,net_optical_transceivers,optical_transceiver,85,mid,14000000000,USD,Pure-play 800G/1.6T optical transceiver supplier with hyperscale AI data-center orders.
+CIEN,NYSE,Ciena Corporation,net_optical_transceivers,optical_transceiver,45,large,70000000000,USD,Optical transceivers integrated with coherent transport platforms for AI DCI.
+GLW,NYSE,Corning Incorporated,net_optical_transceivers,optical_components,30,large,160000000000,USD,"Optical fiber, glass, and CPO components for AI transceivers/Spectrum-X Photonics."
+300308.SZ,SZSE,Zhongji Innolight Co Ltd,net_optical_transceivers,optical_transceiver,95,mega,150000000000,manual FX 6M,World's largest 800G/1.6T optical transceiver supplier and key NVIDIA partner; value-chain canonical name.
+300502.SZ,SZSE,Eoptolink Technology Inc Ltd,net_optical_transceivers,optical_transceiver,90,mega,110000000000,manual FX 6M,Major Chinese 800G/1.6T optical transceiver supplier to hyperscalers; value-chain canonical name.
+002281.SZ,SZSE,Accelink Technologies Co Ltd,net_optical_transceivers,optical_transceiver,70,mid,23000000000,manual FX 6M,Chinese optoelectronics IDM with optical transceiver modules for data centers and telecom.
+CSCO,NASDAQ,Cisco Systems Inc,net_switch_asics,switch_asic,25,mega,290000000000,USD,Silicon One G200/G202 25.6-51.2 Tbps switch ASIC family; merchant and captive use for AI fabrics.
+NVDA,NASDAQ,NVIDIA Corp,net_switch_asics,switch_asic,20,mega,4500000000000,USD,Spectrum-X Ethernet and Quantum InfiniBand switch ASICs via Mellanox; networking is ~15-20% of revenue.
+MCHP,NASDAQ,Microchip Technology Inc,net_switch_asics,switch_asic,20,mid,51000000000,USD,VSC/Vitesse carrier and industrial Ethernet switch ASICs; networking is a real but minority revenue line.
+NXPI,NASDAQ,NXP Semiconductors NV,net_switch_asics,switch_asic,15,large,78000000000,USD,QorIQ/Layerscape embedded/carrier Ethernet switch silicon; networking exposure is a minority of total revenue.
+QCOM,NASDAQ,Qualcomm Inc,net_switch_asics,switch_asic,10,mega,200000000000,USD,Networking Pro platforms integrate Wi-Fi and switching for enterprise gateways; small but real switch silicon exposure.
+TXN,NASDAQ,Texas Instruments Inc,net_switch_asics,switch_asic,15,mega,270000000000,USD,"Ethernet switch ICs, SerDes, and power/analog components for networking equipment."
+2454.TW,TWSE,MediaTek Inc,net_switch_asics,switch_asic,15,mega,200000000000,manual FX 6M,Nephos subsidiary supplies white-box Ethernet switch ASICs; networking is a small but strategic segment.
+2379.TW,TWSE,Realtek Semiconductor Corp,net_switch_asics,switch_asic,20,mid,10000000000,manual FX 6M,10G/2.5G/Gigabit Ethernet switch chips for SMB and data-center applications.
+SIE.DE,XETRA,Siemens AG,sil_ip_eda,eda_tools,20,mega,230000000000,manual FX 6M,Siemens EDA (Mentor Graphics) is a top-tier EDA suite; 20% of Siemens touches semiconductor/AI design software.
+CEVA,NASDAQ,CEVA Inc,sil_ip_eda,ip_cores,70,small,1100000000,USD,"Silicon and software IP licensor for edge AI, DSP, and connectivity cores used in AI SoCs."
+RMBS,NASDAQ,Rambus Inc,sil_ip_eda,ip_cores,60,mid,16000000000,USD,DDR5/PCIe/HBM memory interface IP and security cores for AI chips; 60% AI/server IP exposure.
+DASTY,OTCQX,Dassault Systemes SE,sil_ip_eda,simulation,40,large,31000000000,manual FX 6M,3DEXPERIENCE simulation/PLM software used in semiconductor and system design workflows.
+PDFS,NASDAQ,PDF Solutions Inc,sil_ip_eda,yield_analytics,55,small,2200000000,USD,"Semiconductor data analytics and Exensio platform for AI chip yield, quality, and manufacturing intelligence."
+TXN,NASDAQ,Texas Instruments Inc,sil_power_delivery,power_semi,30,mega,270000000000,USD,"Power management ICs, voltage regulators, and GaN/SiC components for AI power delivery."
+ADI,NASDAQ,Analog Devices Inc,sil_power_delivery,power_semi,30,mega,200000000000,USD,"Power management, signal chain, and data-center power solutions for AI infrastructure."
+NXPI,NASDAQ,NXP Semiconductors NV,sil_power_delivery,power_semi,20,large,78000000000,USD,Power management and secure connectivity ICs for data center and AI edge power delivery.
+STM,NYSE,STMicroelectronics NV,sil_power_delivery,power_semi,25,large,65000000000,USD,"Silicon carbide, GaN, and power discretes for AI server and data-center power conversion."
+IFNNY,OTCQX,Infineon Technologies AG,sil_power_delivery,power_semi,30,large,70000000000,manual FX 6M,"Power semis, PMICs, and SiC for AI/server power delivery; also listed as IFX.DE."
+6723.TSE,TSE,Renesas Electronics Corp,sil_power_delivery,power_semi,30,large,51000000000,manual FX 6M,"Power management ICs, PMICs, and SiC/GaN for AI data-center power delivery."
+SMCI,NASDAQ,Super Micro Computer Inc,systems_oem_odm,system_oem,90,mid,30000000000,USD,AI server pure-play OEM; ~90% AI/accelerator revenue.
+DELL,NYSE,Dell Technologies Inc,systems_oem_odm,system_oem,40,mid,80000000000,USD,PowerEdge XE series and AI Factory with NVIDIA; 40% AI server exposure.
+HPE,NYSE,Hewlett Packard Enterprise Co,systems_oem_odm,system_oem,40,mid,30000000000,USD,"ProLiant, Cray, and Aruba AI systems; 40% AI server exposure."
+2356.TW,TWSE,Inventec Corp,systems_oem_odm,odm_server,50,mid,7400000000,manual FX 6M,Taiwanese ODM with meaningful AI server participation; 50% AI server exposure.
+6669.TW,TWSE,Wiwynn Corp,systems_oem_odm,odm_server,80,mid,28690000000,manual FX 6M,Pure-play hyperscale server ODM; ~80% AI exposure.
+0992.HK,HKEX,Lenovo Group Ltd,systems_oem_odm,system_oem,25,large,37000000000,manual FX 6M,AI server growth in EMEA and Asia; 25% AI server exposure.
+2308.TW,TWSE,Delta Electronics Inc,sys_psu,power_supply,75,mega,189000000000,manual FX 6M,Leading AI server PSU and power-component supplier to NVIDIA and hyperscalers.
+2301.TW,TWSE,Lite-On Technology Corp,sys_psu,power_supply,55,mid,14900000000,manual FX 6M,Server/AI power supplies and power components; 55% AI/server power exposure.
+3015.TW,TWSE,FSP Technology Inc,sys_psu,power_supply,50,small,350000000,manual FX 6M,Server PSU manufacturer expanding into AI server power supplies.
+AEIS,NASDAQ,Advanced Energy Industries Inc,sys_psu,power_supply,70,mid,12000000000,USD,Precision power conversion for semiconductor/AI equipment and 12kW SiC AI server PSU reference design.
+FLEX,NASDAQ,Flex Ltd,sys_psu,power_supply,25,large,51000000000,USD,EMS manufacturing of server power supplies and chassis for AI data centers.
+JBL,NYSE,Jabil Inc,sys_psu,power_supply,25,large,37000000000,USD,EMS manufacturing of AI server power supplies and components.
+2317.TW,TWSE,Hon Hai Precision Industry Co Ltd,sys_chassis,server_chassis,40,mega,150000000000,manual FX 6M,World's largest EMS/ODM with internal chassis manufacturing for AI racks; 40% AI server exposure.
+6669.TW,TWSE,Wiwynn Corp,sys_chassis,server_chassis,75,mid,28690000000,manual FX 6M,Hyperscale server ODM with integrated chassis and thermal design; 75% AI exposure.
+2356.TW,TWSE,Inventec Corp,sys_chassis,server_chassis,40,mid,7400000000,manual FX 6M,Server ODM manufacturing chassis and systems; 40% AI server exposure.
+2382.TW,TWSE,Quanta Computer Inc,sys_chassis,server_chassis,60,large,39000000000,manual FX 6M,ODM leader for AI racks (GB300/VR200) with internal chassis manufacturing; 60% AI exposure.
+3231.TW,TWSE,Wistron Corp,sys_chassis,server_chassis,50,large,15000000000,manual FX 6M,AI server ODM with chassis manufacturing; 50% AI exposure.
+2324.TW,TWSE,Compal Electronics Inc,sys_chassis,server_chassis,30,mid,8000000000,manual FX 6M,Major Taiwanese ODM; server and notebook chassis manufacturing; 30% AI server exposure.
+JBL,NYSE,Jabil Inc,sys_chassis,server_chassis,30,large,37000000000,USD,EMS manufacturing of server chassis and enclosures for AI data centers.
+7011.TSE,TSE,Mitsubishi Heavy Industries Ltd,gen_gas_turbines,gas_turbines,40,large,35000000000,manual FX 6M,Japanese heavy-industrial OEM; M501JAC/M501G gas turbines for utility and behind-the-meter power; non-trivial AI data-center gas-turbine backlog.
+RR.L,LSE,Rolls-Royce Holdings PLC,gen_gas_turbines,gas_turbines,30,mega,130000000000,manual FX 6M,Power Systems segment supplies aero-derivative gas turbines for distributed and data-center power; long-cycle order growth tied to AI load.
+WRT1V.HE,Nasdaq Helsinki,Wartsila Oyj Abp,gen_gas_turbines,gas_turbines,50,large,20000000000,manual FX 6M,Finnish energy/marine OEM; gas/multi-fuel engines and energy storage; expanding into data-center backup and prime power.
+7012.TSE,TSE,Kawasaki Heavy Industries Ltd,gen_gas_turbines,gas_turbines,40,large,15000000000,manual FX 6M,"Industrial gas turbines, boilers and power-plant equipment; supplies thermal power infrastructure serving data-center load growth."
+7013.TSE,TSE,IHI Corporation,gen_gas_turbines,gas_turbines,40,large,15000000000,manual FX 6M,Japanese heavy-industrial OEM with gas turbine and combined-cycle power plant business; AI-power demand driver.
+CAT,NYSE,Caterpillar Inc,gen_gas_turbines,gas_turbines,25,large,180000000000,USD,"Owns Solar Turbines, a major supplier of industrial gas turbines and compressor sets; data-center standby/prime power exposure."
+6501.TSE,TSE,Hitachi Ltd,gen_gas_turbines,gas_turbines,20,mega,160000000000,manual FX 6M,"Diversified industrial conglomerate with power generation, grid and gas turbine combined-cycle systems; credible but diluted exposure."
+GEV,NYSE,GE Vernova Inc,gen_wind,wind_turbines,30,large,160000000000,USD,Spun-out power business with onshore/offshore wind turbines and grid; AI-driven renewable PPAs lift wind order book.
+NDX1.DE,XETRA,Nordex SE,gen_wind,wind_turbines,90,mid,10000000000,manual FX 6M,German onshore wind-turbine OEM; pure-play exposure to global wind buildout including hyperscaler PPAs.
+601615.SS,SSE,Ming Yang Smart Energy Group Ltd,gen_wind,wind_turbines,90,mid,5200000000,manual FX 6M,Leading Chinese wind-turbine OEM with onshore/offshore offerings; global top-tier supplier.
+2208.HK,HKEX,Goldwind Science & Technology Co Ltd,gen_wind,wind_turbines,80,mid,12000000000,manual FX 6M,One of China's largest wind-turbine manufacturers and wind-farm developers.
+2727.HK,HKEX,Shanghai Electric Group Co Ltd,gen_wind,wind_turbines,30,mid,8000000000,manual FX 6M,Chinese industrial equipment major with wind-power equipment as a strategic energy vertical.
+ENPH,NASDAQ,Enphase Energy Inc,gen_solar,solar_inverters,90,mid,7200000000,USD,Leading microinverter and battery-storage supplier for distributed and utility-scale solar.
+SEDG,NASDAQ,SolarEdge Technologies Inc,gen_solar,solar_inverters,85,mid,4000000000,USD,"Power optimizers, inverters and energy-storage systems; solar-centric revenue."
+CSIQ,NASDAQ,Canadian Solar Inc,gen_solar,solar_modules,85,small,1200000000,USD,Global solar module manufacturer and project developer; also expanding battery storage.
+JKS,NYSE,JinkoSolar Holding Co Ltd,gen_solar,solar_modules,85,small,1300000000,USD,Top-tier global crystalline-silicon solar-module supplier.
+NXT,NASDAQ,Nextpower Inc (fka Nextracker),gen_solar,solar_trackers,90,mid,20000000000,USD,Leading solar tracker and balance-of-system provider; entering BESS and AI data-center markets.
+ARRY,NASDAQ,Array Technologies Inc,gen_solar,solar_trackers,85,small,1100000000,USD,"Utility-scale solar tracker manufacturer (DuraTrack, OmniTrack)."
+SHLS,NASDAQ,Shoals Technologies Group Inc,gen_solar,solar_bos,80,small,1500000000,USD,Electrical balance-of-system solutions for solar and BESS projects.
+SMR,NYSE,NuScale Power Corp,gen_smr,smr,100,mid,4000000000,USD,First NRC-certified SMR design (VOYGR); international customer pipeline for small modular reactors.
+OKLO,NYSE,Oklo Inc,gen_smr,smr,100,mid,10000000000,USD,Aurora small reactor and nuclear fuel-recycling developer; commercial microreactor/SMR pure-play.
+NNE,NASDAQ,Nano Nuclear Energy Inc,gen_smr,smr,100,small,1300000000,USD,"Publicly listed microreactor/SMR developer (KRONOS, ZEUS, LOKI); pre-revenue, pure-play."
+LEU,NYSE,Centrus Energy Corp,gen_smr,uranium_fuel,90,small,3200000000,USD,Only US-owned enrichment facility producing HALEU; critical fuel for advanced/SMR reactors.
+UEC,NYSE,Uranium Energy Corp,gen_smr,uranium,95,small,3000000000,USD,US uranium producer and in-situ recovery company; leveraged to SMR/nuclear fuel demand.
+NXE,NYSE,NexGen Energy Ltd,gen_smr,uranium,95,mid,5500000000,USD,Development-stage uranium company with Arrow deposit; high-grade long-life resource.
+DNN,AMEX,Denison Mines Corp,gen_smr,uranium,95,small,3000000000,USD,Pure-play uranium developer (Wheel River/Phoenix); exposure to nuclear fuel demand.
+600111.SS,SSE,China Northern Rare Earth (Group) High-Tech Co Ltd,gen_rare_earths,rare_earths,100,mid,25000000000,manual FX 6M,China's largest light-rare-earth mining/separation company; dominant NdPr supplier.
+000831.SZ,SZSE,China Rare Earth Resources And Technology Co Ltd,gen_rare_earths,rare_earths,100,mid,8000000000,manual FX 6M,"Rare earth mining, smelting and processing; backed by China Rare Earth Group."
+600392.SS,SSE,Shenghe Resources Holding Co Ltd,gen_rare_earths,rare_earths,90,mid,5700000000,manual FX 6M,"Rare earth separation, smelting and magnet materials; global mine-to-magnet supply chain."
+600549.SS,SSE,Xiamen Tungsten Co Ltd,gen_rare_earths,rare_earths,40,large,13000000000,manual FX 6M,Significant rare-earth mining/separation and permanent-magnet business within a tungsten conglomerate.
+UUUU,AMEX,Energy Fuels Inc,gen_rare_earths,rare_earths,40,small,3800000000,USD,US critical-minerals producer; White Mesa Mill recovers rare-earth carbonates from monazite sands.
+NEO.TO,Toronto,Neo Performance Materials Inc,gen_rare_earths,rare_earths,100,small,1000000000,manual FX 6M,Global rare-earth separation and magnetic-powder/magnet producer (Magnequench).
+ILU.AX,ASX,Iluka Resources Ltd,gen_rare_earths,rare_earths,50,mid,2200000000,manual FX 6M,Australian mineral-sands producer building Australia's first fully integrated rare-earth refinery at Eneabba.
+HAS.AX,ASX,Hastings Technology Metals Ltd,gen_rare_earths,rare_earths,100,small,70000000,manual FX 6M,Australian rare-earth developer of Yangibana NdPr project; pre-production pure-play.
+D,NYSE,Dominion Energy Inc,td_utilities,regulated_utility,30,large,50000000000,USD,US regulated utility serving VA/NC/SC; data-center load growth in Northern Virginia is a key driver.
+EXC,NASDAQ,Exelon Corp,td_utilities,regulated_utility,25,mid,45000000000,USD,"Regulated utility holding company (ComEd, PECO, BGE, etc.); serving AI data-center loads."
+ED,NYSE,Consolidated Edison Inc,td_utilities,regulated_utility,25,mid,35000000000,USD,NY-area regulated utility; transmission/distribution upgrades driven by data-center electrification.
+PPL,NYSE,PPL Corp,td_utilities,regulated_utility,25,mid,25000000000,USD,Regulated utility serving PA/KY/RI; data-center load growth in PA and interconnection demand.
+XEL,NASDAQ,Xcel Energy Inc,td_utilities,regulated_utility,25,mid,35000000000,USD,Upper Midwest regulated utility; renewable + grid investment tied to data-center demand.
+WEC,NYSE,WEC Energy Group Inc,td_utilities,regulated_utility,25,mid,37000000000,USD,Midwest regulated utility; load growth from industrial/AI customers.
+EIX,NYSE,Edison International,td_utilities,regulated_utility,25,mid,30000000000,USD,Parent of Southern California Edison; grid modernization and data-center interconnection demand.
+015760.KS,KRX,Korea Electric Power Corp,util_regulators,regulated_utility,50,mid,20000000000,unhedged,State-controlled national utility; returns and capex are set by regulator; proxy for Korean utility-rate exposure.
+NGG,NYSE,National Grid plc,util_regulators,regulated_utility,80,large,85000000000,USD,UK/US electricity and gas transmission/distribution network operator; highly regulated rate-base utility.
+SSE.L,LSE,SSE plc,util_regulators,regulated_utility,80,mid,37000000000,manual FX 6M,UK integrated energy company with regulated transmission/distribution networks.
+ENEL.MI,Milan,Enel SpA,util_regulators,regulated_utility,60,mega,112000000000,manual FX 6M,Italy's largest regulated utility; global networks and renewable generation.
+EDP.LS,Euronext Lisbon,EDP - Energias de Portugal SA,util_regulators,regulated_utility,60,mid,20000000000,manual FX 6M,Portuguese/Brazilian regulated utility and renewables operator.
+ORSTED.CO,Nasdaq Copenhagen,Orsted A/S,util_regulators,regulated_utility,60,mid,25000000000,manual FX 6M,Danish regulated offshore-wind utility and network operator.
+IBE.MC,Madrid,Iberdrola SA,util_regulators,regulated_utility,60,large,140000000000,manual FX 6M,Spanish multinational with large regulated networks and renewables; data-center load growth in UK/US.
+ENGI.PA,Paris,Engie SA,util_regulators,regulated_utility,60,large,75000000000,manual FX 6M,"French multinational utility with regulated networks, renewables and low-carbon generation."
+ORCL,NASDAQ,Oracle Corp,data_center_shell,self_build_idc,30,mega,400000000000,USD,Hyperscale self-build data-center owner/operator for OCI; large sovereign and AI cloud campuses.
+IRM,NYSE,Iron Mountain Inc,shell_colo_reits,colocation,30,mid,30000000000,USD,Records-management REIT expanding data-center colocation in converted storage facilities.
+CCI,NYSE,Crown Castle Inc,shell_colo_reits,colocation,25,mid,40000000000,USD,Tower/fiber REIT with small but growing data-center colocation and edge connectivity exposure.
+CD,NASDAQ,Chindata Group Holdings Ltd,shell_colo_reits,colocation,100,small,400000000,USD,"Asia-Pacific hyperscale data-center colocation provider (China, India, SE Asia)."
+GDS,NASDAQ,GDS Holdings Ltd,shell_colo_reits,colocation,100,mid,9000000000,USD,Chinese carrier-neutral wholesale data-center developer/operator.
+AJBU.SI,SGX,Keppel DC REIT,shell_colo_reits,colocation,100,mid,4000000000,manual FX 6M,Singapore-listed pure-play data-center REIT with Asia/Europe assets.
+ME8U.SI,SGX,Mapletree Industrial Trust,shell_colo_reits,colocation,50,mid,4200000000,manual FX 6M,Singapore-listed industrial REIT with significant Singapore/North American data-center portfolio.
+DBRG,NYSE,DigitalBridge Group Inc,shell_colo_reits,colocation,60,small,3000000000,USD,"Digital infrastructure equity REIT/investment manager with data-center, tower and fiber exposure."
+PLD,NYSE,Prologis Inc,shell_land_reits,industrial_reit,30,mega,137000000000,USD,Global logistics/industrial REIT selectively developing data-center-ready land and powered-shell sites.
+STAG,NYSE,STAG Industrial Inc,shell_land_reits,industrial_reit,20,mid,7300000000,USD,US single-tenant industrial REIT; land and warehouse assets in supply-constrained markets.
+FR,NYSE,First Industrial Realty Trust Inc,shell_land_reits,industrial_reit,20,mid,8300000000,USD,US industrial REIT focused on warehouse/distribution facilities and development land.
+EGP,NYSE,EastGroup Properties Inc,shell_land_reits,industrial_reit,20,mid,10700000000,USD,Sunbelt industrial REIT; last-mile distribution centers on land in high-growth markets.
+TRNO,NYSE,Terreno Realty Corp,shell_land_reits,industrial_reit,20,mid,6800000000,USD,Coastal US industrial REIT with infill land and improved parcels near ports/transport hubs.
+CDP,NYSE,COPT Defense Properties,shell_land_reits,data_center_land,80,small,3000000000,USD,REIT with ~30 data-center shell properties in Northern Virginia; direct data-center land/shell exposure.
+WPC,NYSE,W. P. Carey Inc,shell_land_reits,industrial_reit,20,mid,16000000000,USD,Diversified net-lease REIT with industrial/warehouse properties; long-term lease land exposure.
+COLD,NYSE,Americold Realty Trust Inc,shell_land_reits,industrial_reit,15,mid,10000000000,USD,Temperature-controlled warehouse REIT; industrial land portfolio adjacent to data-center markets.
+AMT,NYSE,American Tower Corp,shell_land_reits,industrial_reit,30,mega,100000000000,USD,Global tower REIT with land holdings and CoreSite data-center portfolio.
+LUMN,NYSE,Lumen Technologies Inc,shell_dark_fiber,dark_fiber,80,mid,9000000000,USD,Enterprise fiber network with dark-fiber and data-center interconnect services.
+CCOI,NASDAQ,Cogent Communications Holdings Inc,shell_dark_fiber,dark_fiber,80,small,850000000,USD,Low-cost IP transit provider with large dark-fiber/IRU portfolio acquired from Sprint.
+UNIT,NASDAQ,Uniti Group Inc,shell_dark_fiber,dark_fiber,80,small,2800000000,USD,Wholesale fiber/dark-fiber provider serving hyperscalers and carriers.
+VZ,NYSE,Verizon Communications Inc,shell_dark_fiber,dark_fiber,20,large,170000000000,USD,US telecom with nationwide fiber backbone and data-center interconnect; acquired Frontier fiber assets.
+T,NYSE,AT&T Inc,shell_dark_fiber,dark_fiber,20,large,150000000000,USD,US telecom with fiber network and enterprise DCI; hyperscale data-center connectivity.
+AWK,NYSE,American Water Works Co Inc,cooling_water,water_utility,30,mid,24000000000,USD,Largest US regulated water utility; hyperscale data-center make-up water and wastewater contracts.
+WTRG,NYSE,Essential Utilities Inc,cooling_water,water_utility,25,mid,10700000000,USD,US water and natural-gas utility; data-center water service agreements.
+1801.HK,HKEX,Tianjin Tianhai Investment Co Ltd,cool_chillers,chillers_cdu,40,small,200000000,manual FX 6M,Chinese chiller and liquid-cooling/CDU specialist serving data centers.
+ASTK.OL,Oslo,Asetek A/S,cool_chillers,chillers_cdu,70,small,60000000,manual FX 6M,Danish liquid-cooling/CDU supplier (InRackCDU) for servers and data centers.
+VRT,NYSE,Vertiv Holdings Co,cool_chillers,chillers_cdu,75,mid,12000000000,USD,"Pure-play data-center power and thermal; chillers, CDUs and thermal management for AI racks."
+TT,NYSE,Trane Technologies plc,cool_chillers,chillers_cdu,40,mega,100000000000,USD,Commercial chillers and HVAC; data-center chiller demand is a key growth driver.
+SU.PA,EPA,Schneider Electric SE,cool_chillers,chillers_cdu,25,mega,200000000000,manual FX 6M,"EcoStruxure data-center cooling, chillers and CDU solutions within energy management."
+HON,NASDAQ,Honeywell International Inc,cool_chillers,chillers_cdu,25,mega,130000000000,USD,"Building thermal controls, refrigerants and immersion-cooling fluid alternatives for data centers."
+6367.TSE,TSE,Daikin Industries Ltd,cool_chillers,chillers_cdu,35,mid,45000000000,manual FX 6M,Global HVAC and chiller leader; air/water-cooled chillers for data centers.
+XYL,NYSE,Xylem Inc,cool_pumps,water_pumps,40,mid,40000000000,USD,"Water pumps, treatment and smart-water systems; data-center cooling-loop and make-up water pumps."
+ITT,NYSE,ITT Inc,cool_pumps,industrial_pumps,40,mid,17000000000,USD,"Industrial pumps and flow technologies (Goulds, SPX FLOW) used in cooling and process loops."
+IEX,NYSE,IDEX Corp,cool_pumps,industrial_pumps,40,mid,16000000000,USD,"Positive-displacement pumps, valves and fluid-handling systems for industrial/energy markets."
+FELE,NASDAQ,Franklin Electric Co Inc,cool_pumps,water_pumps,40,mid,4500000000,USD,"Water-pumping systems, motors and controls; used in water transfer and cooling infrastructure."
+GRC,NYSE,Gorman-Rupp Co,cool_pumps,industrial_pumps,40,small,2000000000,USD,"Pump manufacturer serving water, wastewater, industrial and HVAC applications."
+CR,NYSE,Crane Company,cool_pumps,industrial_pumps,30,mid,10000000000,USD,Process flow technologies including pumps and valves for industrial and energy applications.
+ECL,NYSE,Ecolab Inc,cool_water_treatment,water_chemistry,25,large,80000000000,USD,Water treatment chemicals and services; growing AI data-center closed-loop cooling chemistry.
+WTS,NYSE,Watts Water Technologies Inc,cool_water_treatment,water_filtration,20,mid,11100000000,USD,"Water flow-control, filtration and safety products; data-center plumbing/water systems."
+XYL,NYSE,Xylem Inc,cool_water_treatment,water_treatment,30,mid,40000000000,USD,Water-treatment and analytics portfolio; hyperscale data-center water reuse and treatment.
+MWA,NYSE,Mueller Water Products Inc,cool_water_treatment,water_treatment,30,mid,4000000000,USD,"Water infrastructure products; valves, fire hydrants and metering for data-center water systems."
+6370.TSE,TSE,Kurita Water Industries Ltd,cool_water_treatment,water_treatment,80,mid,6000000000,manual FX 6M,Japanese water-treatment chemicals and ultrapure-water systems for semiconductors and data centers.
+6368.TSE,TSE,Organo Corp,cool_water_treatment,water_treatment,80,mid,5000000000,manual FX 6M,Ultrapure water systems and water-treatment chemicals; ~68% sales to electronics/semiconductor industry.
+AWK,NYSE,American Water Works Co Inc,cool_water_treatment,water_utility,25,mid,24000000000,USD,US water utility providing make-up water and wastewater services to hyperscale sites.
+ASTK.OL,Oslo,Asetek A/S,rack_cdu,cdu,75,small,60000000,manual FX 6M,In-rack liquid-cooling CDU solutions for AI servers and data centers.
+MOD,NYSE,Modine Manufacturing Co,rack_cdu,cdu,70,mid,15000000000,USD,Airedale by Modine data-center cooling/thermal management; large AI data-center capacity agreements.
+NVT,NYSE,nVent Electric plc,rack_cdu,cdu,30,mid,27000000000,USD,Electrical connections and liquid-cooling hookups for AI racks and CDUs.
+PH,NYSE,Parker Hannifin Corp,rack_cdu,cdu,20,mega,100000000000,USD,Motion/control and fluid connectors for liquid-cooling loops and thermal management.
+CARR,NYSE,Carrier Global Corp,rack_cdu,cdu,35,mid,45000000000,USD,Data-center chillers and precision cooling; AquaEdge/Evergreen product lines serve AI racks.
+JCI,NYSE,Johnson Controls International plc,rack_cdu,cdu,35,large,50000000000,USD,YORK chillers and building automation including data-center CDU/cooling solutions.
+HON,NASDAQ,Honeywell International Inc,rack_cdu,cdu,25,mega,130000000000,USD,"Thermal controls, refrigerants and immersion-cooling fluids for rack-level liquid cooling."
+ABBN.SW,SIX,ABB Ltd,rack_busbars,busbars,30,mega,170000000000,manual FX 6M,"Swiss electrification leader; busbar systems, switchgear and power distribution for data centers."
+SIE.DE,XETRA,Siemens AG,rack_busbars,busbars,25,mega,230000000000,manual FX 6M,Electrical distribution and busbar/switchgear portfolio serving industrial and data-center infrastructure.
+ENR.DE,XETRA,Siemens Energy AG,rack_busbars,busbars,25,large,140000000000,manual FX 6M,"Smart Infrastructure division supplies switchgear, busbars and grid interconnection for AI data centers."
+6501.TSE,TSE,Hitachi Ltd,rack_busbars,busbars,20,mega,160000000000,manual FX 6M,"Power systems, switchgear and grid infrastructure; parent of Hitachi Energy."
+6503.TSE,TSE,Mitsubishi Electric Corp,rack_busbars,busbars,35,mid,40000000000,manual FX 6M,"Power equipment, switchgear and busbar systems for utilities and data centers."
+NVT,NYSE,nVent Electric plc,rack_busbars,busbars,30,mid,27000000000,USD,"Bus systems, power connections and switchgear enclosures used in rack/busbar distribution."
+VRT,NYSE,Vertiv Holdings Co,rack_busbars,busbars,30,mid,12000000000,USD,Data-center power distribution including busways and rack-level power infrastructure.
+FCX,NYSE,Freeport-McMoRan,raw_inputs,raw_commodities,30,large,60000000000,USD,"Copper mining; copper is critical for transformer windings, busbars and data center electrification."
+SCCO,NYSE,Southern Copper,raw_inputs,raw_commodities,30,large,80000000000,USD,Pure-play copper producer; key input for AI/power infrastructure.
+VALE,NYSE,Vale,raw_inputs,raw_commodities,30,large,50000000000,USD,"Diversified mining; iron ore, nickel and copper exposure for electrification."
+ALB,NYSE,Albemarle,raw_inputs,raw_commodities,80,mid,15000000000,USD,Lithium producer; lithium for UPS/battery backup in data centers.
+SHEL,NYSE,Shell,raw_inputs,raw_commodities,25,mega,200000000000,USD,Global oil/gas major; feedstock for poly-silicon and gas turbine fuel.
+FCX,NYSE,Freeport-McMoRan,raw_mining,mining,35,large,60000000000,USD,Copper mining; core raw material for AI electrification.
+SCCO,NYSE,Southern Copper,raw_mining,mining,35,large,80000000000,USD,Copper mining; direct mining exposure.
+VALE,NYSE,Vale,raw_mining,mining,30,large,50000000000,USD,Diversified mining including copper and iron ore.
+NEM,NYSE,Newmont,raw_mining,mining,20,large,75000000000,USD,Gold mining; precious metals exposure in mining.
+TECK,NYSE,Teck Resources,raw_mining,mining,30,mid,25000000000,USD,Diversified mining; copper and zinc.
+OXY,NYSE,Occidental Petroleum,raw_oil_gas,oil_gas,100,large,50000000000,USD,US oil/gas producer; feedstock and fuel inputs.
+COP,NYSE,ConocoPhillips,raw_oil_gas,oil_gas,100,large,100000000000,USD,Global upstream oil/gas.
+EOG,NYSE,EOG Resources,raw_oil_gas,oil_gas,100,large,75000000000,USD,US shale oil/gas producer.
+MPC,NYSE,Marathon Petroleum,raw_oil_gas,oil_gas,100,large,75000000000,USD,Refining and midstream.
+078930.KS,KRX,GS Holdings,raw_oil_gas,oil_gas,60,large,15000000000,unhedged,Korean energy/trading/refining conglomerate; oil/gas value chain.
+011170.KS,KRX,Lotte Chemical,raw_oil_gas,oil_gas,40,large,12000000000,unhedged,Korean petrochemicals; naphtha and fuel-derived feedstocks.
+NXE,NYSE,NexGen Energy,raw_nuclear_fuel,nuclear_fuel,90,small,5000000000,USD,Development-stage uranium (Arrow deposit); pure uranium exposure.
+UEC,AMEX,Uranium Energy Corp,raw_nuclear_fuel,nuclear_fuel,95,small,2000000000,USD,US uranium producer.
+LEU,NYSE,Centrus Energy,raw_nuclear_fuel,nuclear_fuel,90,small,1000000000,USD,Uranium enrichment services.
+SMR,NASDAQ,NuScale Power,raw_nuclear_fuel,nuclear_fuel,80,small,2000000000,USD,SMR technology developer.
+BWXT,NASDAQ,BWX Technologies,raw_nuclear_fuel,nuclear_fuel,70,mid,13000000000,USD,Nuclear components and SMR.
+NNE,NYSE,NANO Nuclear Energy,raw_nuclear_fuel,nuclear_fuel,90,small,1000000000,USD,Advanced nuclear/SMR development.
+OKLO,NASDAQ,Oklo Inc,raw_nuclear_fuel,nuclear_fuel,90,small,2000000000,USD,Fast-fission SMR developer.
+UUUU,AMEX,Energy Fuels,raw_nuclear_fuel,nuclear_fuel,95,small,1500000000,USD,US uranium producer.
+AWK,NYSE,American Water Works,raw_water_utilities,water_utility,100,large,30000000000,USD,Largest US investor-owned water utility.
+CWT,NYSE,California Water Service,raw_water_utilities,water_utility,100,mid,4000000000,USD,Regulated water utility.
+MSEX,NASDAQ,Middlesex Water,raw_water_utilities,water_utility,100,small,1500000000,USD,Regulated water utility.
+PNR,NYSE,Pentair,raw_water_utilities,water_utility,40,mid,10000000000,USD,Water filtration and treatment systems.
+AOS,NYSE,A.O. Smith,raw_water_utilities,water_utility,30,mid,15000000000,USD,Water heaters and water treatment.
+WTRG,NASDAQ,Essential Utilities,raw_water_utilities,water_utility,100,mid,12000000000,USD,Regulated water and natural gas utility.
+SBS,NYSE,Companhia de Saneamento Basico,raw_water_utilities,water_utility,100,mid,10000000000,USD,Brazilian water and sanitation utility.
+ECL,NYSE,Ecolab,raw_water_utilities,water_utility,25,large,80000000000,USD,Water treatment chemicals and services.
+WMB,NYSE,Williams,fuel_power_inputs,natural_gas,100,large,60000000000,USD,Natural gas midstream infrastructure.
+KMI,NYSE,Kinder Morgan,fuel_power_inputs,natural_gas,100,large,80000000000,USD,Natural gas pipelines and midstream.
+OKE,NYSE,ONEOK,fuel_power_inputs,natural_gas,100,large,50000000000,USD,Natural gas liquids midstream.
+078930.KS,KRX,GS Holdings,fuel_power_inputs,natural_gas,40,large,15000000000,unhedged,Korean energy/trading; natural gas and power input exposure.
+011170.KS,KRX,Lotte Chemical,fuel_power_inputs,natural_gas,35,large,12000000000,unhedged,Korean petrochemicals; naphtha/LNG feedstocks.
+051900.KS,KRX,LG Chem,fuel_power_inputs,natural_gas,30,large,30000000000,unhedged,Korean chemicals/battery materials; energy feedstock exposure.
+BTU,NYSE,Peabody Energy,fuel_mining,coal_mining,100,mid,8000000000,USD,Largest US coal producer.
+CEIX,NYSE,Consol Energy,fuel_mining,coal_mining,100,mid,5000000000,USD,Appalachian coal producer.
+ARCH,NYSE,Arch Resources,fuel_mining,coal_mining,100,mid,3000000000,USD,US metallurgical and thermal coal.
+HCC,NYSE,Warrior Met Coal,fuel_mining,coal_mining,100,small,2000000000,USD,US metallurgical coal.
+NRP,NYSE,Natural Resource Partners,fuel_mining,coal_mining,80,small,1000000000,USD,Coal royalty business.
+AMR,NASDAQ,Alpha Metallurgical Resources,fuel_mining,coal_mining,100,small,3000000000,USD,US coal producer.
+ARLP,NASDAQ,Alliance Resource Partners,fuel_mining,coal_mining,100,small,2000000000,USD,US coal MLP.
+METC,NASDAQ,Ramaco Resources,fuel_mining,coal_mining,100,small,1000000000,USD,US metallurgical coal.
+OXY,NYSE,Occidental Petroleum,fuel_oil_gas,oil_gas,100,large,50000000000,USD,Integrated oil/gas producer.
+COP,NYSE,ConocoPhillips,fuel_oil_gas,oil_gas,100,large,100000000000,USD,Global upstream oil/gas.
+EOG,NYSE,EOG Resources,fuel_oil_gas,oil_gas,100,large,75000000000,USD,US shale oil/gas.
+MPC,NYSE,Marathon Petroleum,fuel_oil_gas,oil_gas,100,large,75000000000,USD,Refining and marketing.
+VLO,NYSE,Valero,fuel_oil_gas,oil_gas,100,large,50000000000,USD,Refining.
+PSX,NYSE,Phillips 66,fuel_oil_gas,oil_gas,100,large,60000000000,USD,Refining and midstream.
+NXE,NYSE,NexGen Energy,fuel_uranium,uranium,90,small,5000000000,USD,Uranium development.
+UEC,AMEX,Uranium Energy Corp,fuel_uranium,uranium,95,small,2000000000,USD,Uranium producer.
+LEU,NYSE,Centrus Energy,fuel_uranium,uranium,90,small,1000000000,USD,Uranium enrichment.
+SMR,NASDAQ,NuScale Power,fuel_uranium,uranium,80,small,2000000000,USD,SMR developer.
+BWXT,NASDAQ,BWX Technologies,fuel_uranium,uranium,70,mid,13000000000,USD,Nuclear components.
+NNE,NYSE,NANO Nuclear Energy,fuel_uranium,uranium,90,small,1000000000,USD,SMR/uranium.
+OKLO,NASDAQ,Oklo Inc,fuel_uranium,uranium,90,small,2000000000,USD,SMR developer.
+UUUU,AMEX,Energy Fuels,fuel_uranium,uranium,95,small,1500000000,USD,Uranium producer.
+BE,NASDAQ,Bloom Energy,fuel_renewables,renewable_power,100,mid,4000000000,USD,Solid-oxide fuel cells for baseload/clean power.
+PLUG,NASDAQ,Plug Power,fuel_renewables,renewable_power,100,small,2000000000,USD,Hydrogen fuel cells and electrolyzers.
+RUN,NASDAQ,Sunrun,fuel_renewables,renewable_power,100,mid,3000000000,USD,Residential solar and storage.
+BEP,NYSE,Brookfield Renewable Partners,fuel_renewables,renewable_power,100,large,15000000000,USD,Global renewable power producer.
+MSFT,NASDAQ,Microsoft,inference_at_scale,inference_gpu,30,mega,3500000000000,USD,Azure AI and Copilot inference at scale.
+AMZN,NASDAQ,Amazon,inference_at_scale,inference_gpu,30,mega,2200000000000,USD,AWS AI inference.
+META,NASDAQ,Meta,inference_at_scale,inference_gpu,50,mega,1500000000000,USD,Meta AI and Llama inference.
+ORCL,NYSE,Oracle,inference_at_scale,inference_gpu,30,large,400000000000,USD,Oracle Cloud AI infrastructure.
+APLD,OTCQX,Applied Digital,inf_neocloud,neocloud,85,small,500000000,USD,AI cloud/HPC hosting.
+CORZ,OTCQX,Core Scientific,inf_neocloud,neocloud,75,small,2500000000,USD,BTC-to-AI cloud transition.
+BTDR,NYSE,Bitdeer Technologies,inf_neocloud,neocloud,50,small,2000000000,USD,BTC mining + AI cloud.
+032640.KS,KRX,LG Uplus,inf_neocloud,neocloud,20,mid,5000000000,unhedged,Korean telecom/cloud operator with AI data center buildout.
+030200.KS,KRX,KT Corporation,inf_neocloud,neocloud,25,mid,9000000000,unhedged,Korean telecom/cloud operator expanding AI data center capacity.
+ADBE,NASDAQ,Adobe,inf_enterprise_saas,enterprise_saas,30,large,200000000000,USD,Creative and enterprise SaaS with AI features.
+NOW,NYSE,ServiceNow,inf_enterprise_saas,enterprise_saas,30,large,150000000000,USD,Enterprise workflow SaaS with AI agents.
+SNOW,NYSE,Snowflake,inf_enterprise_saas,enterprise_saas,30,large,50000000000,USD,Data cloud platform for AI/ML workloads.
+ORCL,NYSE,Oracle,inf_enterprise_saas,enterprise_saas,25,large,400000000000,USD,Enterprise SaaS and cloud applications.
+FN,NYSE,Fabrinet,fee_optical_components,optical_components,70,mid,8000000000,USD,Optical/photonic assembly and contract manufacturing.
+IPGP,NASDAQ,IPG Photonics,fee_optical_components,optical_components,60,mid,4000000000,USD,Fiber lasers for industrial and semi applications.
+LASR,NASDAQ,nLIGHT,fee_optical_components,optical_components,70,small,500000000,USD,High-power lasers and beam delivery.
+MKSI,NASDAQ,MKS Instruments,fee_optical_components,optical_components,55,mid,12000000000,USD,Photonics and vacuum subsystems.
+VECO,NASDAQ,Veeco,fee_optical_components,optical_components,60,mid,3000000000,USD,Deposition and inspection equipment.
+ACLS,NASDAQ,Axcelis Technologies,fee_optical_components,optical_components,70,small,2500000000,USD,Ion implant systems.
+036830.KS,KRX,Seoul Semiconductor,fee_optical_components,optical_components,80,mid,3000000000,unhedged,Korean LED and optical component manufacturer.
+NOVT,NASDAQ,Novanta,fee_optical_components,optical_components,50,mid,8000000000,USD,Photonics and precision motion components.
+ATCOY,OTCQX,Atlas Copco,fee_vacuum_pumps,vacuum_pumps,90,large,80000000000,manual FX 6M,Parent of Edwards Vacuum; industrial vacuum leader.
+6728.TSE,TSE,ULVAC,fee_vacuum_pumps,vacuum_pumps,90,mid,3000000000,manual FX 6M,Japanese vacuum equipment for semis.
+6101.TSE,TSE,Ebara,fee_vacuum_pumps,vacuum_pumps,60,mid,10000000000,manual FX 6M,Japanese pump and vacuum equipment maker.
+AMAT,NASDAQ,Applied Materials,fee_vacuum_pumps,vacuum_pumps,20,large,150000000000,USD,Has vacuum products for fabs.
+MKSI,NASDAQ,MKS Instruments,fee_vacuum_pumps,vacuum_pumps,30,mid,12000000000,USD,Vacuum and pressure subsystems.
+7011.TSE,TSE,Mitsubishi Heavy Industries,fee_vacuum_pumps,vacuum_pumps,25,large,35000000000,manual FX 6M,Industrial turbomachinery including vacuum.
+6503.TSE,TSE,Fuji Electric,fee_vacuum_pumps,vacuum_pumps,30,mid,10000000000,manual FX 6M,Industrial equipment including vacuum.
+7012.TSE,TSE,Kawasaki Heavy Industries,fee_vacuum_pumps,vacuum_pumps,25,mid,8000000000,manual FX 6M,Industrial pumps and vacuum systems.
+BRKS,NASDAQ,Brooks Automation,fee_vacuum_robotics,vacuum_robotics,90,mid,3000000000,USD,Semiconductor vacuum robotics and automation.
+053800.KQ,KRX,Auros Technology,fee_vacuum_robotics,vacuum_robotics,80,small,300000000,unhedged,Korean semiconductor equipment maker including vacuum robots.
+6506.TSE,TSE,Yaskawa Electric,fee_vacuum_robotics,vacuum_robotics,50,large,15000000000,manual FX 6M,Industrial robots used in vacuum/clean environments.
+6503.TSE,TSE,Fuji Electric,fee_vacuum_robotics,vacuum_robotics,30,mid,10000000000,manual FX 6M,Motion control and factory automation.
+6501.TSE,TSE,Hitachi,fee_vacuum_robotics,vacuum_robotics,20,large,90000000000,manual FX 6M,Industrial systems and automation.
+7012.TSE,TSE,Kawasaki Heavy Industries,fee_vacuum_robotics,vacuum_robotics,25,mid,8000000000,manual FX 6M,Industrial robots.
+7013.TSE,TSE,IHI Corporation,fee_vacuum_robotics,vacuum_robotics,25,mid,6000000000,manual FX 6M,Industrial machinery and robots.
+MKSI,NASDAQ,MKS Instruments,fee_vacuum_robotics,vacuum_robotics,25,mid,12000000000,USD,Automation and vacuum subsystems.
+AI.PA,otros,Air Liquide,fab_utilities,industrial_gases,80,mega,200000000000,manual FX 6M,Industrial gases for fabs.
+4091.TSE,TSE,Nippon Sanso Holdings,fab_utilities,industrial_gases,80,mid,8000000000,manual FX 6M,Japanese industrial gas supplier.
+8088.TSE,TSE,Iwatani Corporation,fab_utilities,industrial_gases,70,mid,10000000000,manual FX 6M,Industrial gases and hydrogen.
+4004.TSE,TSE,Resonac Holdings,fab_utilities,industrial_gases,50,mid,8000000000,manual FX 6M,Semiconductor materials and gases.
+4183.TSE,TSE,Mitsubishi Gas Chemical,fab_utilities,industrial_gases,60,mid,5000000000,manual FX 6M,Industrial gases and chemicals.
+HON,NASDAQ,Honeywell,fab_utilities,industrial_gases,30,large,140000000000,USD,Process technologies and UOP gases.
+EMR,NYSE,Emerson Electric,fab_utilities,industrial_gases,30,large,80000000000,USD,Process gas compression and automation.
+5202.TSE,TSE,Nippon Soda,fab_utilities,industrial_gases,40,small,2000000000,manual FX 6M,Specialty chemicals and gases for semis.
+078130.KQ,KRX,Kuk-Il Paper Mfg Co Ltd,tnd_insulation,insulation_paper,80,small,300000000,unhedged,KOSDAQ specialty paper maker; produces electric insulation paper used in transformers and motors. Functional/insulation papers are the dominant revenue line.
+5801.T,TSE,Furukawa Electric Co Ltd,tnd_insulation,insulation_wire_materials,25,large,23000000000,manual FX 6M,"TSE-listed energy-infrastructure/electrical materials supplier; produces transformer insulation, heat-resistant wires and power cables. Energy/electrical materials approx 25% of revenue."
+6988.T,TSE,Nitto Denko Corp,tnd_insulation,electrical_insulation_tapes,20,mid,12500000000,manual FX 6M,"TSE-listed specialty materials company; tapes and materials for electrical/electronic equipment, including insulation tapes, are a core revenue driver."
+MMM,NYSE,3M Co,tnd_insulation,electrical_insulation_materials,20,mega,82000000000,USD,"NYSE-listed industrial conglomerate; Electrical Markets division supplies transformer insulation papers, films and tapes. 20% segment exposure derived from electrical-markets and safety/industrial insulation sales."
+DD,NYSE,DuPont de Nemours Inc,tnd_insulation,aramid_insulation,15,large,19500000000,USD,NYSE-listed materials company; Nomex aramid insulation paper and Water & Protection segment supply transformer/electrical insulation. 15% exposure through insulation-related product lines.
+HUN,NYSE,Huntsman Corp,tnd_insulation,epoxy_insulation,20,mid,2600000000,USD,NYSE-listed chemicals company; Advanced Materials segment produces epoxy casting and encapsulation systems for high-voltage transformers and switchgear. 20% exposure via electrical insulation formulations.
+4004.T,TSE,Resonac Holdings Corp,tnd_insulation,electrical_insulating_materials,20,large,19000000000,manual FX 6M,"TSE-listed materials company (Showa Denko Materials heritage); produces resins, adhesives and electrical insulating materials for power and electronic equipment."
+HUBB,NYSE,Hubbell Inc,tnd_insulation,insulators_bushings,25,large,24800000000,USD,"NYSE-listed electrical products company; Utility Solutions segment (~63% of revenue) includes insulators, bushings, arresters and connectors used in transformers and substations."
+5401.T,TSE,Nippon Steel Corp,tnd_electrical_steel,electrical_steel,15,large,18000000000,manual FX 6M,TSE-listed global steel leader and major producer of grain-oriented electrical steel (GOES) for power transformers; GOES is a strategic high-value product within steelmaking.
+5411.T,TSE,JFE Holdings Inc,tnd_electrical_steel,electrical_steel,20,mid,6400000000,manual FX 6M,"TSE-listed steel holding company; JFE Steel produces GOES and non-oriented electrical steel for transformers and motors, and has a 50:50 GOES JV with JSW in India."
+600019.SS,SSE,Baoshan Iron & Steel Co Ltd,tnd_electrical_steel,electrical_steel,15,large,18000000000,manual FX 6M,SSE-listed Baosteel; China's largest flat-steel producer with ~60% domestic HI-B GOES share for UHV grids. Electrical steel is a strategic premium product.
+TKA.DE,XETRA,thyssenkrupp AG,tnd_electrical_steel,electrical_steel,15,mid,7600000000,manual FX 6M,XETRA-listed diversified industrial/steel group; thyssenkrupp Electrical Steel is one of Europe's two remaining GOES producers. 15% group exposure from Steel Europe/electrical steel.
+2002.TW,TWSE,China Steel Corp,tnd_electrical_steel,electrical_steel,15,mid,8900000000,manual FX 6M,"TWSE-listed Taiwanese steelmaker; produces electrical steel coils for transformers, motors and relays, with premium steel as a strategic focus."
+MT,NYSE,ArcelorMittal SA,tnd_electrical_steel,electrical_steel,10,large,52000000000,USD,NYSE-listed global steel and mining company; building non-oriented electrical steel capacity in the US and France for EV motors and transformers. 10% exposure from electrical/energy steel.
+JSWSTEEL,NSE,JSW Steel Ltd,tnd_electrical_steel,electrical_steel,10,large,34000000000,manual FX 6M,NSE-listed Indian steel major; 50:50 JV with JFE (J2ES) is the only integrated GOES producer in India with 350ktpa targeted capacity. 10% exposure from the GOES JV.
+103140.KS,KRX,Poongsan Corp,tnd_copper,copper,65,small,1400000000,unhedged,"KOSPI-listed copper and copper-alloy fabricator; nonferrous metal (copper) division ~66% of revenue, producing sheets, strips, rods, wires and leadframes."
+001440.KS,KRX,Taihan Cable & Solution Co Ltd,tnd_copper,copper_wire_cable,70,mid,7500000000,unhedged,"KOSPI-listed wire and cable company; copper-based power/telecom cables and magnet wire are core revenue lines, directly exposed to AI/grid electrification."
+NDA.DE,XETRA,Aurubis AG,tnd_copper,copper_refining,80,mid,10800000000,manual FX 6M,XETRA-listed copper smelter and recycler; produces over 1Mt copper cathodes and downstream wire rod/shapes annually. Copper dominates revenue.
+ANTO.L,LSE,Antofagasta plc,tnd_copper,copper_mining,90,large,45000000000,manual FX 6M,LSE-listed Chilean copper miner; copper concentrates and cathodes dominate revenue and are a direct read on AI/grid copper supply.
+BHP,NYSE,BHP Group Ltd,tnd_copper,copper_mining,45,mega,216000000000,USD,"NYSE-listed global diversified miner; copper now ~48% of revenue/EBITDA and the largest earnings contributor, driven by electrification/AI demand."
+0981.HK,HKEX,Semiconductor Manufacturing International Corp,advanced_node_fabs,foundry_advanced_node,30,large,83000000000,manual FX 6M,HKEX-listed Chinese foundry; only domestic supplier pushing to 7nm-class logic despite EUV restrictions. ~30% exposure from advanced-node and domestic AI-chip wafers.
+6857.TSE,TSE,Advantest Corp,hbm_dram_platform,hbm_test,55,large,90000000000,manual FX 6M,Relaxed-criteria addition: dominant HBM/memory ATE supplier; supplies HBM stack test systems to SK hynix and Samsung. Already present in hbm_memory under same thesis.
+TER,NASDAQ,Teradyne Inc,hbm_dram_platform,hbm_test,45,mid,22000000000,USD,Relaxed-criteria addition: leading ATE vendor for SoC and HBM test; memory test demand tied directly to HBM volume ramps.
+0522.HK,HKEX,ASMPT Ltd,hbm_dram_platform,hbm_tsv_bonder,60,mid,4500000000,manual FX 6M,Relaxed-criteria addition: dominant thermocompression bonder supplier for HBM/TSV stacking; HBM4 TC bonder orders give direct HBM production exposure.
+KLIC,NASDAQ,Kulicke & Soffa Industries Inc,hbm_dram_platform,hbm_bonding_equipment,50,small,2500000000,USD,Relaxed-criteria addition: ball/wedge and advanced packaging bonding equipment used in HBM module assembly and 2.5D/3D packaging.
+RMBS,NASDAQ,Rambus Inc,hbm_dram_platform,hbm_interface_ip,70,mid,9000000000,USD,Relaxed-criteria addition: supplies HBM PHY and memory interface IP licensed into AI accelerators and HBM controllers; HBM4 PHY ramp is direct exposure.
+2408.TW,TWSE,Nanya Technology Corp,hbm_dram_platform,ddr5_dram,60,mid,6000000000,manual FX 6M,Relaxed-criteria addition: pure-play DRAM maker producing DDR5 for AI servers; not an HBM supplier but supplies HBM-adjacent DRAM modules and has technology optionality toward HBM base layers.
+3201.TW,TWSE,Adata Technology Co Ltd,hbm_dram_platform,memory_module,70,small,1000000000,manual FX 6M,Relaxed-criteria addition: memory module assembler with DDR5 DRAM modules for AI servers; fits the HBM module assembler / memory module company boundary under relaxed criteria.
+2303.TW,TWSE,United Microelectronics Corp,advanced_node_fabs,foundry_mature_node,70,large,25000000000,manual FX 6M,Relaxed-criteria addition: world's third-largest pure-play foundry; supplies AI-adjacent logic and specialty nodes and has technology optionality toward advanced packaging/leading-edge JV.
+GFS,NASDAQ,GlobalFoundries Inc,advanced_node_fabs,foundry_advanced_node,60,large,28000000000,USD,"Relaxed-criteria addition: US-based foundry with 12/14nm FinFET and specialty processes for AI, RF and secure silicon; defensible AI/foundry angle under relaxed criteria."
+1347.HK,HKEX,Hua Hong Semiconductor Ltd,advanced_node_fabs,foundry_advanced_node,50,mid,12000000000,manual FX 6M,"Relaxed-criteria addition: China's second-largest foundry, investing in advanced-node capacity despite export controls; leading-edge domestic AI/foundry angle."

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.bottlewatch.daily</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/bash</string>
+        <string>-c</string>
+        <string>cd /Users/iljoyoo/workspace/bottlewatch &amp;&amp; make daily 2&gt;&amp;1 &gt;&gt; /Users/iljoyoo/workspace/bottlewatch/data/cache/refresh.log</string>
+    </array>
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Hour</key>
+        <integer>4</integer>
+        <key>Minute</key>
+        <integer>0</integer>
+    </dict>
+    <key>RunAtLoad</key>
+    <false/>
+    <key>KeepAlive</key>
+    <false/>
+    <key>StandardOutPath</key>
+    <string>/Users/iljoyoo/workspace/bottlewatch/data/cache/refresh.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/iljoyoo/workspace/bottlewatch/data/cache/refresh.log</string>
+    <key>ProcessType</key>
+    <string>Background</string>
+    <!-- launchd's default PATH is /usr/bin:/bin (no uv, no
+         /usr/local/bin). The project depends on `uv` for
+         Python execution. Set a PATH that matches a normal
+         user shell so the orchestrator can find uv. -->
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/Library/Frameworks/Python.framework/Versions/3.11/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+    </dict>
+</dict>
+</plist>

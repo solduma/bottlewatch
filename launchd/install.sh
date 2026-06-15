@@ -2,7 +2,7 @@
 # install.sh — Install bottlewatch launchd agents.
 # Idempotent: safe to run multiple times.
 #
-# The plist file paths are templated at install time: any
+# The source plist file paths are templated at install time: any
 # `/Users/iljoyoo/workspace/bottlewatch` substring in the source
 # plist is replaced with the install-time `BOTTLEWATCH_ROOT`
 # (defaults to the directory above `launchd/`). This way the same
@@ -11,6 +11,11 @@
 #
 # The source plist is NEVER modified. The substitution happens on
 # a sed-piped copy, so the repo stays clean across installs.
+#
+# M2 used two separate agents (refresh + recompute). The unified
+# `com.bottlewatch.daily` agent runs `make daily`, which executes
+# refresh, recompute, and research sequentially. Old separate agents
+# are removed if still present.
 
 set -e
 
@@ -42,9 +47,24 @@ install_agent() {
     echo "Installed: $dst (root: $BOTTLEWATCH_ROOT)"
 }
 
-install_agent com.bottlewatch.refresh
-install_agent com.bottlewatch.recompute
+remove_agent_if_present() {
+    local name="$1"
+    local dst="$LAUNCH_DIR/${name}.plist"
+    if [ -f "$dst" ]; then
+        launchctl bootout "gui/$(id -u)/${name}" 2>/dev/null || true
+        launchctl unload -w "$dst" 2>/dev/null || true
+        rm -f "$dst"
+        echo "Removed legacy agent: $dst"
+    fi
+}
+
+# Install the unified daily agent.
+install_agent com.bottlewatch.daily
+
+# Remove legacy separate agents if present so they don't duplicate work.
+remove_agent_if_present com.bottlewatch.refresh
+remove_agent_if_present com.bottlewatch.recompute
 
 echo ""
-echo "bottlewatch agents installed. Run 'make unschedule' to remove."
+echo "bottlewatch daily agent installed. Run 'make unschedule' to remove."
 echo "Check with: launchctl list | grep bottlewatch"

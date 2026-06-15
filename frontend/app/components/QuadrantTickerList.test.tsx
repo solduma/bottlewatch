@@ -4,7 +4,7 @@
 // tickers for that segment, sorted by exposure_pct desc, each
 // linking to /tickers/[ticker].
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { QuadrantTickerList } from "./QuadrantTickerList";
 
 const TICKERS_PAYLOAD = [
@@ -126,5 +126,38 @@ describe("QuadrantTickerList", () => {
     await waitFor(() => {
       expect(screen.getByText(/no tickers for this segment/i)).toBeTruthy();
     });
+  });
+
+  it("renders the popup as a dialog with an aria-label", async () => {
+    const button = document.createElement("button");
+    document.body.appendChild(button);
+    render(
+      <QuadrantTickerList
+        segment="transformers_tnd"
+        anchorEl={button}
+        onClose={() => {}}
+      />,
+    );
+    const dialog = await screen.findByRole("dialog");
+    expect(dialog).toHaveAttribute("aria-label", "Tickers for transformers_tnd");
+    expect(dialog).toHaveAttribute("aria-modal", "true");
+    document.body.removeChild(button);
+  });
+
+  it("calls onClose when Escape is pressed", async () => {
+    const button = document.createElement("button");
+    document.body.appendChild(button);
+    const onClose = vi.fn();
+    render(
+      <QuadrantTickerList
+        segment="transformers_tnd"
+        anchorEl={button}
+        onClose={onClose}
+      />,
+    );
+    await screen.findByRole("dialog");
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(onClose).toHaveBeenCalledTimes(1);
+    document.body.removeChild(button);
   });
 });

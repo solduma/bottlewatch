@@ -90,5 +90,16 @@ export function SparklineForSegment({
       </div>
     );
   }
-  return <Sparkline data={state.points} height={height} />;
+
+  const points = state.points.filter(p => p.b !== null);
+  const title =
+    points.length > 0
+      ? `Score trend: ${(points[0].b as number).toFixed(1)} → ${(points[points.length - 1].b as number).toFixed(1)}`
+      : "Score trend";
+
+  return (
+    <div className="w-full" title={title}>
+      <Sparkline data={state.points} height={height} />
+    </div>
+  );
 }

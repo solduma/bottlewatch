@@ -1,0 +1,43 @@
+{
+  "_comment": "M2 Phase 2 fixed bands per sub-score and source. Source keys must match the strings returned by extractors. Values are raw metric units. Frozen on 2026-06-14; recalibration requires a hold-out period and a changelog entry.",
+  "version": "M2-phase2-v1",
+  "frozen_since": "2026-06-14",
+  "changelog": [
+    {
+      "version": "M2-phase2-v1",
+      "date": "2026-06-14",
+      "reason": "Externalize the hard-coded bands from src/bottlewatch/app/score/extractors.py into versioned config as part of the rolling-normalization refactor."
+    }
+  ],
+  "bands": {
+    "lead_time_growth": {
+      "transformers_ppi": {"type": "level", "min": 80.0, "max": 350.0},
+      "semi_book_to_bill": {"type": "level", "min": 0.8, "max": 1.4},
+      "semi_ppi": {"type": "yoy", "min": -0.10, "max": 0.25},
+      "edgar_keyword": {"type": "zscore", "min": -2.0, "max": 2.0},
+      "seed": {"type": "normalized", "min": 0.0, "max": 1.0}
+    },
+    "capacity_tightness": {
+      "power_ratio": {"type": "ratio", "min": 0.0, "max": 1.0},
+      "manufacturing_utilization": {"type": "level", "min": 75.0, "max": 90.0},
+      "comtrade_volume": {"type": "yoy", "min": -0.20, "max": 0.40},
+      "retail_sales_yoy": {"type": "yoy", "min": -0.10, "max": 0.25},
+      "edgar_keyword": {"type": "zscore", "min": -2.0, "max": 2.0},
+      "seed": {"type": "normalized", "min": 0.0, "max": 1.0},
+      "imputed": {"type": "normalized", "min": 0.0, "max": 1.0}
+    },
+    "demand_signal": {
+      "transformer_orders": {"type": "yoy", "min": -0.10, "max": 0.25},
+      "hyperscaler_capex": {"type": "yoy", "min": -0.10, "max": 0.40},
+      "manufacturing_indpro": {"type": "yoy", "min": -0.05, "max": 0.10},
+      "seed": {"type": "normalized", "min": 0.0, "max": 1.0}
+    },
+    "geo_concentration": {
+      "hhi": {"type": "hhi", "min": 0.0, "max": 1.0},
+      "seed": {"type": "normalized", "min": 0.0, "max": 1.0}
+    },
+    "regulatory_friction": {
+      "seed": {"type": "normalized", "min": 0.0, "max": 1.0}
+    }
+  }
+}

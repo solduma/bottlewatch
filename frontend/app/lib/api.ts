@@ -15,6 +15,15 @@ export type Regime =
 
 export type RegimeConfidence = "low" | "medium" | "high";
 
+export interface SubScoreValue {
+  value: number | null;
+  raw_value: number | null;
+  source: "extractor" | "seed" | "imputed";
+  confidence: RegimeConfidence;
+  imputed: boolean;
+  normalization_mode: "fixed" | "rolling" | "fallback_to_fixed" | null;
+}
+
 export interface SegmentScore {
   segment: string;
   name: string;
@@ -24,6 +33,7 @@ export interface SegmentScore {
   regime: Regime;
   regime_confidence: RegimeConfidence;
   data_completeness: number;
+  static_seed_share: number;
   computed_at: string;
   sector: string;  // new field
 }
@@ -42,12 +52,21 @@ export interface SignalRow {
   observed_at: string;
 }
 
+export interface SegmentBrief {
+  title: string;
+  summary: string;
+  momentum_summary: string;
+  resolution_summary: string;
+  regime_call_md: string;
+}
+
 export interface SegmentDetail {
   segment: string;
   name: string;
   horizons: SegmentScore[];
-  sub_scores: Record<string, number | null>;
+  sub_scores: Record<string, SubScoreValue>;
   signals: SignalRow[];
+  brief?: SegmentBrief | null;
 }
 
 export interface HealthResponse {
@@ -197,16 +216,27 @@ export interface ValueChainEdge {
   source?: string;
   target?: string;
   commodity?: string | null;
+  role_kind?: string | null;
+  label?: string | null;
 }
 
 // Normalize the API edge to the {source, target} shape that
 // chainLayout.ts and React Flow expect. The backend currently
 // uses `from`/`to`; the React Flow graph wants `source`/`target`.
 // This is the single place that knows about both vocabularies.
-export function normalizeChainEdge(edge: ValueChainEdge): { source: string; target: string } {
+export function normalizeChainEdge(edge: ValueChainEdge): {
+  source: string;
+  target: string;
+  role_kind?: string | null;
+  commodity?: string | null;
+  label?: string | null;
+} {
   return {
     source: edge.source ?? edge.from ?? "",
     target: edge.target ?? edge.to ?? "",
+    role_kind: edge.role_kind,
+    commodity: edge.commodity,
+    label: edge.label,
   };
 }
 
@@ -270,7 +300,96 @@ export const saveThesis = async (body: {
   return resp.json() as Promise<ThesisRow>;
 };
 
+export const updateThesis = async (
+  id: number,
+  body: {
+    segment: string;
+    ticker?: string | null;
+    side?: string | null;
+    body_md: string;
+  },
+): Promise<ThesisRow> => {
+  const resp = await fetch(`${API_BASE}/api/v1/thesis/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!resp.ok) throw new Error(`PUT /thesis/${id} failed: ${resp.status}`);
+  return resp.json() as Promise<ThesisRow>;
+};
+
 export const deleteThesis = async (id: number): Promise<void> => {
   const resp = await fetch(`${API_BASE}/api/v1/thesis/${id}`, { method: "DELETE" });
   if (!resp.ok && resp.status !== 204) throw new Error(`DELETE /thesis/${id} failed: ${resp.status}`);
+};
+
+// ---------------------------------------------------------------------------
+// Backtest report
+// ---------------------------------------------------------------------------
+
+export interface BasketSnapshot {
+  eval_date: string;
+  side: "long" | "short" | "watchlist";
+  segments: string[];
+  tickers: string[];
+  equal_weight_return: number | null;
+  coverage: number;
+}
+
+export interface SegmentICRow {
+  segment: string;
+  n: number;
+  rho: number | null;
+  p_value: number | null;
+  ci_low: number | null;
+  ci_high: number | null;
+  bh_rejected: boolean;
+}
+
+export interface FixedVsRollingRow {
+  segment: string;
+  mean_abs_b_diff: number | null;
+  regime_flips: number;
+  n_common_points: number;
+}
+
+export interface FixedVsRolling {
+  fixed_overall_ic: number | null;
+  rolling_overall_ic: number | null;
+  fixed_n_eval_points: number;
+  rolling_n_eval_points: number;
+  per_segment: FixedVsRollingRow[];
+}
+
+export interface BacktestReport {
+  horizon: Horizon;
+  forward_days: number;
+  start: string;
+  end: string;
+  normalization_mode: string;
+  n_eval_dates: number;
+  n_eval_points: number;
+  overall_ic: number | null;
+  overall_p_value: number | null;
+  per_segment_ic: SegmentICRow[];
+  baskets: BasketSnapshot[];
+  fixed_vs_rolling: FixedVsRolling | null;
+  seed_share_warning_dates: string[];
+}
+
+export const getBacktestReport = (opts?: {
+  start?: string;
+  end?: string;
+  horizon?: Horizon;
+  forward_days?: number;
+  normalization_mode?: "fixed" | "rolling" | "both";
+}): Promise<BacktestReport> => {
+  const params = new URLSearchParams();
+  if (opts?.start) params.set("start", opts.start);
+  if (opts?.end) params.set("end", opts.end);
+  if (opts?.horizon) params.set("horizon", opts.horizon);
+  if (opts?.forward_days) params.set("forward_days", String(opts.forward_days));
+  if (opts?.normalization_mode) params.set("normalization_mode", opts.normalization_mode);
+  const qs = params.toString();
+  return get(`/api/v1/backtest/report${qs ? `?${qs}` : ""}`);
 };

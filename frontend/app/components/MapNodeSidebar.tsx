@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import type { MapNodeDetail } from "../lib/api";
 import { regimeCard } from "../lib/colors";
@@ -33,6 +34,8 @@ export function MapNodeSidebar({
   const colors = regimeCard(detail.node.regime ?? "NO_DATA");
   const upNodes = detail.upstream ?? [];
   const downNodes = detail.downstream ?? [];
+  const [showUpstream, setShowUpstream] = useState(true);
+  const [showDownstream, setShowDownstream] = useState(true);
   const nodeName = displayName(detail.node.id);
 
   return (
@@ -77,61 +80,79 @@ export function MapNodeSidebar({
 
       {upNodes.length > 0 && (
         <div className="rounded border border-gray-200 bg-white p-3">
-          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
-            Upstream ({upNodes.length})
-          </p>
-          {upNodes.map((n) => {
-            const upName = displayName(n.id);
-            return (
-              <button
-                key={n.id}
-                onClick={() => onSelect(n.id)}
-                title={upName !== n.id ? `${n.id} (${upName})` : n.id}
-                className="mb-1 block w-full rounded bg-gray-50 px-2 py-1 text-left text-xs hover:bg-blue-50"
-              >
-                <div className="flex flex-col">
-                  <span className="font-medium">{upName}</span>
-                  {upName !== n.id && (
-                    <span className="font-mono text-[10px] text-gray-500">{n.id}</span>
-                  )}
-                </div>
-                <div className="mt-0.5 flex items-center gap-2 text-[10px]">
-                  {n.regime && <span className="text-gray-500">{n.regime}</span>}
-                  <span className="text-gray-300">depth:{n.depth}</span>
-                </div>
-              </button>
-            );
-          })}
+          <button
+            type="button"
+            onClick={() => setShowUpstream((v) => !v)}
+            className="flex w-full items-center justify-between text-xs font-semibold uppercase tracking-wide text-gray-500"
+          >
+            <span>Upstream ({upNodes.length})</span>
+            <span className="tabular-nums">{showUpstream ? "−" : "+"}</span>
+          </button>
+          {showUpstream && (
+            <div className="mt-2 space-y-1">
+              {upNodes.map((n) => {
+                const upName = displayName(n.id);
+                return (
+                  <button
+                    key={n.id}
+                    onClick={() => onSelect(n.id)}
+                    title={upName !== n.id ? `${n.id} (${upName})` : n.id}
+                    className="block w-full rounded bg-gray-50 px-2 py-1 text-left text-xs hover:bg-blue-50"
+                  >
+                    <div className="flex flex-col">
+                      <span className="font-medium">{upName}</span>
+                      {upName !== n.id && (
+                        <span className="font-mono text-[10px] text-gray-500">{n.id}</span>
+                      )}
+                    </div>
+                    <div className="mt-0.5 flex items-center gap-2 text-[10px]">
+                      {n.regime && <span className="text-gray-500">{n.regime}</span>}
+                      <span className="text-gray-300">depth:{n.depth}</span>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
 
       {downNodes.length > 0 && (
         <div className="rounded border border-gray-200 bg-white p-3">
-          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
-            Downstream ({downNodes.length})
-          </p>
-          {downNodes.map((n) => {
-            const dnName = displayName(n.id);
-            return (
-              <button
-                key={n.id}
-                onClick={() => onSelect(n.id)}
-                title={dnName !== n.id ? `${n.id} (${dnName})` : n.id}
-                className="mb-1 block w-full rounded bg-gray-50 px-2 py-1 text-left text-xs hover:bg-blue-50"
-              >
-                <div className="flex flex-col">
-                  <span className="font-medium">{dnName}</span>
-                  {dnName !== n.id && (
-                    <span className="font-mono text-[10px] text-gray-500">{n.id}</span>
-                  )}
-                </div>
-                <div className="mt-0.5 flex items-center gap-2 text-[10px]">
-                  {n.regime && <span className="text-gray-500">{n.regime}</span>}
-                  <span className="text-gray-300">depth:{n.depth}</span>
-                </div>
-              </button>
-            );
-          })}
+          <button
+            type="button"
+            onClick={() => setShowDownstream((v) => !v)}
+            className="flex w-full items-center justify-between text-xs font-semibold uppercase tracking-wide text-gray-500"
+          >
+            <span>Downstream ({downNodes.length})</span>
+            <span className="tabular-nums">{showDownstream ? "−" : "+"}</span>
+          </button>
+          {showDownstream && (
+            <div className="mt-2 space-y-1">
+              {downNodes.map((n) => {
+                const dnName = displayName(n.id);
+                return (
+                  <button
+                    key={n.id}
+                    onClick={() => onSelect(n.id)}
+                    title={dnName !== n.id ? `${n.id} (${dnName})` : n.id}
+                    className="block w-full rounded bg-gray-50 px-2 py-1 text-left text-xs hover:bg-blue-50"
+                  >
+                    <div className="flex flex-col">
+                      <span className="font-medium">{dnName}</span>
+                      {dnName !== n.id && (
+                        <span className="font-mono text-[10px] text-gray-500">{n.id}</span>
+                      )}
+                    </div>
+                    <div className="mt-0.5 flex items-center gap-2 text-[10px]">
+                      {n.regime && <span className="text-gray-500">{n.regime}</span>}
+                      <span className="text-gray-300">depth:{n.depth}</span>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
 

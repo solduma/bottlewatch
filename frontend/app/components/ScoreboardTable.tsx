@@ -37,6 +37,11 @@ export function ScoreboardTable({ rows }: { rows: SegmentScore[] }) {
           horizons.med?.data_completeness ??
           horizons.long?.data_completeness ??
           0,
+        static_seed_share:
+          horizons.near?.static_seed_share ??
+          horizons.med?.static_seed_share ??
+          horizons.long?.static_seed_share ??
+          1,
       }))
       .sort((a, b) => displayName(a.segment).localeCompare(displayName(b.segment)));
   }, [rows]);
@@ -105,26 +110,47 @@ export function ScoreboardTable({ rows }: { rows: SegmentScore[] }) {
     return sortDir === "asc" ? " ↑" : " ↓";
   }
 
+  function resetFilters() {
+    setSectorFilter("all");
+    setSortKey("segment");
+    setSortDir("asc");
+    setTrendMonths(6);
+  }
+
+  const hasActiveFilters = sectorFilter !== "all" || sortKey !== "segment" || trendMonths !== 6;
+
   return (
-    <table className="w-full border-collapse text-sm">
-      <thead>
-        <tr className="border-b border-gray-200 bg-white text-left text-xs uppercase tracking-wide text-gray-500">
-          <th className="cursor-pointer px-3 py-2" onClick={() => toggleSort("segment")}>
-            <div className="flex flex-col gap-1">
-              <span>Segment{arrow("segment")}</span>
-              <select
-                value={sectorFilter}
-                onChange={(e) => setSectorFilter(e.target.value as SectorFilter)}
-                className="w-full rounded border border-gray-300 px-2 py-1 text-xs"
-              >
-                <option value="all">All sectors</option>
-                <option value="Materials">Materials</option>
-                <option value="Hardware">Hardware</option>
-                <option value="Infrastructure">Infrastructure</option>
-                <option value="Downstream">Downstream</option>
-              </select>
-            </div>
-          </th>
+    <div>
+      <div className="mb-3 flex flex-wrap items-center gap-3 rounded border border-gray-200 bg-white px-3 py-2">
+        <span className="text-xs font-medium text-gray-600">Filters:</span>
+        <select
+          value={sectorFilter}
+          onChange={(e) => setSectorFilter(e.target.value as SectorFilter)}
+          className="rounded border border-gray-300 bg-white px-2 py-1 text-xs"
+        >
+          <option value="all">All sectors</option>
+          <option value="Materials">Materials</option>
+          <option value="Hardware">Hardware</option>
+          <option value="Infrastructure">Infrastructure</option>
+          <option value="Downstream">Downstream</option>
+        </select>
+        {hasActiveFilters && (
+          <button
+            type="button"
+            onClick={resetFilters}
+            className="ml-auto text-xs text-blue-700 hover:underline"
+          >
+            Reset filters
+          </button>
+        )}
+      </div>
+
+      <table className="sticky-first-col w-full border-collapse text-sm">
+        <thead>
+          <tr className="border-b border-gray-200 bg-white text-left text-xs uppercase tracking-wide text-gray-500">
+            <th className="cursor-pointer px-3 py-2" onClick={() => toggleSort("segment")}>
+              Segment{arrow("segment")}
+            </th>
           {(["near", "med", "long"] as const).map((h) => (
             <th
               key={h}
@@ -212,18 +238,28 @@ export function ScoreboardTable({ rows }: { rows: SegmentScore[] }) {
                 </td>
               );
             })}
-            <td className="px-3 py-2 font-mono text-gray-600">
-              {(s.data_completeness * 100).toFixed(0)}%
+            <td className="px-3 py-2 text-gray-600">
+              <div className="flex items-center gap-1.5">
+                <span className="font-mono">{(s.data_completeness * 100).toFixed(0)}%</span>
+                {s.static_seed_share > 0.5 && (
+                  <span
+                    className="rounded bg-yellow-100 px-1 py-0 text-[10px] font-medium text-yellow-800"
+                    title={`${(s.static_seed_share * 100).toFixed(0)}% of this score is from static research seeds`}
+                  >
+                    seed
+                  </span>
+                )}
+              </div>
             </td>
-            <td className="px-3 py-2" style={{ width: 120 }}>
+            <td className="px-3 py-2" style={{ width: 160 }}>
               {history.kind === "loading" ? (
-                <div className="text-xs text-gray-400" style={{ height: 24 }}>…</div>
+                <div className="text-xs text-gray-400" style={{ height: 32 }}>…</div>
               ) : history.kind === "error" ? (
-                <div className="text-xs text-red-400" style={{ height: 24 }}>err</div>
+                <div className="text-xs text-red-400" style={{ height: 32 }}>err</div>
               ) : (
                 <Sparkline
                   data={history.bySegment.get(s.segment) ?? []}
-                  height={24}
+                  height={32}
                 />
               )}
             </td>
@@ -232,5 +268,6 @@ export function ScoreboardTable({ rows }: { rows: SegmentScore[] }) {
         })}
       </tbody>
     </table>
+    </div>
   );
 }

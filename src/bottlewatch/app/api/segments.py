@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import json
 from datetime import datetime
+from pathlib import Path
 
 from fastapi import APIRouter, HTTPException, Query, Request
 from pydantic import BaseModel
@@ -11,8 +13,36 @@ from bottlewatch.app import segments_meta
 
 
 router = APIRouter(tags=["segments"])
-
 VALID_HORIZONS = ("near", "med", "long")
+
+_PROJECT_ROOT = Path(__file__).resolve().parents[2]
+_SEGMENT_BRIEFS_PATH = _PROJECT_ROOT / "app" / "segment_briefs.json"
+
+
+def _load_segment_briefs() -> dict[str, dict]:
+    """Load the hand-authored segment briefs exported from research/01_segments.
+
+    The JSON is a one-time extraction of the definition, momentum, resolution,
+    and regime-call sections of each segment markdown file. Missing slugs
+    degrade gracefully to an empty dict.
+    """
+    try:
+        with open(_SEGMENT_BRIEFS_PATH, encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+
+_SEGMENT_BRIEFS = _load_segment_briefs()
+
+
+class SubScoreValue(BaseModel):
+    value: float | None
+    raw_value: float | None
+    source: str
+    confidence: str
+    imputed: bool
+    normalization_mode: str | None = None
 
 
 class SegmentScore(BaseModel):
@@ -24,6 +54,7 @@ class SegmentScore(BaseModel):
     regime: str
     regime_confidence: str
     data_completeness: float
+    static_seed_share: float
     computed_at: datetime
 
 
@@ -41,12 +72,21 @@ class SignalRow(BaseModel):
     observed_at: datetime
 
 
+class SegmentBrief(BaseModel):
+    title: str
+    summary: str
+    momentum_summary: str
+    resolution_summary: str
+    regime_call_md: str
+
+
 class SegmentDetail(BaseModel):
     segment: str
     name: str
     horizons: list[SegmentScore]
-    sub_scores: dict[str, float | None]
+    sub_scores: dict[str, SubScoreValue]
     signals: list[SignalRow]
+    brief: SegmentBrief | None = None
 
 
 def _row_with_name(d: dict) -> dict:
@@ -88,10 +128,13 @@ def get_segment(slug: str, request: Request) -> SegmentDetail:
     detail = get_segment_detail(request.app.state.session_factory, slug)
     if detail is None:
         raise HTTPException(status_code=404, detail=f"unknown segment: {slug}")
+    brief_data = _SEGMENT_BRIEFS.get(slug)
+    brief = SegmentBrief(**brief_data) if brief_data else None
     return SegmentDetail(
         segment=detail["segment"],
         name=segments_meta.display_name(detail["segment"]),
         horizons=[SegmentScore(**_row_with_name(h)) for h in detail["horizons"]],
         sub_scores=detail["sub_scores"],
         signals=[SignalRow(**s) for s in detail["signals"]],
+        brief=brief,
     )

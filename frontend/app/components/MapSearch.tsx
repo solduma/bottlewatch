@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useRef, useState, useEffect } from "react";
 import type { ChainNode } from "./chainLayout";
 import { useMapStore, type SectorFilter } from "../lib/store";
 import { displayName } from "../lib/score_help";
@@ -48,16 +48,16 @@ export function MapSearch({
   const setCohortSegment = useMapStore((s) => s.setCohortSegment);
   const [showDropdown, setShowDropdown] = useState<boolean>(false);
   const [highlightedIndex, setHighlightedIndex] = useState<number>(-1);
+  const searchRef = useRef<HTMLDivElement>(null);
 
-  // Hide dropdown when clicking outside
+  // Hide dropdown when clicking outside the search container.
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as HTMLElement;
-      const searchInput = target.closest('.relative');
-      if (!searchInput) {
+    function handleClickOutside(event: MouseEvent) {
+      if (!searchRef.current) return;
+      if (!searchRef.current.contains(event.target as Node)) {
         setShowDropdown(false);
       }
-    };
+    }
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
@@ -143,7 +143,7 @@ export function MapSearch({
     <div className="rounded border border-gray-200 bg-white p-3">
       <div className="flex flex-wrap items-center gap-3">
         {/* Search input */}
-        <div className="relative flex-1 min-w-[200px]">
+        <div ref={searchRef} className="relative flex-1 min-w-[200px]">
           <input
             type="text"
             placeholder="Search nodes, companies, tickers…"

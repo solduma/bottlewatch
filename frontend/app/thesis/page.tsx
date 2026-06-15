@@ -1,12 +1,19 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
-import { listThesis, saveThesis, deleteThesis } from "../lib/api";
+import { listThesis, saveThesis, updateThesis, deleteThesis } from "../lib/api";
 import type { ThesisRow } from "../lib/api";
+import { displayName } from "../lib/score_help";
+import ReactMarkdown from "react-markdown";
+import { EmptyState } from "../components/ui/EmptyState";
+import { ErrorState } from "../components/ui/ErrorState";
+import { Skeleton } from "../components/ui/Skeleton";
+import { PageHeader } from "../components/ui/PageHeader";
 
 // ---------------------------------------------------------------------------
 // Tiny ProseMirror JSON -> markdown serializer.
@@ -95,7 +102,15 @@ const SEGMENTS = [
   "power_generation_oem", "systems_rack_scale", "transformers_tnd",
 ];
 
-function ThesisCard({ thesis, onDelete }: { thesis: ThesisRow; onDelete: (id: number) => void }) {
+function ThesisCard({
+  thesis,
+  onDelete,
+  onEdit,
+}: {
+  thesis: ThesisRow;
+  onDelete: (id: number) => void;
+  onEdit: (id: number) => void;
+}) {
   return (
     <div className="rounded border border-gray-200 bg-white p-4">
       <div className="mb-2 flex items-center justify-between">
@@ -122,7 +137,17 @@ function ThesisCard({ thesis, onDelete }: { thesis: ThesisRow; onDelete: (id: nu
             {new Date(thesis.updated_at).toLocaleDateString()}
           </span>
           <button
-            onClick={() => onDelete(thesis.id)}
+            onClick={() => onEdit(thesis.id)}
+            className="text-xs text-blue-400 hover:text-blue-600"
+          >
+            Edit
+          </button>
+          <button
+            onClick={() => {
+              if (window.confirm("Delete this thesis note? This cannot be undone.")) {
+                onDelete(thesis.id);
+              }
+            }}
             className="text-xs text-red-400 hover:text-red-600"
           >
             Delete
@@ -130,7 +155,7 @@ function ThesisCard({ thesis, onDelete }: { thesis: ThesisRow; onDelete: (id: nu
         </div>
       </div>
       <div className="prose prose-sm max-w-none text-gray-700">
-        {thesis.body_md}
+        <ReactMarkdown>{thesis.body_md}</ReactMarkdown>
       </div>
     </div>
   );
@@ -150,7 +175,7 @@ interface EditorProps {
   onCancel: () => void;
 }
 
-function ThesisEditor({ segment, ticker, side, initialBody = "", onSave, onCancel }: EditorProps) {
+function ThesisEditor({ segment, ticker, side, editId, initialBody = "", onSave, onCancel }: EditorProps) {
   const editor = useEditor({
     extensions: [
       StarterKit,
@@ -168,9 +193,13 @@ function ThesisEditor({ segment, ticker, side, initialBody = "", onSave, onCance
     if (!editor) return;
     const body_md = editorJsonToMarkdown(editor);
     if (!body_md.trim()) return;
-    await saveThesis({ segment, ticker, side: side || null, body_md });
+    if (editId !== undefined) {
+      await updateThesis(editId, { segment, ticker, side: side || null, body_md });
+    } else {
+      await saveThesis({ segment, ticker, side: side || null, body_md });
+    }
     onSave();
-  }, [editor, segment, ticker, side, onSave]);
+  }, [editor, segment, ticker, side, editId, onSave]);
 
   return (
     <div className="rounded border border-blue-200 bg-blue-50 p-4">
@@ -229,20 +258,45 @@ function ThesisEditor({ segment, ticker, side, initialBody = "", onSave, onCance
 // Main page
 // ---------------------------------------------------------------------------
 
-export default function ThesisPage() {
+function ThesisPage() {
+  const searchParams = useSearchParams();
   const [notes, setNotes] = useState<ThesisRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [showEditor, setShowEditor] = useState(false);
+  const [editingId, setEditingId] = useState<number | null>(null);
   const [editSegment, setEditSegment] = useState(SEGMENTS[0]);
   const [editTicker, setEditTicker] = useState("");
   const [editSide, setEditSide] = useState<string>("");
 
+  // Pre-fill the editor from query params (?ticker=, ?segment=) when landing
+  // here from the ticker or segment detail pages.
+  useEffect(() => {
+    if (!searchParams) return;
+    const tickerParam = searchParams.get("ticker");
+    const segmentParam = searchParams.get("segment");
+    let shouldOpen = false;
+    if (tickerParam) {
+      setEditTicker(tickerParam);
+      shouldOpen = true;
+    }
+    if (segmentParam && SEGMENTS.includes(segmentParam)) {
+      setEditSegment(segmentParam);
+      shouldOpen = true;
+    }
+    if (shouldOpen) {
+      setShowEditor(true);
+      setEditingId(null);
+    }
+  }, [searchParams]);
+
   const load = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
       setNotes(await listThesis());
-    } catch {
-      // silently fail
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
     } finally {
       setLoading(false);
     }
@@ -257,25 +311,27 @@ export default function ThesisPage() {
 
   const handleSave = useCallback(() => {
     setShowEditor(false);
+    setEditingId(null);
     load();
   }, [load]);
 
+  const startEdit = useCallback((id: number) => {
+    setShowEditor(false);
+    setEditingId(id);
+  }, []);
+
   return (
     <section>
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Thesis notes</h1>
-        <Link href="/" className="text-sm text-blue-700 hover:underline">← Back to quadrant</Link>
-      </div>
-
-      <p className="mb-4 text-sm text-gray-600">
-        Override-audit-trail for the conviction basket. A thesis note linked
-        to a RESOLVING segment surfaces your contrary view when the hard guard fires.
-      </p>
+      <PageHeader
+        title="Thesis notes"
+        subtitle="Override-audit-trail for the conviction basket. A thesis note linked to a RESOLVING segment surfaces your contrary view when the hard guard fires."
+        action={<Link href="/" className="text-sm text-blue-700 hover:underline">← Back to quadrant</Link>}
+      />
 
       <div className="mb-6">
         {!showEditor ? (
           <button
-            onClick={() => setShowEditor(true)}
+            onClick={() => { setShowEditor(true); setEditingId(null); }}
             className="rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
           >
             + New thesis note
@@ -288,7 +344,7 @@ export default function ThesisPage() {
                 onChange={e => setEditSegment(e.target.value)}
                 className="rounded border border-gray-200 bg-white px-2 py-1 text-sm"
               >
-                {SEGMENTS.map(s => <option key={s} value={s}>{s}</option>)}
+                {SEGMENTS.map(s => <option key={s} value={s}>{displayName(s)}</option>)}
               </select>
               <input
                 value={editTicker}
@@ -313,25 +369,63 @@ export default function ThesisPage() {
               ticker={editTicker || undefined}
               side={editSide || undefined}
               onSave={handleSave}
-              onCancel={() => setShowEditor(false)}
+              onCancel={() => { setShowEditor(false); setEditingId(null); }}
             />
           </div>
         )}
       </div>
 
-      {loading ? (
-        <div className="text-sm text-gray-500">Loading…</div>
-      ) : notes.length === 0 ? (
-        <div className="rounded border border-dashed border-gray-200 bg-gray-50 p-8 text-center text-sm text-gray-400 italic">
-          No thesis notes yet. Add one above.
+      {error && (
+        <div className="mb-4">
+          <ErrorState title="Failed to load thesis notes" message={error} onRetry={load} />
         </div>
+      )}
+
+      {loading ? (
+        <div className="space-y-3">
+          <Skeleton className="h-28 w-full" />
+          <Skeleton className="h-28 w-full" />
+        </div>
+      ) : notes.length === 0 ? (
+        <EmptyState
+          title="No thesis notes yet"
+          description="Add a note above to start your override audit trail."
+        />
       ) : (
         <div className="space-y-3">
-          {notes.map(n => (
-            <ThesisCard key={n.id} thesis={n} onDelete={handleDelete} />
-          ))}
+          {notes.map(n =>
+            n.id === editingId ? (
+              <ThesisEditor
+                key={n.id}
+                segment={n.segment}
+                ticker={n.ticker || undefined}
+                side={n.side || undefined}
+                editId={n.id}
+                initialBody={n.body_md}
+                onSave={handleSave}
+                onCancel={() => setEditingId(null)}
+              />
+            ) : (
+              <ThesisCard key={n.id} thesis={n} onDelete={handleDelete} onEdit={startEdit} />
+            )
+          )}
         </div>
       )}
     </section>
+  );
+}
+
+export default function ThesisPageWrapper() {
+  return (
+    <Suspense
+      fallback={
+        <div className="space-y-3">
+          <Skeleton className="h-28 w-full" />
+          <Skeleton className="h-28 w-full" />
+        </div>
+      }
+    >
+      <ThesisPage />
+    </Suspense>
   );
 }

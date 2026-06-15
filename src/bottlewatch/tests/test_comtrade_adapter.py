@@ -45,6 +45,9 @@ def test_commodity_parses_to_rawsignals(settings: Settings) -> None:
     assert result[0].value_num == 1000000.0
     assert result[0].source == "comtrade"
     assert result[0].geography == "US"
+    # HS codes map to canonical scoring segment slugs.
+    segments = {s.segment for s in result}
+    assert segments == {"hbm_memory", "advanced_packaging", "transformers_tnd"}
 
 
 def test_retry_on_503_then_succeeds(settings: Settings) -> None:

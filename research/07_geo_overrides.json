@@ -1,0 +1,37 @@
+{
+  "_comment": "Curated region overrides for companies whose exchange geography is misleading (e.g., OTCQX ADRs of non-US firms) or whose primary listing differs from the one in 02_universe.csv. Keys are ticker or name; values may include region, parent (for deduplicating multi-listings), and reason.",
+  "version": "M2-phase2-v1",
+  "frozen_since": "2026-06-14",
+  "changelog": [
+    {
+      "version": "M2-phase2-v1",
+      "date": "2026-06-14",
+      "reason": "Initial override set for Phase 2 universe-weighted HHI."
+    }
+  ],
+  "overrides": {
+    "SHECY": {
+      "region": "Japan",
+      "parent": "4063.TSE",
+      "reason": "OTCQX ADR; primary TSE listing is Shin-Etsu Chemical (Japan)."
+    },
+    "4063.TSE": {
+      "region": "Japan",
+      "reason": "Primary TSE listing for Shin-Etsu Chemical."
+    },
+    "IFNNY": {
+      "region": "Europe",
+      "parent": "IFNNY",
+      "reason": "OTCQX ADR; underlying Infineon Technologies AG is Europe."
+    },
+    "ASMV": {
+      "region": "GreaterChina",
+      "parent": "ASMV",
+      "reason": "OTCQX ADR; underlying ASMPT (HK:0522) is GreaterChina."
+    },
+    "300394.SZ": {
+      "region": "GreaterChina",
+      "reason": "SZSE-listed Tianfu Communication is GreaterChina."
+    }
+  }
+}

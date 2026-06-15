@@ -1,4 +1,4 @@
-"""Walk-forward backtest of score_history vs ticker returns.
+"""Walk-forward backtest of bottleneck scores vs ticker returns.
 
 Methodology (m4-backtest-initial.md "Next Steps" item 3):
 
@@ -29,18 +29,23 @@ import argparse
 import csv as _csv
 import json
 import logging
-import math
 import sys
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass, replace
 from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
+from scipy import stats
 from sqlalchemy import select
 from sqlalchemy.orm import sessionmaker
 
+from bottlewatch.app.backtest.basket_report import BacktestReport, BasketSnapshot, SegmentICRow
+from bottlewatch.app.backtest.baskets import build_baskets
 from bottlewatch.app.backtest.prices import CsvPriceProvider, PriceBar, PriceProvider
+from bottlewatch.app.backtest.stats import SegmentICResult, benjamini_hochberg, segment_ic_with_ci
 from bottlewatch.app.db import ScoreHistory, make_engine, make_session_factory
+from bottlewatch.app.score.regime import Regime, regime_from_value
+from bottlewatch.config import get_settings
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -48,83 +53,6 @@ _LOGGER = logging.getLogger(__name__)
 _PROJECT_ROOT = Path(__file__).resolve().parents[3]
 _DEFAULT_UNIVERSE = _PROJECT_ROOT / "research" / "02_universe.csv"
 _DEFAULT_PRICES = _PROJECT_ROOT / "data" / "processed" / "prices.csv"
-
-
-# ---------------------------------------------------------------------------
-# Pure math: Spearman rank correlation with two-sided p-value
-# ---------------------------------------------------------------------------
-
-
-def _rank(xs: list[float]) -> list[float]:
-    """Average ranks for ties (Spearman's "fractional" tie-breaking)."""
-    n = len(xs)
-    indexed = sorted(enumerate(xs), key=lambda t: t[1])
-    ranks = [0.0] * n
-    i = 0
-    while i < n:
-        j = i
-        while j + 1 < n and indexed[j + 1][1] == indexed[i][1]:
-            j += 1
-        # Average rank for the run [i..j] (1-indexed).
-        avg = (i + 1 + j + 1) / 2.0
-        for k in range(i, j + 1):
-            ranks[indexed[k][0]] = avg
-        i = j + 1
-    return ranks
-
-
-def spearman(x: list[float], y: list[float]) -> tuple[float | None, float | None]:
-    """Spearman's rho and a two-sided p-value (t-distribution approximation).
-
-    Pure-Python. Returns (None, None) when n < 2 or when x and y
-    have zero variance (no signal). The p-value is a Student-t
-    approximation valid for n >= 4; for n < 4 we return None and
-    the caller treats the result as "insufficient data".
-    """
-    n = len(x)
-    if n != len(y):
-        raise ValueError("x and y must have the same length")
-    if n < 2:
-        return None, None
-    if len(set(x)) < 2 or len(set(y)) < 2:
-        return None, None
-    rx = _rank(x)
-    ry = _rank(y)
-    mx = sum(rx) / n
-    my = sum(ry) / n
-    sxx = sum((r - mx) ** 2 for r in rx)
-    syy = sum((r - my) ** 2 for r in ry)
-    if sxx == 0 or syy == 0:
-        return None, None
-    sxy = sum((rx[i] - mx) * (ry[i] - my) for i in range(n))
-    rho = sxy / math.sqrt(sxx * syy)
-    if n < 4:
-        return rho, None
-    # Two-sided p-value via Student-t with df = n - 2. scipy is not
-    # a dependency, so we approximate the survival function using
-    # the regularized incomplete beta function. For df >= 2, the
-    # t-distribution CDF is 0.5 + t * gamma((df+1)/2) * 1F1(...) / ...
-    # — too messy. We use the standard approximation: convert to
-    # z = rho * sqrt((n-2) / (1 - rho^2)), then a normal-approx
-    # two-sided p. This is what `cor.test` in R does when `exact=FALSE`.
-    r2 = rho * rho
-    if r2 >= 1.0:
-        return rho, 0.0
-    t_stat = rho * math.sqrt((n - 2) / (1.0 - r2))
-    # erfc-based normal CDF: p = erfc(|t| / sqrt(2))
-    p = _erfc_two_sided(t_stat)
-    return rho, p
-
-
-def _erfc_two_sided(t: float) -> float:
-    """Two-sided p-value from a t-statistic using a normal approximation.
-
-    The exact Student-t survival function is not available without
-    scipy; for the backtest's purposes a normal approximation is
-    adequate (n is typically in the dozens, and we're reporting
-    a heuristic p, not a hypothesis test result).
-    """
-    return math.erfc(abs(t) / math.sqrt(2.0))
 
 
 # ---------------------------------------------------------------------------
@@ -141,6 +69,7 @@ class EvalPoint:
     eval_date: date
     b: float
     forward_return: float
+    regime: str
 
 
 @dataclass(frozen=True)
@@ -164,28 +93,6 @@ class OverallResult:
     n: int
     rho: float | None
     p_value: float | None
-
-
-@dataclass
-class BacktestReport:
-    horizon: str
-    forward_days: int
-    n_eval_dates: int
-    n_eval_points: int
-    per_segment: list[SegmentResult]
-    per_eval_date: list[EvalDateResult]
-    overall: OverallResult
-
-    def to_jsonable(self) -> dict[str, Any]:
-        return {
-            "horizon": self.horizon,
-            "forward_days": self.forward_days,
-            "n_eval_dates": self.n_eval_dates,
-            "n_eval_points": self.n_eval_points,
-            "per_segment": [asdict(s) for s in self.per_segment],
-            "per_eval_date": [asdict(d) for d in self.per_eval_date],
-            "overall": asdict(self.overall),
-        }
 
 
 # ---------------------------------------------------------------------------
@@ -213,28 +120,33 @@ def _load_score_history(
     segment: str,
     horizon: str,
     until: date,
-) -> list[tuple[datetime, float]]:
-    """Return [(computed_at, b), ...] for (segment, horizon) up to `until`, sorted ascending."""
+    normalization_mode: str,
+) -> list[tuple[datetime, float, float, str]]:
+    """Return [(computed_at, b, momentum, regime), ...] for (segment, horizon) up to `until`, sorted ascending."""
     with factory() as session:
         rows = session.execute(
-            select(ScoreHistory.computed_at, ScoreHistory.b)
+            select(ScoreHistory.computed_at, ScoreHistory.b, ScoreHistory.momentum, ScoreHistory.regime)
             .where(
                 ScoreHistory.segment == segment,
                 ScoreHistory.horizon == horizon,
                 ScoreHistory.computed_at <= datetime.combine(until, datetime.min.time()),
+                (
+                    (ScoreHistory.normalization_mode == normalization_mode)
+                    | ((ScoreHistory.normalization_mode.is_(None)) & (normalization_mode == "fixed"))
+                ),
             )
             .order_by(ScoreHistory.computed_at.asc())
         ).all()
-    return [(r[0], r[1]) for r in rows if r[1] is not None]
+    return [(r[0], r[1], r[2] or 0.0, r[3]) for r in rows if r[1] is not None]
 
 
-def _b_at(b_series: list[tuple[datetime, float]], t: date) -> float | None:
-    """Most recent B for (segment, horizon) at or before date t."""
+def _b_at(b_series: list[tuple[datetime, float, float, str]], t: date) -> tuple[float, float, str] | None:
+    """Most recent B, momentum, and regime for (segment, horizon) at or before date t."""
     target = datetime.combine(t, datetime.min.time())
-    latest: float | None = None
-    for ts, b in b_series:
+    latest: tuple[float, float, str] | None = None
+    for ts, b, momentum, regime in b_series:
         if ts <= target:
-            latest = b
+            latest = (b, momentum, regime)
         else:
             break
     return latest
@@ -279,6 +191,236 @@ def _eval_dates(start: date, end: date, step_days: int = 30) -> list[date]:
     return out
 
 
+def _compute_ic(xs: list[float], ys: list[float]) -> tuple[float | None, float | None]:
+    """Spearman rho and two-sided p-value via scipy."""
+    n = len(xs)
+    if n < 4 or len(set(xs)) < 2 or len(set(ys)) < 2:
+        return None, None
+    spearman_result: Any = stats.spearmanr(xs, ys)
+    return float(spearman_result.statistic), float(
+        spearman_result.pvalue
+    ) if spearman_result.pvalue is not None else None
+
+
+def _run_single_mode(
+    *,
+    prices: PriceProvider,
+    factory: sessionmaker,
+    universe_path: Path,
+    start: date,
+    end: date,
+    forward_days: int,
+    horizon: str,
+    normalization_mode: str,
+) -> tuple[BacktestReport, list[EvalPoint]]:
+    """Run the backtest for one normalization mode.
+
+    This reads the materialized `score_history` table. The caller is
+    responsible for ensuring the table contains the right normalization
+    mode (e.g., by running a point-in-time recompute beforehand).
+    """
+    universe = _load_universe(universe_path)
+    eval_dates = _eval_dates(start, end)
+    if not universe or not eval_dates:
+        return (
+            BacktestReport(
+                horizon=horizon,
+                forward_days=forward_days,
+                start=start,
+                end=end,
+                normalization_mode=normalization_mode,
+                n_eval_dates=0,
+                n_eval_points=0,
+                overall_ic=None,
+                overall_p_value=None,
+                per_segment_ic=[],
+                baskets=[],
+                fixed_vs_rolling=None,
+                seed_share_warning_dates=[],
+            ),
+            [],
+        )
+
+    # Pre-load score_history per segment.
+    b_by_segment: dict[str, list[tuple[datetime, float, float, str]]] = {}
+    for _, seg in universe:
+        if seg not in b_by_segment:
+            b_by_segment[seg] = _load_score_history(factory, seg, horizon, end, normalization_mode)
+
+    # Pre-load price bars per ticker.
+    bars_by_ticker: dict[str, list[PriceBar]] = {}
+    for ticker, _ in universe:
+        if ticker not in bars_by_ticker:
+            bars_by_ticker[ticker] = prices.get_prices(ticker, start, end + timedelta(days=forward_days))
+
+    # Walk forward for IC and baskets.
+    eval_points: list[EvalPoint] = []
+    basket_snapshots: list[BasketSnapshot] = []
+    seed_share_warning_dates: list[date] = []
+    for t in eval_dates:
+        # Build baskets per segment scores at t.
+        segment_scores: dict[str, dict[str, Any]] = {}
+        for _, seg in universe:
+            row = _b_at(b_by_segment.get(seg, []), t)
+            if row is None:
+                continue
+            b, momentum, regime_str = row
+            segment_scores[seg] = {
+                "b": b,
+                "momentum": momentum,
+                "regime": regime_from_value(regime_str),
+            }
+
+        # Baskets use the same price provider but indexed by ticker.
+        ticker_prices: dict[str, list[tuple[date, float]]] = {
+            ticker: [(b.date, b.close) for b in bars] for ticker, bars in bars_by_ticker.items()
+        }
+        baskets = build_baskets(
+            eval_date=t,
+            horizon=horizon,
+            scores=segment_scores,
+            universe_path=universe_path,
+            prices=ticker_prices,
+            forward_days=forward_days,
+        )
+        for side, basket in baskets.items():
+            basket_snapshots.append(
+                BasketSnapshot(
+                    eval_date=t,
+                    side=side,
+                    segments=basket.segments,
+                    tickers=[e.ticker for e in basket.tickers],
+                    equal_weight_return=basket.equal_weight_return,
+                    coverage=basket.coverage,
+                )
+            )
+
+        # Seed-share warning: if the average static_seed_share across
+        # segments is > 0.80, flag the date. We don't have static_seed_share
+        # in score_history, so we use a simple proxy: if >50% of segments
+        # lack a dynamic score (no live source), warn.
+        total_segments = len(segment_scores)
+        live_segments = sum(
+            1
+            for data in segment_scores.values()
+            if data.get("regime") not in (Regime.NO_DATA,) and data["b"] is not None
+        )
+        if total_segments > 0 and live_segments / total_segments < 0.20:
+            seed_share_warning_dates.append(t)
+
+        # Ticker-level eval points for IC.
+        for ticker, seg in universe:
+            row = _b_at(b_by_segment.get(seg, []), t)
+            if row is None:
+                continue
+            b = row[0]
+            regime = row[2]
+            bars = bars_by_ticker.get(ticker, [])
+            r = _forward_return(bars, t, forward_days)
+            if r is None:
+                continue
+            eval_points.append(EvalPoint(ticker, seg, t, b, r, regime))
+
+    # Per-segment IC with block-bootstrap CI and BH correction.
+    per_segment_raw: list[SegmentICResult] = []
+    segments_in_data = sorted({p.segment for p in eval_points})
+    p_values_for_bh: list[tuple[str, float | None]] = []
+    for seg in segments_in_data:
+        seg_points = [p for p in eval_points if p.segment == seg]
+        xs = [p.b for p in seg_points]
+        ys = [p.forward_return for p in seg_points]
+        points_by_date: dict[date, list[tuple[float, float]]] = {}
+        for p in seg_points:
+            points_by_date.setdefault(p.eval_date, []).append((p.b, p.forward_return))
+        result = segment_ic_with_ci(seg, xs, ys, eval_dates, points_by_date)
+        p_values_for_bh.append((seg, result.p_value))
+        per_segment_raw.append(result)
+
+    bh_results = benjamini_hochberg(p_values_for_bh, alpha=0.10)
+    per_segment_results: list[SegmentICRow] = [
+        SegmentICRow(
+            segment=r.segment,
+            n=r.n,
+            rho=r.rho,
+            p_value=r.p_value,
+            ci_low=r.ci_low,
+            ci_high=r.ci_high,
+            bh_rejected=bh_results.get(r.segment, False),
+        )
+        for r in per_segment_raw
+    ]
+
+    # Overall IC.
+    xs = [p.b for p in eval_points]
+    ys = [p.forward_return for p in eval_points]
+    overall_ic, overall_p = _compute_ic(xs, ys)
+
+    report = BacktestReport(
+        horizon=horizon,
+        forward_days=forward_days,
+        start=start,
+        end=end,
+        normalization_mode=normalization_mode,
+        n_eval_dates=len(eval_dates),
+        n_eval_points=len(eval_points),
+        overall_ic=overall_ic,
+        overall_p_value=overall_p,
+        per_segment_ic=per_segment_results,
+        baskets=basket_snapshots,
+        fixed_vs_rolling=None,
+        seed_share_warning_dates=seed_share_warning_dates,
+    )
+    return report, eval_points
+
+
+def _build_fixed_vs_rolling(
+    fixed_points: list[EvalPoint],
+    rolling_points: list[EvalPoint],
+    fixed_report: BacktestReport,
+    rolling_report: BacktestReport,
+) -> dict[str, Any]:
+    """Compare fixed-band and rolling-band backtest outputs."""
+    fixed_by_key: dict[tuple[str, date, str], EvalPoint] = {(p.segment, p.eval_date, p.ticker): p for p in fixed_points}
+    rolling_by_key: dict[tuple[str, date, str], EvalPoint] = {
+        (p.segment, p.eval_date, p.ticker): p for p in rolling_points
+    }
+    common_keys = sorted(set(fixed_by_key) & set(rolling_by_key))
+
+    per_segment: dict[str, dict[str, Any]] = {}
+    for key in common_keys:
+        seg = key[0]
+        f = fixed_by_key[key]
+        r = rolling_by_key[key]
+        entry = per_segment.setdefault(
+            seg,
+            {"segment": seg, "abs_diffs": [], "regime_flips": 0},
+        )
+        entry["abs_diffs"].append(abs(f.b - r.b))
+        if f.regime != r.regime:
+            entry["regime_flips"] += 1
+
+    per_segment_rows = []
+    for seg in sorted(per_segment):
+        entry = per_segment[seg]
+        diffs = entry["abs_diffs"]
+        per_segment_rows.append(
+            {
+                "segment": seg,
+                "mean_abs_b_diff": sum(diffs) / len(diffs) if diffs else None,
+                "regime_flips": entry["regime_flips"],
+                "n_common_points": len(diffs),
+            }
+        )
+
+    return {
+        "fixed_overall_ic": fixed_report.overall_ic,
+        "rolling_overall_ic": rolling_report.overall_ic,
+        "fixed_n_eval_points": fixed_report.n_eval_points,
+        "rolling_n_eval_points": rolling_report.n_eval_points,
+        "per_segment": per_segment_rows,
+    }
+
+
 def run_backtest(
     *,
     prices: PriceProvider,
@@ -288,85 +430,44 @@ def run_backtest(
     end: date,
     forward_days: int = 90,
     horizon: str = "near",
+    normalization_mode: str = "fixed",
 ) -> BacktestReport:
     """Compute the walk-forward correlations.
 
+    Runs both fixed and rolling normalization modes and returns the
+    report for the requested primary mode, with a `fixed_vs_rolling`
+    comparison attached.
+
     The function is pure compute over the inputs. No side effects.
     """
-    universe = _load_universe(universe_path)
-    eval_dates = _eval_dates(start, end)
-    if not universe or not eval_dates:
-        return BacktestReport(
-            horizon=horizon,
-            forward_days=forward_days,
-            n_eval_dates=0,
-            n_eval_points=0,
-            per_segment=[],
-            per_eval_date=[],
-            overall=OverallResult(n=0, rho=None, p_value=None),
-        )
-
-    # Pre-load score_history per segment (small, ~30 rows per segment).
-    b_by_segment: dict[str, list[tuple[datetime, float]]] = {}
-    for _, seg in universe:
-        if seg not in b_by_segment:
-            b_by_segment[seg] = _load_score_history(factory, seg, horizon, end)
-
-    # Pre-load price bars per ticker (cache once per ticker for the
-    # whole window so we don't re-read the CSV 12 times).
-    bars_by_ticker: dict[str, list[PriceBar]] = {}
-    for ticker, _ in universe:
-        if ticker not in bars_by_ticker:
-            bars_by_ticker[ticker] = prices.get_prices(ticker, start, end + timedelta(days=forward_days))
-
-    # Walk forward.
-    eval_points: list[EvalPoint] = []
-    for t in eval_dates:
-        for ticker, seg in universe:
-            b_series = b_by_segment.get(seg, [])
-            b = _b_at(b_series, t)
-            if b is None:
-                continue
-            bars = bars_by_ticker.get(ticker, [])
-            r = _forward_return(bars, t, forward_days)
-            if r is None:
-                continue
-            eval_points.append(EvalPoint(ticker, seg, t, b, r))
-
-    # Per-segment Spearman.
-    per_segment_results: list[SegmentResult] = []
-    segments_in_data = sorted({p.segment for p in eval_points})
-    for seg in segments_in_data:
-        seg_points = [p for p in eval_points if p.segment == seg]
-        xs = [p.b for p in seg_points]
-        ys = [p.forward_return for p in seg_points]
-        rho, p_val = spearman(xs, ys)
-        per_segment_results.append(SegmentResult(seg, len(seg_points), rho, p_val))
-
-    # Per-eval-date Spearman.
-    per_eval_date_results: list[EvalDateResult] = []
-    for t in eval_dates:
-        t_points = [p for p in eval_points if p.eval_date == t]
-        xs = [p.b for p in t_points]
-        ys = [p.forward_return for p in t_points]
-        rho, p_val = spearman(xs, ys)
-        per_eval_date_results.append(EvalDateResult(t, len(t_points), rho, p_val))
-
-    # Overall.
-    xs = [p.b for p in eval_points]
-    ys = [p.forward_return for p in eval_points]
-    rho, p_val = spearman(xs, ys)
-    overall = OverallResult(len(eval_points), rho, p_val)
-
-    return BacktestReport(
-        horizon=horizon,
+    fixed_report, fixed_points = _run_single_mode(
+        prices=prices,
+        factory=factory,
+        universe_path=universe_path,
+        start=start,
+        end=end,
         forward_days=forward_days,
-        n_eval_dates=len(eval_dates),
-        n_eval_points=len(eval_points),
-        per_segment=per_segment_results,
-        per_eval_date=per_eval_date_results,
-        overall=overall,
+        horizon=horizon,
+        normalization_mode="fixed",
     )
+    rolling_report, rolling_points = _run_single_mode(
+        prices=prices,
+        factory=factory,
+        universe_path=universe_path,
+        start=start,
+        end=end,
+        forward_days=forward_days,
+        horizon=horizon,
+        normalization_mode="rolling",
+    )
+
+    fixed_vs_rolling = _build_fixed_vs_rolling(fixed_points, rolling_points, fixed_report, rolling_report)
+
+    if normalization_mode == "rolling":
+        primary_report = rolling_report
+    else:
+        primary_report = fixed_report
+    return replace(primary_report, fixed_vs_rolling=fixed_vs_rolling)
 
 
 # ---------------------------------------------------------------------------
@@ -397,6 +498,12 @@ def _parse_args(argv: list[str] | None) -> argparse.Namespace:
         "--forward-days", type=int, default=90, help="Forward return window in calendar days. Default: 90."
     )
     parser.add_argument("--horizon", choices=("near", "med", "long"), default="near", help="Score horizon to evaluate.")
+    parser.add_argument(
+        "--normalization-mode",
+        choices=("fixed", "rolling", "both"),
+        default="fixed",
+        help="Primary score normalization mode to report; fixed and rolling are always computed. Default: fixed.",
+    )
     parser.add_argument("--output", type=Path, default=None, help="Write JSON report here. Default: stdout.")
     parser.add_argument(
         "--database-url",
@@ -423,8 +530,6 @@ def main(argv: list[str] | None = None) -> int:
     if args.database_url:
         factory = make_session_factory(make_engine(args.database_url))
     else:
-        from bottlewatch.config import get_settings
-
         factory = make_session_factory(make_engine(get_settings().database_url))
 
     prices = CsvPriceProvider(args.prices)
@@ -436,6 +541,7 @@ def main(argv: list[str] | None = None) -> int:
         end=end,
         forward_days=args.forward_days,
         horizon=args.horizon,
+        normalization_mode=args.normalization_mode,
     )
     payload = report.to_jsonable()
     text = json.dumps(payload, indent=2, default=str)

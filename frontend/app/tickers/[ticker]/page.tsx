@@ -7,7 +7,12 @@ import { getTicker } from "../../lib/api";
 import type { TickerDetail } from "../../lib/api";
 import { SparklineForSegment } from "../../components/SparklineForSegment";
 import { regimePill } from "../../lib/colors";
+import ReactMarkdown from "react-markdown";
 import { displayName } from "../../lib/score_help";
+import { EmptyState } from "../../components/ui/EmptyState";
+import { ErrorState } from "../../components/ui/ErrorState";
+import { Skeleton } from "../../components/ui/Skeleton";
+import { Card } from "../../components/ui/Card";
 
 export default function TickerDetailPage() {
   const params = useParams<{ ticker: string }>();
@@ -23,20 +28,68 @@ export default function TickerDetailPage() {
       .finally(() => setLoading(false));
   }, [ticker]);
 
-  if (loading) return <div className="text-sm text-gray-500">Loading {ticker}…</div>;
-  if (error) return <div className="rounded border border-red-200 bg-red-50 p-3 text-sm text-red-800">Error: {error}</div>;
+  function handleRetry() {
+    setLoading(true);
+    setError(null);
+    getTicker(ticker)
+      .then(d => { setDetail(d); setError(null); })
+      .catch(e => setError(e instanceof Error ? e.message : String(e)))
+      .finally(() => setLoading(false));
+  }
+
+  if (loading) {
+    return (
+      <section>
+        <Skeleton className="mb-4 h-5 w-32" />
+        <div className="mb-6 rounded border border-gray-200 bg-white p-6">
+          <Skeleton className="mb-1 h-10 w-64" />
+          <Skeleton className="h-6 w-48" />
+        </div>
+        <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <Skeleton className="h-40" />
+          <Skeleton className="h-40" />
+        </div>
+      </section>
+    );
+  }
+  if (error) {
+    return (
+      <section>
+        <div className="mb-4">
+          <Link href="/tickers" className="text-sm text-blue-700 hover:underline">← Back to tickers</Link>
+        </div>
+        <ErrorState
+          title={`Failed to load ${ticker}`}
+          message={error}
+          onRetry={handleRetry}
+        />
+      </section>
+    );
+  }
   if (!detail) return null;
 
   return (
     <section>
-      <div className="mb-4">
-        <Link href="/tickers" className="text-sm text-blue-700 hover:underline">← Back to tickers</Link>
+      <div className="mb-4 flex items-center justify-between">
+        <nav aria-label="breadcrumb" className="text-sm text-gray-500">
+          <Link href="/" className="text-blue-700 hover:underline">Quadrant</Link>
+          {" / "}
+          <Link href="/tickers" className="text-blue-700 hover:underline">Tickers</Link>
+          {" / "}
+          <span className="font-medium text-gray-900">{detail.ticker}</span>
+        </nav>
+        <Link
+          href={`/thesis?ticker=${encodeURIComponent(detail.ticker)}`}
+          className="rounded bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700"
+        >
+          + Thesis note
+        </Link>
       </div>
 
-      <div className="mb-6 rounded border border-gray-200 bg-white p-6">
+      <Card className="mb-6 p-6">
         <h1 className="mb-1 text-3xl font-bold">{detail.name}</h1>
         <p className="text-lg text-gray-500">{detail.ticker} · {detail.exchange}</p>
-      </div>
+      </Card>
 
       <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
         {detail.segments.map(seg => {
@@ -80,7 +133,7 @@ export default function TickerDetailPage() {
               </div>
             </div>
             <div className="mt-3">
-              <SparklineForSegment segment={seg.segment} horizon="near" months={6} height={28} />
+              <SparklineForSegment segment={seg.segment} horizon="near" months={6} height={40} />
             </div>
           </div>
           );
@@ -92,7 +145,13 @@ export default function TickerDetailPage() {
           <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">Companies in value chain</h2>
           <div className="flex flex-wrap gap-2">
             {detail.companies.map(c => (
-              <span key={c} className="rounded bg-gray-100 px-2 py-1 text-xs font-mono text-gray-700">{c}</span>
+              <Link
+                key={c}
+                href={`/tickers/${encodeURIComponent(c)}`}
+                className="rounded bg-gray-100 px-2 py-1 text-xs font-mono text-gray-700 hover:bg-blue-100 hover:text-blue-800"
+              >
+                {c}
+              </Link>
             ))}
           </div>
         </div>
@@ -125,7 +184,9 @@ export default function TickerDetailPage() {
                     {new Date(t.updated_at).toLocaleDateString()}
                   </span>
                 </div>
-                <p className="prose prose-sm max-w-none text-gray-700">{t.body_md}</p>
+                <div className="prose prose-sm max-w-none text-gray-700">
+                  <ReactMarkdown>{t.body_md}</ReactMarkdown>
+                </div>
               </div>
             ))}
           </div>

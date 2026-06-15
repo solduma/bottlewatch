@@ -5,20 +5,21 @@ pyproject.toml's [project.scripts]). Mirrors `refresh_daily.py`'s
 `run()/main()` structure for CLI consistency.
 
 What it does:
-1. Read the `signals` table for the latest 24mo of values per
-   (segment, signal_name) — enough for the 5y normalize band
-   (we only have 2y of data, so the band is the actual range).
-2. Prune score_history rows older than 12 months.
+1. Read the `signals` table for the latest 5y of values per
+   (segment, signal_name) to feed both current extractors and the
+   rolling 5-year normalization band.
+2. Prune score_history and sub_score_history rows older than the
+   retention window.
 3. Load the trailing 6 months of score_history per (segment, horizon)
    to compute real momentum (B').
-4. For each of 10 segments in `scoring_seed.json` and each of
-   3 horizons, call `score.compute_segment_score(...)`.
-5. Atomically rebuild the `scores` table: delete all rows, bulk
-   insert the new ones, all in one transaction. The API never
-   sees a half-populated state.
-6. Append 30 new score_history rows (one per segment × horizon).
-7. Append a JSONL line to `data/cache/refresh.log` (same log as
-   `refresh_daily.py`, so the dashboard can read both).
+4. Load the trailing 5 years of sub_score_history per
+   (segment, sub_score_name) to feed the rolling normalizer.
+5. For each segment in `scoring_seed.json` and each of 3 horizons,
+   call `score.compute_segment_score(...)`, passing raw sub-score
+   values and the configured normalization mode.
+6. Atomically rebuild the `scores` table and append both score_history
+   and sub_score_history rows.
+7. Append a JSONL line to `data/cache/refresh.log`.
 
 The job always recomputes (no watermark). Pure compute over the
 signals table is sub-second; freshness beats idempotency. The
@@ -40,7 +41,7 @@ import sys
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, Sequence
 
 from sqlalchemy import delete, select
 from sqlalchemy.exc import SQLAlchemyError
@@ -50,22 +51,33 @@ from bottlewatch.app.db import (
     Score,
     ScoreHistory,
     Signal,
+    SubScoreHistory,
     make_engine,
     make_session_factory,
     session_scope,
 )
 from bottlewatch.app.score import compute_segment_score
 from bottlewatch.app.score import extractors
+from bottlewatch.app.score import geo as geo_module
+from bottlewatch.app.score.formula import ScoreResult
+from bottlewatch.app.score.normalize import BANDS_FROZEN_SINCE, BANDS_VERSION
+from bottlewatch.app.score.regime import THRESHOLDS_FROZEN_SINCE, THRESHOLDS_VERSION
 from bottlewatch.app.score.research_values import known_segments
 from bottlewatch.config import Settings, get_settings
 
 _LOGGER = logging.getLogger(__name__)
 
 # The recompute job reads the last `_LOOKBACK_DAYS` of signals per
-# segment to feed the capacity_tightness extractors. 730d covers
-# the longest input the extractors need (24mo of retail_sales_mwh
-# for the YoY computation in _data_center_shell_tightness).
-_LOOKBACK_DAYS = 730
+# segment. 1825d (5 years) covers both the longest extractor input
+# and the rolling 5-year normalization band.
+_LOOKBACK_DAYS = 1825
+
+# EIA-860M stores `observed_at` as the *planned operation date*,
+# which is often in the future. The scoring extractor needs to see
+# forward additions, so we load `planned_capacity_mw` signals up to
+# 36 months ahead of the recompute date. Other signals stay bounded
+# by the normal lookback window.
+_PLANNED_CAPACITY_LOOKAHEAD_DAYS = 1095
 
 
 def _dry_run_url(prod_url: str) -> str:
@@ -149,8 +161,22 @@ class RunReport:
 # ---------------------------------------------------------------------------
 
 
-def _load_signals_by_segment(factory: sessionmaker, since: datetime, until: datetime) -> dict[str, list[_SignalRow]]:
-    """Read signals within the window [since, until], grouped by segment.
+def _load_signals_by_segment(
+    factory: sessionmaker,
+    since: datetime,
+    until: datetime,
+    as_of: datetime | None = None,
+) -> dict[str, list[_SignalRow]]:
+    """Read signals for the scoring window, grouped by segment.
+
+    Most signals are loaded from `since` through `until`.  EIA-860M
+    `planned_capacity_mw` rows are additionally loaded up to
+    `_PLANNED_CAPACITY_LOOKAHEAD_DAYS` after `until`, because their
+    `observed_at` is the planned operation date in the future.
+
+    When `as_of` is provided, only rows with `ingested_at <= as_of`
+    and `observed_at <= as_of.date()` are returned. This is the
+    point-in-time path used by the backtest job.
 
     Dedup contract: for sources where re-emission is the same
     data point (e.g. EIA 860M: the planned addition for plant
@@ -169,17 +195,26 @@ def _load_signals_by_segment(factory: sessionmaker, since: datetime, until: date
     """
     out: dict[str, list[_SignalRow]] = {}
     seen: set[tuple[str, str, str | None]] = set()
+    as_of_date = as_of.date() if as_of is not None else None
+
+    def _base_query(session):
+        stmt = select(
+            Signal.segment,
+            Signal.signal_name,
+            Signal.source,
+            Signal.source_id,
+            Signal.value_num,
+            Signal.observed_at,
+            Signal.ingested_at,
+        )
+        if as_of is not None:
+            stmt = stmt.where(Signal.ingested_at <= as_of).where(Signal.observed_at <= as_of_date)
+        return stmt
+
+    # 1. Normal window: all signals within [since, until].
     with session_scope(factory) as session:
         rows = session.execute(
-            select(
-                Signal.segment,
-                Signal.signal_name,
-                Signal.source,
-                Signal.source_id,
-                Signal.value_num,
-                Signal.observed_at,
-                Signal.ingested_at,
-            )
+            _base_query(session)
             .where(Signal.observed_at >= since.date())
             .where(Signal.observed_at <= until.date())
             # For idempotent sources, multiple ingestion runs emit
@@ -189,6 +224,37 @@ def _load_signals_by_segment(factory: sessionmaker, since: datetime, until: date
             # dedup below keeps the most recently ingested copy.
             .order_by(Signal.observed_at.desc(), Signal.ingested_at.desc())
         ).all()
+    _add_signal_rows(rows, out, seen)
+
+    # 2. Future planned capacity: EIA-860M `planned_capacity_mw` rows
+    # whose planned operation date is after `until` but within the
+    # lookahead horizon.  These rows use the same dedup semantics as
+    # the normal window.
+    future_until = until + timedelta(days=_PLANNED_CAPACITY_LOOKAHEAD_DAYS)
+    with session_scope(factory) as session:
+        rows = session.execute(
+            _base_query(session)
+            .where(Signal.signal_name == "planned_capacity_mw")
+            .where(Signal.observed_at > until.date())
+            .where(Signal.observed_at <= future_until.date())
+            .order_by(Signal.observed_at.desc(), Signal.ingested_at.desc())
+        ).all()
+    _add_signal_rows(rows, out, seen)
+
+    # Re-sort each segment's signals by observed_at ascending so the
+    # extractors that depend on a chronological view (YoY, latest
+    # vs prior) see the right ordering.
+    for seg_signals in out.values():
+        seg_signals.sort(key=lambda r: r.observed_at)
+    return out
+
+
+def _add_signal_rows(
+    rows: Sequence[Any],
+    out: dict[str, list[_SignalRow]],
+    seen: set[tuple[str, str, str | None]],
+) -> None:
+    """Add raw signal rows to `out`, applying idempotent-source dedup."""
     for segment, signal_name, source, source_id, value_num, observed_at, _ingested_at in rows:
         if source in _IDEMPOTENT_SOURCES:
             dedup_key = (segment, signal_name, source_id)
@@ -202,12 +268,6 @@ def _load_signals_by_segment(factory: sessionmaker, since: datetime, until: date
                 observed_at=observed_at,
             )
         )
-    # Re-sort each segment's signals by observed_at ascending so the
-    # extractors that depend on a chronological view (YoY, latest
-    # vs prior) see the right ordering.
-    for seg_signals in out.values():
-        seg_signals.sort(key=lambda r: r.observed_at)
-    return out
 
 
 # Sources whose signals are the *same data point* re-emitted on
@@ -285,38 +345,43 @@ def load_ontology_world(
     return world
 
 
-def _compute_geo_by_segment(world: Any | None) -> dict[str, float | None]:
-    """Pre-compute HHI for every known segment. Returns a dict
-    segment -> HHI (or None when the segment has no role instances
-    in the ABox). The recompute job passes this to the formula
-    one segment at a time.
+def _compute_geo_by_segment(settings: Settings, world: Any | None) -> dict[str, float | None]:
+    """Pre-compute HHI for every known segment.
+
+    Uses the universe-weighted HHI when
+    `settings.geo_concentration_source == "universe_weighted"`,
+    otherwise falls back to the ontology ABox path.
     """
+    out: dict[str, float | None] = {}
+    if settings.geo_concentration_source == "universe_weighted":
+        for segment in known_segments():
+            out[segment] = geo_module.geo_concentration(segment)
+        return out
     if world is None:
         return {}
-    out: dict[str, float | None] = {}
     for segment in known_segments():
         out[segment] = extractors.geo_concentration(segment, world)
     return out
 
 
-def _compute_demand_signal_by_segment(signals_by_segment: dict[str, list[Any]]) -> dict[str, float | None]:
+def _compute_demand_signal_by_segment(
+    signals_by_segment: dict[str, list[Any]],
+) -> dict[str, extractors.ExtractorResult | None]:
     """Pre-compute the dynamic `demand_signal` sub-score for every
-    known segment. Returns a dict segment -> score (or None when
-    the segment has no dynamic extractor in the current data set).
-
-    Mirrors `_compute_geo_by_segment`. Currently only
-    `transformers_tnd` has a dynamic demand_signal (FRED `A35SNO`
-    electrical equipment new orders). The other segments fall
-    back to the static seed value in `research_values`.
+    known segment. Returns raw ExtractorResults (or None when the
+    segment has no dynamic extractor). The formula falls back to the
+    static seed value when None.
     """
-    out: dict[str, float | None] = {}
+    out: dict[str, extractors.ExtractorResult | None] = {}
     for segment in known_segments():
         seg_signals = signals_by_segment.get(segment, [])
         out[segment] = extractors.demand_signal(segment, seg_signals)
     return out
 
 
-def _compute_lead_time_by_segment(signals_by_segment: dict[str, list[Any]]) -> dict[str, float | None]:
+def _compute_lead_time_by_segment(
+    signals_by_segment: dict[str, list[Any]],
+) -> dict[str, extractors.ExtractorResult | None]:
     """Pre-compute the dynamic `lead_time_growth` sub-score for
     every known segment. Returns a dict segment -> score (or None
     when the segment has no dynamic extractor in the current data
@@ -328,27 +393,71 @@ def _compute_lead_time_by_segment(signals_by_segment: dict[str, list[Any]]) -> d
     `WPU1321` transformer PPI absolute level). The other segments
     fall back to the static seed value in `research_values`.
     """
-    out: dict[str, float | None] = {}
+    out: dict[str, extractors.ExtractorResult | None] = {}
     for segment in known_segments():
         seg_signals = signals_by_segment.get(segment, [])
         out[segment] = extractors.lead_time_growth(segment, seg_signals)
     return out
 
 
-def _load_score_history(factory: sessionmaker, until: datetime) -> dict[tuple[str, str], list[tuple[datetime, float]]]:
-    """Read the trailing 7 months of score_history per (segment, horizon) relative to until."""
+def _load_score_history(
+    factory: sessionmaker,
+    until: datetime,
+    as_of: datetime | None = None,
+) -> dict[tuple[str, str], list[tuple[datetime, float]]]:
+    """Read the trailing 7 months of score_history per (segment, horizon) relative to until.
+
+    When `as_of` is provided, rows are further restricted to
+    `computed_at <= as_of` for point-in-time backtests.
+    """
     cutoff = until - timedelta(days=210)  # 7 months
+    upper = min(until, as_of) if as_of is not None else until
     out: dict[tuple[str, str], list[tuple[datetime, float]]] = {}
     with session_scope(factory) as session:
         rows = session.execute(
             select(ScoreHistory.segment, ScoreHistory.horizon, ScoreHistory.computed_at, ScoreHistory.b)
             .where(ScoreHistory.computed_at >= cutoff)
-            .where(ScoreHistory.computed_at < until)
+            .where(ScoreHistory.computed_at < upper)
             .order_by(ScoreHistory.computed_at.asc())
         ).all()
     for seg, hor, comp_at, b in rows:
         if b is not None:
             out.setdefault((seg, hor), []).append((comp_at, b))
+    return out
+
+
+def _load_sub_score_history(
+    factory: sessionmaker,
+    until: datetime,
+    as_of: datetime | None = None,
+) -> dict[tuple[str, str], list[tuple[float, float]]]:
+    """Read trailing 5 years of raw sub-score values per (segment, name).
+
+    Returns a dict keyed by (segment, sub_score_name) with a list of
+    (unix_timestamp, raw_value) pairs for rolling normalization.
+
+    When `as_of` is provided, rows are restricted to
+    `computed_at <= as_of` for point-in-time backtests.
+    """
+    cutoff = until - timedelta(days=1825)
+    upper = min(until, as_of) if as_of is not None else until
+    out: dict[tuple[str, str], list[tuple[float, float]]] = {}
+    with session_scope(factory) as session:
+        rows = session.execute(
+            select(
+                SubScoreHistory.segment,
+                SubScoreHistory.sub_score_name,
+                SubScoreHistory.computed_at,
+                SubScoreHistory.raw_value,
+            )
+            .where(SubScoreHistory.computed_at >= cutoff)
+            .where(SubScoreHistory.computed_at < upper)
+            .where(SubScoreHistory.raw_value.is_not(None))
+            .order_by(SubScoreHistory.computed_at.asc())
+        ).all()
+    for seg, name, comp_at, raw in rows:
+        ts = comp_at.timestamp()
+        out.setdefault((seg, name), []).append((ts, raw))
     return out
 
 
@@ -360,6 +469,7 @@ def run(
     now: datetime | None = None,
     skip_prune: bool = False,
     ontology_world: Any | None = None,
+    as_of: datetime | None = None,
 ) -> RunReport:
     """Rebuild the scores table for all segments × horizons.
 
@@ -376,6 +486,10 @@ def run(
             missing owlready2 produces a `world=None` and the
             formula falls back to the seed value for
             `geo_concentration` (preserving M2 stopgap behavior).
+        as_of: point-in-time recompute boundary. When provided,
+            signals and history are filtered to data available on or
+            before `as_of`. Production daily runs should leave this
+            as None.
     """
     settings = settings or get_settings()
     started = now or datetime.now(tz=timezone.utc)
@@ -385,9 +499,25 @@ def run(
     else:
         naive_now = started
 
+    # Point-in-time runs use as_of as the effective "now".
+    effective_now = as_of if as_of is not None else naive_now
+    if effective_now.tzinfo:
+        effective_now = effective_now.astimezone(timezone.utc).replace(tzinfo=None)
+
     if factory is None:
         db_url = _dry_run_url(settings.database_url) if dry_run else settings.database_url
         factory = make_session_factory(make_engine(db_url))
+
+    _LOGGER.info(
+        "recompute: using regime thresholds %s (frozen since %s)",
+        THRESHOLDS_VERSION,
+        THRESHOLDS_FROZEN_SINCE or "unknown",
+    )
+    _LOGGER.info(
+        "recompute: using score bands %s (frozen since %s)",
+        BANDS_VERSION,
+        BANDS_FROZEN_SINCE or "unknown",
+    )
 
     segments = known_segments()
     horizons = settings.score_horizons
@@ -402,48 +532,50 @@ def run(
             detail="no segments in scoring_seed.json",
         )
 
-    # Load ontology (once) and pre-compute per-segment HHI.
+    # Load HHI source based on feature flag.
     if ontology_world is None:
         ontology_world = load_ontology_world()
-    geo_by_segment = _compute_geo_by_segment(ontology_world)
+    geo_by_segment = _compute_geo_by_segment(settings, ontology_world)
 
     # Snapshot existing first_computed_at before we delete rows.
     existing = _load_existing_first_computed_at(factory)
     # Load trailing 6mo of score_history for momentum formula.
-    score_history = _load_score_history(factory, until=naive_now)
+    score_history = _load_score_history(factory, until=effective_now, as_of=as_of)
+    # Load trailing 5y of sub_score_history for rolling normalization.
+    sub_score_history = _load_sub_score_history(factory, until=effective_now, as_of=as_of)
 
-    since = started - timedelta(days=_LOOKBACK_DAYS)
-    signals_by_segment = _load_signals_by_segment(factory, since=since, until=started)
+    since = effective_now - timedelta(days=_LOOKBACK_DAYS)
+    signals_by_segment = _load_signals_by_segment(factory, since=since, until=effective_now, as_of=as_of)
 
-    # Pre-compute per-segment dynamic `demand_signal` (FRED
-    # `A35SNO` for `transformers_tnd`; None for everything else,
-    # which falls back to the static seed value).
+    # Pre-compute per-segment dynamic `demand_signal` and
+    # `lead_time_growth` (raw values + source keys).
     demand_signal_by_segment = _compute_demand_signal_by_segment(signals_by_segment)
-
-    # Pre-compute per-segment dynamic `lead_time_growth` (FRED
-    # `WPU1321` for `transformers_tnd`; None for everything else,
-    # which falls back to the static seed value).
     lead_time_by_segment = _compute_lead_time_by_segment(signals_by_segment)
 
     new_rows: list[dict[str, Any]] = []
     history_rows: list[dict[str, Any]] = []
+    sub_score_rows: list[dict[str, Any]] = []
     no_data_count = 0
     for segment in segments:
         seg_signals = signals_by_segment.get(segment, [])
+        segment_result: ScoreResult | None = None
         for horizon in horizons:
             first_at = existing.get((segment, horizon))
             b_hist = score_history.get((segment, horizon), [])
             result = compute_segment_score(
                 segment,
                 horizon,
-                signals=seg_signals,
+                signals=seg_signals,  # type: ignore[arg-type]
                 b_history=b_hist,
                 first_computed_at=first_at,
-                now=naive_now,
+                now=effective_now,
                 geo_concentration=geo_by_segment.get(segment),
                 demand_signal=demand_signal_by_segment.get(segment),
                 lead_time_growth=lead_time_by_segment.get(segment),
+                normalization_mode=settings.score_normalization_mode,
+                sub_score_history=sub_score_history,
             )
+            segment_result = result
             if result.regime.value == "NO_DATA":
                 no_data_count += 1
             new_rows.append(result.to_persisted())
@@ -454,19 +586,41 @@ def run(
                     "b": result.score,
                     "momentum": result.momentum,
                     "regime": result.regime.value,
-                    "computed_at": naive_now,
+                    "normalization_mode": settings.score_normalization_mode,
+                    "computed_at": effective_now,
                 }
             )
+        if segment_result is not None:
+            for name, raw in segment_result.raw_sub_scores.items():
+                # Use the normalized value from sub_scores (which is never None
+                # because the normalizer substitutes 0.5 for missing values).
+                normalized = segment_result.sub_scores[name]
+                sub_score_rows.append(
+                    {
+                        "segment": segment,
+                        "sub_score_name": name,
+                        "computed_at": effective_now,
+                        "raw_value": raw,
+                        "normalized_value": normalized,
+                        "normalization_mode": segment_result.normalization_mode,
+                        # Band bounds are not returned by the normalizer today;
+                        # leave them null. They can be added later if needed for audit.
+                        "band_min": None,
+                        "band_max": None,
+                        "history_span_days": None,
+                    }
+                )
 
     # Atomic rebuild.
     with session_scope(factory) as session:
         if not skip_prune:
-            # Prune score_history rows older than 12 months before inserting new ones.
             prune_cutoff = naive_now - timedelta(days=_RETENTION_DAYS)
             session.execute(delete(ScoreHistory).where(ScoreHistory.computed_at < prune_cutoff))
+            session.execute(delete(SubScoreHistory).where(SubScoreHistory.computed_at < prune_cutoff))
         session.execute(delete(Score))
-        session.bulk_insert_mappings(Score, new_rows)
-        session.bulk_insert_mappings(ScoreHistory, history_rows)
+        session.bulk_insert_mappings(Score, new_rows)  # type: ignore[arg-type]
+        session.bulk_insert_mappings(ScoreHistory, history_rows)  # type: ignore[arg-type]
+        session.bulk_insert_mappings(SubScoreHistory, sub_score_rows)  # type: ignore[arg-type]
 
     finished = datetime.now(tz=timezone.utc)
     _append_log(
@@ -476,7 +630,7 @@ def run(
             "source": "score_recompute",
             "status": "OK",
             "rows_written": len(new_rows),
-            "detail": f"{len(segments)} segments x {len(horizons)} horizons; {no_data_count} NO_DATA",
+            "detail": f"{len(segments)} segments x {len(horizons)} horizons; {no_data_count} NO_DATA; norm={settings.score_normalization_mode}; geo={settings.geo_concentration_source}",
             "dry_run": dry_run,
         },
     )

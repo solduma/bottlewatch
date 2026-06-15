@@ -18,6 +18,7 @@ uninstall_agent() {
     fi
 }
 
+uninstall_agent com.bottlewatch.daily
 uninstall_agent com.bottlewatch.refresh
 uninstall_agent com.bottlewatch.recompute
 

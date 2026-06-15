@@ -39,6 +39,8 @@ import rdflib
 from rdflib import Graph, Literal, Namespace, URIRef
 from rdflib.namespace import RDF, XSD
 
+from bottlewatch.app.score.geo import _EXCHANGE_TO_REGION
+
 # Namespace: ontology is the default prefix; individuals share it.
 BW = Namespace("http://bottlewatch.org/ontology#")
 
@@ -95,35 +97,6 @@ _ROLE_KIND_TO_PROPERTY: dict[str, URIRef] = {
     "supplies": BW.supplies,
     "suppliesCommodity": BW.suppliesCommodity,
     "dependsOnCommodity": BW.dependsOnCommodity,
-}
-
-# Exchange -> default home region. Used to seed `operatesIn` when the
-# value chain map has no geographic info. This is a *placeholder*: the
-# home country/region for each company is a known gap (see report).
-_EXCHANGE_TO_REGION: dict[str, str] = {
-    "NYSE": "NorthAmerica",
-    "NASDAQ": "NorthAmerica",
-    "NYSEMKT": "NorthAmerica",
-    "AMEX": "NorthAmerica",
-    "OTCQX": "NorthAmerica",
-    "TSE": "Japan",
-    "TYO": "Japan",
-    "KRX": "Korea",
-    "KOSPI": "Korea",
-    "TWSE": "Taiwan",
-    "FRA": "Europe",
-    "XETRA": "Europe",
-    "ETR": "Europe",
-    "EPA": "Europe",
-    "BME": "Europe",
-    "OSLO": "Europe",
-    "LSE": "Europe",
-    "HKEX": "GreaterChina",
-    "SSE": "GreaterChina",
-    "SZSE": "GreaterChina",
-    "SGX": "SoutheastAsia",
-    "TADAWUL": "MiddleEast",
-    "OTHER": "NorthAmerica",  # best-effort default for ADR/private trackers
 }
 
 

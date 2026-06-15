@@ -2,16 +2,7 @@
 
 import Link from "next/link";
 import type { Regime } from "../lib/api";
-
-const REGIME_COLOR: Record<Regime, string> = {
-  PEAKING: "bg-amber-100 text-amber-900 ring-amber-300",
-  PEAKED: "bg-red-100 text-red-900 ring-red-300",
-  RESOLVING: "bg-emerald-100 text-emerald-900 ring-emerald-300",
-  EMERGING: "bg-blue-100 text-blue-900 ring-blue-300",
-  STABLE: "bg-gray-100 text-gray-700 ring-gray-300",
-  RESOLVING_FROM_LOW: "bg-emerald-50 text-emerald-800 ring-emerald-200",
-  NO_DATA: "bg-gray-50 text-gray-500 ring-gray-200",
-};
+import { regimePill } from "../lib/colors";
 
 /**
  * Clickable segment badge. Default behavior is a `<button>` that
@@ -46,25 +37,17 @@ export function SegmentBadge({
   /** Visual state when onToggle is used — adds a ring emphasis. */
   expanded?: boolean;
 }) {
-  const color = REGIME_COLOR[regime] ?? REGIME_COLOR.NO_DATA;
+  const color = regimePill(regime);
   const ringWidth = expanded ? "ring-2 ring-offset-1" : "ring-1";
-  // The badge text is the human name when available; the slug
-  // shows in a small subscript for technical reference. If
-  // only the slug is known (no name yet), show the slug in
-  // the main line — no duplicate text.
   const display = name && name !== segment ? name : segment;
-  const showSlugSubscript = name && name !== segment;
   const content = (
     <>
-      <span className="font-mono text-sm">
+      <span className="font-mono text-xs leading-none">
         {score === null ? "—" : score.toFixed(0)}
       </span>
-      <span className="text-[10px] uppercase tracking-wide opacity-80">
+      <span className="truncate text-[10px] uppercase tracking-wide leading-none opacity-90">
         {display}
       </span>
-      {showSlugSubscript && (
-        <span className="font-mono text-[8px] opacity-60">{segment}</span>
-      )}
     </>
   );
 
@@ -73,7 +56,7 @@ export function SegmentBadge({
       <Link
         href={href}
         title={name ? `${name} (${segment})` : segment}
-        className={`flex flex-col gap-0.5 rounded px-3 py-1.5 text-xs font-medium ring-1 transition hover:ring-2 ${color}`}
+        className={`flex flex-col rounded px-2 py-1 text-xs font-medium transition hover:ring-2 ${color}`}
       >
         {content}
       </Link>
@@ -86,7 +69,7 @@ export function SegmentBadge({
         onClick={(e) => onToggle(segment, e.currentTarget)}
         aria-expanded={expanded}
         title={name ? `${name} (${segment})` : segment}
-        className={`flex flex-col gap-0.5 rounded px-3 py-1.5 text-xs font-medium ${ringWidth} transition hover:ring-2 ${color}`}
+        className={`flex flex-col rounded px-2 py-1 text-xs font-medium ${ringWidth} transition hover:ring-2 ${color}`}
       >
         {content}
       </button>
@@ -96,7 +79,7 @@ export function SegmentBadge({
   return (
     <div
       title={name ? `${name} (${segment})` : segment}
-      className={`flex flex-col gap-0.5 rounded px-3 py-1.5 text-xs font-medium ring-1 ${color}`}
+      className={`flex flex-col rounded px-2 py-1 text-xs font-medium ${color}`}
     >
       {content}
     </div>

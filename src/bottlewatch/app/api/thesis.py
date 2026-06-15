@@ -1,4 +1,4 @@
-"""GET/POST/DELETE /api/v1/thesis.
+"""GET/POST/PUT/DELETE /api/v1/thesis.
 
 User-authored thesis notes — the override-audit-trail for the hard
 guard. A user who wants to argue against a RESOLVING regime writes
@@ -89,6 +89,38 @@ def create_thesis(request: Request, body: ThesisCreate) -> ThesisRow:
     )
     with factory() as session:
         session.add(thesis)
+        session.commit()
+        session.refresh(thesis)
+    return ThesisRow(
+        id=thesis.id,
+        segment=thesis.segment,
+        ticker=thesis.ticker,
+        side=thesis.side,
+        body_md=thesis.body_md,
+        created_at=thesis.created_at,
+        updated_at=thesis.updated_at,
+    )
+
+
+@router.put("/thesis/{thesis_id}", response_model=ThesisRow)
+def update_thesis(
+    request: Request,
+    body: ThesisCreate,
+    thesis_id: int = Path(...),
+) -> ThesisRow:
+    """Replace an existing thesis note. Full replacement of the editable fields."""
+    from bottlewatch.app.db import Thesis
+
+    factory = request.app.state.session_factory
+    with factory() as session:
+        thesis = session.get(Thesis, thesis_id)
+        if thesis is None:
+            raise HTTPException(status_code=404, detail=f"thesis {thesis_id} not found")
+        thesis.segment = body.segment
+        thesis.ticker = body.ticker
+        thesis.side = body.side
+        thesis.body_md = body.body_md
+        thesis.updated_at = datetime.now(tz=timezone.utc).replace(tzinfo=None)
         session.commit()
         session.refresh(thesis)
     return ThesisRow(

@@ -1,3 +1,28 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Sticky first column for horizontally scrolling tables.
+ * Applied to tables that live inside an overflow-x-auto wrapper.
+ * The pseudo-element adds a subtle right-edge shadow cue so users
+ * perceive the column as floating above the scrolled content.
+ */
+.sticky-first-col th:first-child,
+.sticky-first-col td:first-child {
+  position: sticky;
+  left: 0;
+  background-color: white;
+  z-index: 10;
+}
+
+.sticky-first-col th:first-child::after,
+.sticky-first-col td:first-child::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 4px;
+  background: linear-gradient(to right, rgba(0, 0, 0, 0.06), transparent);
+  pointer-events: none;
+}

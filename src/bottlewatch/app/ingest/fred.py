@@ -18,22 +18,58 @@ from bottlewatch.config import Settings
 
 @dataclass(frozen=True)
 class SeriesSpec:
-    """Map of FRED series ID to bottleneck segment and signal name."""
+    """Map of FRED series ID to bottleneck segment(s) and signal name."""
 
     series_id: str
-    segment: str
+    segments: list[str]
     signal_name: str
     unit: str
 
+
+# Segments that receive the Phase 1 cross-segment FRED proxies.
+# These mirrors the constants in app/score/extractors.py.
+_SEMI_SEGMENTS = [
+    "advanced_node_fabs",
+    "hbm_memory",
+    "gpu_asic_silicon",
+    "networking_interconnect",
+    "advanced_packaging",
+]
+
+_MANUFACTURING_SEGMENTS = [
+    "systems_rack_scale",
+    "cooling_water",
+    "power_generation_oem",
+]
 
 _SERIES_SPEC = [
     # research/03_data_sources.md §4: the load-bearing FRED series
     # for the bottleneck thesis. Series IDs are case-sensitive and
     # silently 404 on typos — verified against the FRED catalog.
-    SeriesSpec("INDPRO", "general_manufacturing", "industrial_production", "index"),
-    SeriesSpec("TCU", "general_manufacturing", "capacity_utilization", "percent"),
-    SeriesSpec("WPU31132506", "semiconductors", "ppi_semis", "index"),
-    SeriesSpec("WPU1321", "transformers_tnd", "ppi_transformers", "index"),
+    SeriesSpec(
+        "INDPRO",
+        _MANUFACTURING_SEGMENTS,
+        "industrial_production",
+        "index",
+    ),
+    SeriesSpec(
+        "TCU",
+        _MANUFACTURING_SEGMENTS,
+        "capacity_utilization",
+        "percent",
+    ),
+    SeriesSpec(
+        "WPU31132506",
+        _SEMI_SEGMENTS,
+        "ppi_semis",
+        "index",
+    ),
+    SeriesSpec(
+        "WPU1321",
+        ["transformers_tnd"],
+        "ppi_transformers",
+        "index",
+    ),
     # A35SNO = "Manufacturers' New Orders: Electrical Equipment,
     # Appliances and Components" (monthly, SA). This is the
     # upstream demand-pull signal for `transformers_tnd` —
@@ -42,7 +78,12 @@ _SERIES_SPEC = [
     # capex. Manufacturers' new orders for the equipment class
     # that includes transformers is a strong direct proxy.
     # Verified against the FRED catalog 2026-06-10.
-    SeriesSpec("A35SNO", "transformers_tnd", "electrical_equipment_orders", "index"),
+    SeriesSpec(
+        "A35SNO",
+        ["transformers_tnd"],
+        "electrical_equipment_orders",
+        "index",
+    ),
 ]
 
 
@@ -117,19 +158,22 @@ class FredAdapter:
             except ValueError:
                 val_num = None
 
-            results.append(
-                RawSignal(
-                    segment=spec.segment,
-                    signal_name=spec.signal_name,
-                    value_num=val_num,
-                    value_text=val_text,
-                    unit=spec.unit,
-                    source=self.name,
-                    source_id=spec.series_id,
-                    observed_at=date.fromisoformat(obs["date"]),
-                    geography="US",
+            # Emit one signal per target segment so the scoring
+            # extractor for each segment sees the same macro proxy.
+            for segment in spec.segments:
+                results.append(
+                    RawSignal(
+                        segment=segment,
+                        signal_name=spec.signal_name,
+                        value_num=val_num,
+                        value_text=val_text,
+                        unit=spec.unit,
+                        source=self.name,
+                        source_id=spec.series_id,
+                        observed_at=date.fromisoformat(obs["date"]),
+                        geography="US",
+                    )
                 )
-            )
 
         return results
 

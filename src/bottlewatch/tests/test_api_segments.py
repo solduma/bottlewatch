@@ -63,14 +63,15 @@ async def test_detail_returns_404_for_unknown(client: AsyncClient) -> None:
 
 @pytest.mark.asyncio
 async def test_research_only_segment_has_no_data_regime(client: AsyncClient, settings, factory) -> None:
-    """transformers_tnd has no extractor → completeness 0.8, but
-    that's > 0.4 so it gets a real regime (STABLE/PEAKED). The
-    NO_DATA label is reserved for < 0.4 completeness.
+    """transformers_tnd has no live capacity_tightness extractor, so that
+    sub-score is imputed as 0.5. Completeness is now 1.0 because the
+    normalizer fills missing values; the regime is still real (not
+    NO_DATA).
     """
     recompute_scores.run(settings=settings, factory=factory)
     body = (await client.get("/api/v1/segments/transformers_tnd")).json()
     near = next(h for h in body["horizons"] if h["horizon"] == "near")
-    assert near["data_completeness"] == 0.8
+    assert near["data_completeness"] == 1.0
     assert near["regime"] != "NO_DATA"
 
 

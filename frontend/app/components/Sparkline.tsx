@@ -2,20 +2,30 @@
 
 import { useMemo } from "react";
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import type { ScoreHistoryPoint } from "../lib/api";
+import type { Regime, ScoreHistoryPoint } from "../lib/api";
+import { REGIME_CLASSES } from "../lib/colors";
 
-// Regime-aligned line color. Matches the badge palette but as a single
-// solid stroke for the sparkline (badges use background + text colors;
-// we only need a stroke).
-const REGIME_STROKE: Record<string, string> = {
-  PEAKING: "#f59e0b", // amber-500
-  PEAKED: "#ef4444", // red-500
-  RESOLVING: "#10b981", // emerald-500
-  EMERGING: "#3b82f6", // blue-500
-  STABLE: "#6b7280", // gray-500
-  RESOLVING_FROM_LOW: "#34d399", // emerald-400
-  NO_DATA: "#9ca3af", // gray-400
+// Regime-aligned stroke colors derived from the canonical Tailwind
+// palette in lib/colors.ts. Badges render bg/text classes; sparklines
+// need a single solid hex color, so we map each canonical color family
+// to a 500-level stroke. NO_DATA uses a lighter gray so it doesn't
+// compete with real regimes.
+const HEX_FOR_COLOR: Record<string, string> = {
+  red: "#ef4444", // red-500
+  orange: "#f97316", // orange-500
+  emerald: "#10b981", // emerald-500
+  blue: "#3b82f6", // blue-500
+  gray: "#6b7280", // gray-500
+  teal: "#14b8a6", // teal-500
 };
+const NO_DATA_STROKE = "#9ca3af"; // gray-400
+
+const REGIME_STROKE: Record<string, string> = Object.fromEntries(
+  (Object.keys(REGIME_CLASSES) as Regime[]).map((regime) => {
+    const family = REGIME_CLASSES[regime].text.split("-")[1];
+    return [regime, regime === "NO_DATA" ? NO_DATA_STROKE : (HEX_FOR_COLOR[family] ?? NO_DATA_STROKE)];
+  }),
+);
 
 /**
  * Tiny time-series plot of B (the score, 0-100) over the trailing N

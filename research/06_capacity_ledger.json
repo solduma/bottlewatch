@@ -1,0 +1,59 @@
+{
+  "_comment": "Manual hyperscaler AI capex ledger for the demand_signal sub-score. Entries are AI-specific or total cloud infrastructure capex where AI-specific is not disclosed. Update within 5 business days of each ticker filing its 10-Q/earnings. Source URLs should point to the earnings release or SEC filing.",
+  "data_center_shell": {
+    "signal_name": "hyperscaler_ai_capex",
+    "unit": "USD_B",
+    "entries": [
+      {"ticker": "MSFT", "fiscal_quarter": "2024-Q3", "ai_capex_usd_b": 14.9, "source": "earnings", "url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0000789019&type=10-Q&dateb=&owner=include&count=40", "updated_by": "seed"},
+      {"ticker": "MSFT", "fiscal_quarter": "2024-Q4", "ai_capex_usd_b": 20.0, "source": "earnings", "url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0000789019&type=10-Q&dateb=&owner=include&count=40", "updated_by": "seed"},
+      {"ticker": "MSFT", "fiscal_quarter": "2025-Q1", "ai_capex_usd_b": 21.4, "source": "earnings", "url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0000789019&type=10-Q&dateb=&owner=include&count=40", "updated_by": "seed"},
+      {"ticker": "MSFT", "fiscal_quarter": "2025-Q2", "ai_capex_usd_b": 21.8, "source": "earnings", "url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0000789019&type=10-Q&dateb=&owner=include&count=40", "updated_by": "seed"},
+      {"ticker": "MSFT", "fiscal_quarter": "2025-Q3", "ai_capex_usd_b": 22.6, "source": "earnings", "url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0000789019&type=10-Q&dateb=&owner=include&count=40", "updated_by": "seed"},
+      {"ticker": "GOOG", "fiscal_quarter": "2024-Q3", "ai_capex_usd_b": 13.0, "source": "earnings", "url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0001652044&type=10-Q&dateb=&owner=include&count=40", "updated_by": "seed"},
+      {"ticker": "GOOG", "fiscal_quarter": "2024-Q4", "ai_capex_usd_b": 14.0, "source": "earnings", "url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0001652044&type=10-Q&dateb=&owner=include&count=40", "updated_by": "seed"},
+      {"ticker": "GOOG", "fiscal_quarter": "2025-Q1", "ai_capex_usd_b": 16.0, "source": "earnings", "url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0001652044&type=10-Q&dateb=&owner=include&count=40", "updated_by": "seed"},
+      {"ticker": "GOOG", "fiscal_quarter": "2025-Q2", "ai_capex_usd_b": 17.2, "source": "earnings", "url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0001652044&type=10-Q&dateb=&owner=include&count=40", "updated_by": "seed"},
+      {"ticker": "GOOG", "fiscal_quarter": "2025-Q3", "ai_capex_usd_b": 18.5, "source": "earnings", "url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0001652044&type=10-Q&dateb=&owner=include&count=40", "updated_by": "seed"},
+      {"ticker": "AMZN", "fiscal_quarter": "2024-Q3", "ai_capex_usd_b": 22.5, "source": "earnings", "url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0001018724&type=10-Q&dateb=&owner=include&count=40", "updated_by": "seed"},
+      {"ticker": "AMZN", "fiscal_quarter": "2024-Q4", "ai_capex_usd_b": 27.8, "source": "earnings", "url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0001018724&type=10-Q&dateb=&owner=include&count=40", "updated_by": "seed"},
+      {"ticker": "AMZN", "fiscal_quarter": "2025-Q1", "ai_capex_usd_b": 24.0, "source": "earnings", "url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0001018724&type=10-Q&dateb=&owner=include&count=40", "updated_by": "seed"},
+      {"ticker": "AMZN", "fiscal_quarter": "2025-Q2", "ai_capex_usd_b": 23.6, "source": "earnings", "url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0001018724&type=10-Q&dateb=&owner=include&count=40", "updated_by": "seed"},
+      {"ticker": "AMZN", "fiscal_quarter": "2025-Q3", "ai_capex_usd_b": 24.3, "source": "earnings", "url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0001018724&type=10-Q&dateb=&owner=include&count=40", "updated_by": "seed"},
+      {"ticker": "META", "fiscal_quarter": "2024-Q3", "ai_capex_usd_b": 8.0, "source": "earnings", "url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0001326801&type=10-Q&dateb=&owner=include&count=40", "updated_by": "seed"},
+      {"ticker": "META", "fiscal_quarter": "2024-Q4", "ai_capex_usd_b": 12.5, "source": "earnings", "url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0001326801&type=10-Q&dateb=&owner=include&count=40", "updated_by": "seed"},
+      {"ticker": "META", "fiscal_quarter": "2025-Q1", "ai_capex_usd_b": 13.7, "source": "earnings", "url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0001326801&type=10-Q&dateb=&owner=include&count=40", "updated_by": "seed"},
+      {"ticker": "META", "fiscal_quarter": "2025-Q2", "ai_capex_usd_b": 14.4, "source": "earnings", "url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0001326801&type=10-Q&dateb=&owner=include&count=40", "updated_by": "seed"},
+      {"ticker": "META", "fiscal_quarter": "2025-Q3", "ai_capex_usd_b": 15.5, "source": "earnings", "url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0001326801&type=10-Q&dateb=&owner=include&count=40", "updated_by": "seed"},
+      {"ticker": "ORCL", "fiscal_quarter": "2024-Q3", "ai_capex_usd_b": 3.0, "source": "earnings", "url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0001341439&type=10-Q&dateb=&owner=include&count=40", "updated_by": "seed"},
+      {"ticker": "ORCL", "fiscal_quarter": "2024-Q4", "ai_capex_usd_b": 3.5, "source": "earnings", "url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0001341439&type=10-Q&dateb=&owner=include&count=40", "updated_by": "seed"},
+      {"ticker": "ORCL", "fiscal_quarter": "2025-Q1", "ai_capex_usd_b": 4.2, "source": "earnings", "url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0001341439&type=10-Q&dateb=&owner=include&count=40", "updated_by": "seed"},
+      {"ticker": "ORCL", "fiscal_quarter": "2025-Q2", "ai_capex_usd_b": 4.8, "source": "earnings", "url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0001341439&type=10-Q&dateb=&owner=include&count=40", "updated_by": "seed"},
+      {"ticker": "ORCL", "fiscal_quarter": "2025-Q3", "ai_capex_usd_b": 5.5, "source": "earnings", "url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0001341439&type=10-Q&dateb=&owner=include&count=40", "updated_by": "seed"}
+    ]
+  },
+  "gpu_asic_silicon": {
+    "signal_name": "hyperscaler_ai_capex",
+    "unit": "USD_B",
+    "entries_ref": "data_center_shell"
+  },
+  "advanced_node_fabs": {
+    "signal_name": "hyperscaler_ai_capex",
+    "unit": "USD_B",
+    "entries_ref": "data_center_shell"
+  },
+  "hbm_memory": {
+    "signal_name": "hyperscaler_ai_capex",
+    "unit": "USD_B",
+    "entries_ref": "data_center_shell"
+  },
+  "networking_interconnect": {
+    "signal_name": "hyperscaler_ai_capex",
+    "unit": "USD_B",
+    "entries_ref": "data_center_shell"
+  },
+  "advanced_packaging": {
+    "signal_name": "hyperscaler_ai_capex",
+    "unit": "USD_B",
+    "entries_ref": "data_center_shell"
+  }
+}

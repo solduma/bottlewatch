@@ -22,6 +22,8 @@ dependencies = [
     "uvicorn[standard]>=0.30",  # M2 ASGI server (httptools + uvloop extras)
     "psycopg[binary]>=3.2",  # Postgres adapter (v1.1 cutover target)
     "beautifulsoup4>=4.12",  # 10-K/10-Q HTML stripping for sec_edgar capacity keyword extraction
+    "anthropic>=0.49",  # daily research reasoning (Claude API)
+    "scipy>=1.14",  # Phase 3 backtest statistics (Spearman, t-dist, bootstrap)
 ]
 
 [dependency-groups]
@@ -33,6 +35,8 @@ dev = [
     "respx>=0.21",
     "pytest-cov>=5.0",
     "xlsxwriter>=3.0",  # polars XLSX writer backend (test fixtures for 860M)
+    "matplotlib>=3.9",  # Phase 3 backtest report notebook
+    "jupyter>=1.1",  # execute research notebooks
 ]
 
 [project.scripts]
@@ -42,6 +46,7 @@ bottlewatch-refresh    = "bottlewatch.jobs.refresh_daily:main"
 bottlewatch-recompute  = "bottlewatch.jobs.recompute_scores:main"
 bottlewatch-backtest   = "bottlewatch.jobs.backtest:main"
 bottlewatch-map-mermaid = "bottlewatch.jobs.map_mermaid:main"
+bottlewatch-research = "bottlewatch.jobs.research_daily:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/bottlewatch"]

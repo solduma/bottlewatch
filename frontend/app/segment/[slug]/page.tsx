@@ -1,7 +1,10 @@
 import { notFound } from "next/navigation";
-import type { Horizon, Regime, SegmentScore, TickerRow } from "../../lib/api";
+import Link from "next/link";
+import ReactMarkdown from "react-markdown";
+import type { Horizon, Regime, SegmentScore, SubScoreValue } from "../../lib/api";
 import { getSegment, listTickers } from "../../lib/api";
 import { RegimeBadge } from "../../components/RegimeBadge";
+import { TickersTable } from "../../components/TickersTable";
 import { displayName } from "../../lib/score_help";
 
 const SUB_SCORE_LABELS: Record<string, string> = {
@@ -19,6 +22,35 @@ const SUB_SCORE_COLORS = [
   "bg-violet-500",
   "bg-emerald-500",
 ];
+
+function sourceBadge(
+  source: string,
+  confidence: string,
+  imputed: boolean,
+  normalizationMode: SubScoreValue["normalization_mode"],
+) {
+  const base = "ml-1 rounded px-1 py-0 text-[10px] font-medium";
+  if (source === "extractor") {
+    const modeLabel = normalizationMode ? ` (${normalizationMode})` : "";
+    return (
+      <span className={`${base} bg-green-100 text-green-800`} title={`Source: live extractor (${confidence} confidence)${modeLabel}`}>
+        live
+      </span>
+    );
+  }
+  if (imputed || source === "imputed") {
+    return (
+      <span className={`${base} bg-gray-100 text-gray-600`} title="Value imputed because no source was available">
+        imputed
+      </span>
+    );
+  }
+  return (
+    <span className={`${base} bg-yellow-100 text-yellow-800`} title="Value from static research seed">
+      seed
+    </span>
+  );
+}
 
 /**
  * Static implication string per regime per horizon.
@@ -78,13 +110,46 @@ export default async function SegmentDetailPage({
   const horizons: SegmentScore[] = ["near", "med", "long"]
     .map((h) => detail.horizons.find((x) => x.horizon === h))
     .filter((x): x is SegmentScore => x !== undefined);
+  const nearRegime = horizons.find((h) => h.horizon === "near")?.regime;
+  const signals = detail.signals
+    .slice()
+    .sort((a, b) => new Date(b.observed_at).getTime() - new Date(a.observed_at).getTime());
   return (
     <section>
-      <h1 className="mb-0.5 text-2xl font-semibold">{detail.name || detail.segment}</h1>
+      <div className="mb-2 flex items-center gap-3 text-sm text-blue-700">
+        <Link href="/" className="hover:underline">← Back to quadrant</Link>
+        <Link href="/scoreboard" className="hover:underline">← Back to scoreboard</Link>
+      </div>
+      <div className="mb-0.5 flex items-center justify-between">
+        <h1 className="text-2xl font-semibold">{detail.name || detail.segment}</h1>
+        <Link
+          href={`/map?node=${encodeURIComponent(slug)}`}
+          className="text-sm text-blue-700 hover:underline"
+        >
+          See on map
+        </Link>
+      </div>
       <p className="mb-4 font-mono text-xs text-gray-500">{detail.segment}</p>
       <p className="mb-4 text-sm text-gray-600">
-        {detail.horizons.length} horizons · {detail.signals.length} recent signals
+        {detail.horizons.length} horizons · {signals.length} recent signals
       </p>
+
+      {nearRegime === "RESOLVING" && (
+        <div className="mb-4 rounded border border-red-200 bg-red-50 p-3 text-sm font-medium text-red-800">
+          ★ Hard guard: excluded from long basket. Do NOT long.
+        </div>
+      )}
+
+      {detail.brief && (
+        <div className="mb-6 rounded border border-gray-200 bg-white p-4">
+          <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+            What this segment is
+          </h2>
+          <div className="prose prose-sm max-w-none text-gray-700">
+            <ReactMarkdown>{detail.brief.summary}</ReactMarkdown>
+          </div>
+        </div>
+      )}
 
       <div className="mb-6 rounded border border-gray-200 bg-white p-4">
         <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
@@ -108,20 +173,32 @@ export default async function SegmentDetailPage({
               </p>
             </div>
           ))}
+        {detail.brief && detail.brief.regime_call_md && (
+          <div className="mt-3 border-t border-gray-100 pt-3">
+            <h3 className="mb-1 text-xs font-semibold text-gray-500">Research reasoning</h3>
+            <div className="prose prose-sm max-w-none text-gray-700">
+              <ReactMarkdown>{detail.brief.regime_call_md}</ReactMarkdown>
+            </div>
+          </div>
+        )}
       </div>
 
       <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-gray-500">
         Sub-scores
       </h2>
       <div className="mb-8 rounded border border-gray-200 bg-white p-4">
-        {Object.entries(detail.sub_scores).map(([name, val], i) => {
+        {Object.entries(detail.sub_scores).map(([name, sub], i) => {
+          const val = sub?.value ?? null;
           const v = val ?? 0;
           const pct = Math.round(v * 100);
+          const colorClass = SUB_SCORE_COLORS[i % SUB_SCORE_COLORS.length];
           return (
             <div key={name} className="mb-2 last:mb-0">
               <div className="flex items-center justify-between text-xs">
-                <span className="text-gray-700">
+                <span className="flex items-center gap-1.5 text-gray-700">
+                  <span className={`inline-block h-2 w-2 rounded-full ${colorClass}`} />
                   {SUB_SCORE_LABELS[name] ?? name}
+                  {sub && sourceBadge(sub.source, sub.confidence, sub.imputed, sub.normalization_mode)}
                 </span>
                 <span className="font-mono text-gray-500">
                   {val === null ? "—" : `${pct}%`}
@@ -129,10 +206,15 @@ export default async function SegmentDetailPage({
               </div>
               <div className="mt-1 h-2 w-full overflow-hidden rounded bg-gray-100">
                 <div
-                  className={`h-full ${SUB_SCORE_COLORS[i % SUB_SCORE_COLORS.length]}`}
+                  className={`h-full ${colorClass}`}
                   style={{ width: `${pct}%` }}
                 />
               </div>
+              {sub?.raw_value !== null && sub?.raw_value !== undefined && (
+                <div className="mt-0.5 text-[10px] text-gray-400">
+                  raw: {sub.raw_value.toFixed(3)} · {sub.normalization_mode}
+                </div>
+              )}
             </div>
           );
         })}
@@ -147,62 +229,37 @@ export default async function SegmentDetailPage({
         ))}
       </div>
 
+      {detail.brief && (
+        <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div className="rounded border border-gray-200 bg-white p-4">
+            <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+              Momentum & direction
+            </h2>
+            <div className="prose prose-sm max-w-none text-gray-700">
+              <ReactMarkdown>{detail.brief.momentum_summary}</ReactMarkdown>
+            </div>
+          </div>
+          <div className="rounded border border-gray-200 bg-white p-4">
+            <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+              Resolution timeline
+            </h2>
+            <div className="prose prose-sm max-w-none text-gray-700">
+              <ReactMarkdown>{detail.brief.resolution_summary}</ReactMarkdown>
+            </div>
+          </div>
+        </div>
+      )}
+
       <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-gray-500">
-        Tickers
+        Tickers ({tickers.length})
       </h2>
-      <div className="overflow-x-auto rounded border border-gray-200 bg-white">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50 text-left text-xs uppercase tracking-wide text-gray-500">
-            <tr>
-              <th className="px-3 py-2">Ticker</th>
-              <th className="px-3 py-2">Exchange</th>
-              <th className="px-3 py-2">Name</th>
-              <th className="px-3 py-2">Subsegment</th>
-              <th className="px-3 py-2">Exposure %</th>
-              <th className="px-3 py-2">Market Cap</th>
-              <th className="px-3 py-2">Currency Hedge</th>
-              <th className="px-3 py-2">Notes</th>
-            </tr>
-          </thead>
-          <tbody>
-            {tickers.map((t) => (
-              <tr key={t.ticker} className="border-t border-gray-100">
-                <td className="px-3 py-2 font-mono font-medium">
-                  <a
-                    href={`/tickers/${t.ticker}`}
-                    className="text-blue-700 hover:underline"
-                  >
-                    {t.ticker}
-                  </a>
-                </td>
-                <td className="px-3 py-2 text-gray-700">{t.exchange}</td>
-                <td className="px-3 py-2 text-gray-700">{t.name}</td>
-                <td className="px-3 py-2 text-gray-700">
-                  {t.subsegment ?? "—"}
-                </td>
-                <td className="px-3 py-2 font-mono text-gray-700">
-                  {t.exposure_pct}%
-                </td>
-                <td className="px-3 py-2 text-gray-700">
-                  {t.market_cap_bucket}
-                </td>
-                <td className="px-3 py-2 text-gray-700">
-                  {t.currency_hedge}
-                </td>
-                <td className="px-3 py-2 text-gray-700 text-xs">
-                  {t.notes}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <TickersTable tickers={tickers} />
 
       <h2 className="mb-2 mt-8 text-sm font-semibold uppercase tracking-wide text-gray-500">
-        Recent signals
+        Recent signals ({signals.length})
       </h2>
       <div className="overflow-x-auto rounded border border-gray-200 bg-white">
-        <table className="w-full text-sm">
+        <table className="sticky-first-col w-full text-sm">
           <thead className="bg-gray-50 text-left text-xs uppercase tracking-wide text-gray-500">
             <tr>
               <th className="px-3 py-2">Observed</th>
@@ -213,7 +270,7 @@ export default async function SegmentDetailPage({
             </tr>
           </thead>
           <tbody>
-            {detail.signals.map((s) => (
+            {signals.map((s) => (
               <tr key={s.id} className="border-t border-gray-100">
                 <td className="px-3 py-2 font-mono text-gray-600">
                   {new Date(s.observed_at).toISOString().slice(0, 10)}

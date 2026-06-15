@@ -22,6 +22,7 @@ from bottlewatch.app.ingest.epa_egrid import EPAEGridAdapter
 from bottlewatch.app.ingest.eia_electric import EIAElectricAdapter
 from bottlewatch.app.ingest.sec_edgar import SECEdgarAdapter
 from bottlewatch.app.ingest.sec_insider import SECInsiderAdapter
+from bottlewatch.app.ingest.semi_book_to_bill import SemiBookToBillAdapter
 
 __all__ = [
     "Adapter",
@@ -36,6 +37,7 @@ __all__ = [
     "EIAElectricAdapter",
     "SECEdgarAdapter",
     "SECInsiderAdapter",
+    "SemiBookToBillAdapter",
     "RawSignal",
     "get_registry",
 ]
@@ -58,6 +60,7 @@ def _build_registry() -> list[AdapterSpec]:
     from bottlewatch.app.ingest.eia_electric import build_eia_electric_adapter
     from bottlewatch.app.ingest.sec_edgar import build_sec_edgar_adapter
     from bottlewatch.app.ingest.sec_insider import build_sec_insider_adapter
+    from bottlewatch.app.ingest.semi_book_to_bill import build_semi_book_to_bill_adapter
 
     return [
         AdapterSpec(
@@ -104,6 +107,11 @@ def _build_registry() -> list[AdapterSpec]:
             name="sec_insider",
             cadence=Cadence.DAILY,
             factory=build_sec_insider_adapter,  # type: ignore[arg-type]
+        ),
+        AdapterSpec(
+            name="semi_book_to_bill",
+            cadence=Cadence.MONTHLY,
+            factory=build_semi_book_to_bill_adapter,  # type: ignore[arg-type]
         ),
     ]
 

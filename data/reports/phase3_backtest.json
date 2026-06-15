@@ -1,0 +1,1119 @@
+{
+  "horizon": "near",
+  "forward_days": 90,
+  "start": "2024-09-01",
+  "end": "2025-06-01",
+  "normalization_mode": "fixed",
+  "n_eval_dates": 10,
+  "n_eval_points": 6990,
+  "overall_ic": 0.03241032526920414,
+  "overall_p_value": 0.006729699412493471,
+  "per_segment_ic": [
+    {
+      "segment": "advanced_node_fabs",
+      "n": 100,
+      "rho": 0.0,
+      "p_value": null,
+      "ci_low": null,
+      "ci_high": null,
+      "bh_rejected": false
+    },
+    {
+      "segment": "advanced_packaging",
+      "n": 100,
+      "rho": 0.0,
+      "p_value": null,
+      "ci_low": null,
+      "ci_high": null,
+      "bh_rejected": false
+    },
+    {
+      "segment": "cool_chillers",
+      "n": 100,
+      "rho": 0.0,
+      "p_value": null,
+      "ci_low": null,
+      "ci_high": null,
+      "bh_rejected": false
+    },
+    {
+      "segment": "cool_pumps",
+      "n": 100,
+      "rho": 0.0,
+      "p_value": null,
+      "ci_low": null,
+      "ci_high": null,
+      "bh_rejected": false
+    },
+    {
+      "segment": "cool_water_treatment",
+      "n": 100,
+      "rho": 0.0,
+      "p_value": null,
+      "ci_low": null,
+      "ci_high": null,
+      "bh_rejected": false
+    },
+    {
+      "segment": "cooling_water",
+      "n": 100,
+      "rho": 0.0,
+      "p_value": null,
+      "ci_low": null,
+      "ci_high": null,
+      "bh_rejected": false
+    },
+    {
+      "segment": "data_center_shell",
+      "n": 100,
+      "rho": 0.08526472401387498,
+      "p_value": 0.39896853618963046,
+      "ci_low": -0.014049198984334325,
+      "ci_high": 0.16521022467602905,
+      "bh_rejected": false
+    },
+    {
+      "segment": "fab_process_chemicals",
+      "n": 100,
+      "rho": 0.0,
+      "p_value": null,
+      "ci_low": null,
+      "ci_high": null,
+      "bh_rejected": false
+    },
+    {
+      "segment": "fab_utilities",
+      "n": 100,
+      "rho": 0.0,
+      "p_value": null,
+      "ci_low": null,
+      "ci_high": null,
+      "bh_rejected": false
+    },
+    {
+      "segment": "fee_optical_components",
+      "n": 100,
+      "rho": 0.0,
+      "p_value": null,
+      "ci_low": null,
+      "ci_high": null,
+      "bh_rejected": false
+    },
+    {
+      "segment": "fee_vacuum_pumps",
+      "n": 100,
+      "rho": 0.0,
+      "p_value": null,
+      "ci_low": null,
+      "ci_high": null,
+      "bh_rejected": false
+    },
+    {
+      "segment": "fee_vacuum_robotics",
+      "n": 100,
+      "rho": 0.0,
+      "p_value": null,
+      "ci_low": null,
+      "ci_high": null,
+      "bh_rejected": false
+    },
+    {
+      "segment": "front_end_equipment",
+      "n": 100,
+      "rho": 0.0,
+      "p_value": null,
+      "ci_low": null,
+      "ci_high": null,
+      "bh_rejected": false
+    },
+    {
+      "segment": "fuel_mining",
+      "n": 100,
+      "rho": 0.0,
+      "p_value": null,
+      "ci_low": null,
+      "ci_high": null,
+      "bh_rejected": false
+    },
+    {
+      "segment": "fuel_oil_gas",
+      "n": 100,
+      "rho": 0.0,
+      "p_value": null,
+      "ci_low": null,
+      "ci_high": null,
+      "bh_rejected": false
+    },
+    {
+      "segment": "fuel_power_inputs",
+      "n": 100,
+      "rho": 0.0,
+      "p_value": null,
+      "ci_low": null,
+      "ci_high": null,
+      "bh_rejected": false
+    },
+    {
+      "segment": "fuel_renewables",
+      "n": 100,
+      "rho": 0.0,
+      "p_value": null,
+      "ci_low": null,
+      "ci_high": null,
+      "bh_rejected": false
+    },
+    {
+      "segment": "fuel_uranium",
+      "n": 100,
+      "rho": 0.0,
+      "p_value": null,
+      "ci_low": null,
+      "ci_high": null,
+      "bh_rejected": false
+    },
+    {
+      "segment": "gen_gas_turbines",
+      "n": 100,
+      "rho": 0.0,
+      "p_value": null,
+      "ci_low": null,
+      "ci_high": null,
+      "bh_rejected": false
+    },
+    {
+      "segment": "gen_rare_earths",
+      "n": 100,
+      "rho": 0.0,
+      "p_value": null,
+      "ci_low": null,
+      "ci_high": null,
+      "bh_rejected": false
+    },
+    {
+      "segment": "gen_smr",
+      "n": 100,
+      "rho": 0.0,
+      "p_value": null,
+      "ci_low": null,
+      "ci_high": null,
+      "bh_rejected": false
+    },
+    {
+      "segment": "gen_solar",
+      "n": 100,
+      "rho": 0.0,
+      "p_value": null,
+      "ci_low": null,
+      "ci_high": null,
+      "bh_rejected": false
+    },
+    {
+      "segment": "gen_wind",
+      "n": 100,
+      "rho": 0.0,
+      "p_value": null,
+      "ci_low": null,
+      "ci_high": null,
+      "bh_rejected": false
+    },
+    {
+      "segment": "gpu_asic_silicon",
+      "n": 250,
+      "rho": 0.0,
+      "p_value": null,
+      "ci_low": null,
+      "ci_high": null,
+      "bh_rejected": false
+    },
+    {
+      "segment": "hbm_dram_platform",
+      "n": 100,
+      "rho": 0.0,
+      "p_value": null,
+      "ci_low": null,
+      "ci_high": null,
+      "bh_rejected": false
+    },
+    {
+      "segment": "hbm_memory",
+      "n": 100,
+      "rho": 0.0,
+      "p_value": null,
+      "ci_low": null,
+      "ci_high": null,
+      "bh_rejected": false
+    },
+    {
+      "segment": "hbm_tsv_equipment",
+      "n": 100,
+      "rho": 0.0,
+      "p_value": null,
+      "ci_low": null,
+      "ci_high": null,
+      "bh_rejected": false
+    },
+    {
+      "segment": "inf_enterprise_saas",
+      "n": 100,
+      "rho": 0.0,
+      "p_value": null,
+      "ci_low": null,
+      "ci_high": null,
+      "bh_rejected": false
+    },
+    {
+      "segment": "inf_neocloud",
+      "n": 100,
+      "rho": 0.0,
+      "p_value": null,
+      "ci_low": null,
+      "ci_high": null,
+      "bh_rejected": false
+    },
+    {
+      "segment": "inference_at_scale",
+      "n": 100,
+      "rho": 0.0,
+      "p_value": null,
+      "ci_low": null,
+      "ci_high": null,
+      "bh_rejected": false
+    },
+    {
+      "segment": "mat_cmp_slurries",
+      "n": 100,
+      "rho": 0.0,
+      "p_value": null,
+      "ci_low": null,
+      "ci_high": null,
+      "bh_rejected": false
+    },
+    {
+      "segment": "mat_photoresist",
+      "n": 100,
+      "rho": 0.0,
+      "p_value": null,
+      "ci_low": null,
+      "ci_high": null,
+      "bh_rejected": false
+    },
+    {
+      "segment": "mat_process_gases",
+      "n": 100,
+      "rho": 0.0,
+      "p_value": null,
+      "ci_low": null,
+      "ci_high": null,
+      "bh_rejected": false
+    },
+    {
+      "segment": "mat_silicon_wafers",
+      "n": 100,
+      "rho": 0.0,
+      "p_value": null,
+      "ci_low": null,
+      "ci_high": null,
+      "bh_rejected": false
+    },
+    {
+      "segment": "net_high_speed_pcb",
+      "n": 100,
+      "rho": 0.0,
+      "p_value": null,
+      "ci_low": null,
+      "ci_high": null,
+      "bh_rejected": false
+    },
+    {
+      "segment": "net_optical_transceivers",
+      "n": 100,
+      "rho": 0.0,
+      "p_value": null,
+      "ci_low": null,
+      "ci_high": null,
+      "bh_rejected": false
+    },
+    {
+      "segment": "net_switch_asics",
+      "n": 100,
+      "rho": 0.0,
+      "p_value": null,
+      "ci_low": null,
+      "ci_high": null,
+      "bh_rejected": false
+    },
+    {
+      "segment": "networking_interconnect",
+      "n": 100,
+      "rho": 0.0,
+      "p_value": null,
+      "ci_low": null,
+      "ci_high": null,
+      "bh_rejected": false
+    },
+    {
+      "segment": "pkg_substrates",
+      "n": 100,
+      "rho": 0.0,
+      "p_value": null,
+      "ci_low": null,
+      "ci_high": null,
+      "bh_rejected": false
+    },
+    {
+      "segment": "pkg_ubm",
+      "n": 100,
+      "rho": 0.0,
+      "p_value": null,
+      "ci_low": null,
+      "ci_high": null,
+      "bh_rejected": false
+    },
+    {
+      "segment": "power_generation_oem",
+      "n": 310,
+      "rho": 0.0,
+      "p_value": null,
+      "ci_low": null,
+      "ci_high": null,
+      "bh_rejected": false
+    },
+    {
+      "segment": "rack_busbars",
+      "n": 100,
+      "rho": 0.0,
+      "p_value": null,
+      "ci_low": null,
+      "ci_high": null,
+      "bh_rejected": false
+    },
+    {
+      "segment": "rack_cdu",
+      "n": 100,
+      "rho": 0.0,
+      "p_value": null,
+      "ci_low": null,
+      "ci_high": null,
+      "bh_rejected": false
+    },
+    {
+      "segment": "raw_inputs",
+      "n": 100,
+      "rho": 0.0,
+      "p_value": null,
+      "ci_low": null,
+      "ci_high": null,
+      "bh_rejected": false
+    },
+    {
+      "segment": "raw_mining",
+      "n": 100,
+      "rho": 0.0,
+      "p_value": null,
+      "ci_low": null,
+      "ci_high": null,
+      "bh_rejected": false
+    },
+    {
+      "segment": "raw_nuclear_fuel",
+      "n": 100,
+      "rho": 0.0,
+      "p_value": null,
+      "ci_low": null,
+      "ci_high": null,
+      "bh_rejected": false
+    },
+    {
+      "segment": "raw_oil_gas",
+      "n": 100,
+      "rho": 0.0,
+      "p_value": null,
+      "ci_low": null,
+      "ci_high": null,
+      "bh_rejected": false
+    },
+    {
+      "segment": "raw_water_utilities",
+      "n": 100,
+      "rho": 0.0,
+      "p_value": null,
+      "ci_low": null,
+      "ci_high": null,
+      "bh_rejected": false
+    },
+    {
+      "segment": "semiconductor_materials",
+      "n": 100,
+      "rho": 0.0,
+      "p_value": null,
+      "ci_low": null,
+      "ci_high": null,
+      "bh_rejected": false
+    },
+    {
+      "segment": "shell_colo_reits",
+      "n": 100,
+      "rho": 0.0,
+      "p_value": null,
+      "ci_low": null,
+      "ci_high": null,
+      "bh_rejected": false
+    },
+    {
+      "segment": "shell_dark_fiber",
+      "n": 100,
+      "rho": 0.0,
+      "p_value": null,
+      "ci_low": null,
+      "ci_high": null,
+      "bh_rejected": false
+    },
+    {
+      "segment": "shell_land_reits",
+      "n": 100,
+      "rho": 0.0,
+      "p_value": null,
+      "ci_low": null,
+      "ci_high": null,
+      "bh_rejected": false
+    },
+    {
+      "segment": "sil_ip_eda",
+      "n": 100,
+      "rho": 0.0,
+      "p_value": null,
+      "ci_low": null,
+      "ci_high": null,
+      "bh_rejected": false
+    },
+    {
+      "segment": "sil_power_delivery",
+      "n": 100,
+      "rho": 0.0,
+      "p_value": null,
+      "ci_low": null,
+      "ci_high": null,
+      "bh_rejected": false
+    },
+    {
+      "segment": "sys_chassis",
+      "n": 100,
+      "rho": 0.0,
+      "p_value": null,
+      "ci_low": null,
+      "ci_high": null,
+      "bh_rejected": false
+    },
+    {
+      "segment": "sys_psu",
+      "n": 100,
+      "rho": 0.0,
+      "p_value": null,
+      "ci_low": null,
+      "ci_high": null,
+      "bh_rejected": false
+    },
+    {
+      "segment": "systems_oem_odm",
+      "n": 100,
+      "rho": 0.0,
+      "p_value": null,
+      "ci_low": null,
+      "ci_high": null,
+      "bh_rejected": false
+    },
+    {
+      "segment": "systems_rack_scale",
+      "n": 240,
+      "rho": 0.0,
+      "p_value": null,
+      "ci_low": null,
+      "ci_high": null,
+      "bh_rejected": false
+    },
+    {
+      "segment": "td_utilities",
+      "n": 100,
+      "rho": 0.0,
+      "p_value": null,
+      "ci_low": null,
+      "ci_high": null,
+      "bh_rejected": false
+    },
+    {
+      "segment": "tnd_copper",
+      "n": 100,
+      "rho": 0.0,
+      "p_value": null,
+      "ci_low": null,
+      "ci_high": null,
+      "bh_rejected": false
+    },
+    {
+      "segment": "tnd_electrical_steel",
+      "n": 100,
+      "rho": 0.0,
+      "p_value": null,
+      "ci_low": null,
+      "ci_high": null,
+      "bh_rejected": false
+    },
+    {
+      "segment": "tnd_insulation",
+      "n": 100,
+      "rho": 0.0,
+      "p_value": null,
+      "ci_low": null,
+      "ci_high": null,
+      "bh_rejected": false
+    },
+    {
+      "segment": "transformers_tnd",
+      "n": 190,
+      "rho": 0.06208553409351184,
+      "p_value": 0.39478933860639404,
+      "ci_low": 0.00830049372019122,
+      "ci_high": 0.09661466262769054,
+      "bh_rejected": false
+    },
+    {
+      "segment": "util_regulators",
+      "n": 100,
+      "rho": 0.0,
+      "p_value": null,
+      "ci_low": null,
+      "ci_high": null,
+      "bh_rejected": false
+    }
+  ],
+  "baskets": [
+    {
+      "eval_date": "2024-09-01",
+      "side": "long",
+      "segments": [
+        "gen_smr",
+        "front_end_equipment"
+      ],
+      "tickers": [
+        "SMR",
+        "OKLO",
+        "UEC",
+        "NXE",
+        "DNN",
+        "ASML",
+        "KLAC",
+        "LRCX",
+        "8035.TSE",
+        "036930.KQ"
+      ],
+      "equal_weight_return": 0.003399249268096066,
+      "coverage": 1.0
+    },
+    {
+      "eval_date": "2024-09-01",
+      "side": "short",
+      "segments": [],
+      "tickers": [],
+      "equal_weight_return": null,
+      "coverage": 0.0
+    },
+    {
+      "eval_date": "2024-09-01",
+      "side": "watchlist",
+      "segments": [
+        "gen_smr",
+        "front_end_equipment"
+      ],
+      "tickers": [
+        "SMR",
+        "OKLO",
+        "UEC",
+        "NXE",
+        "DNN",
+        "ASML",
+        "KLAC",
+        "LRCX",
+        "8035.TSE",
+        "036930.KQ"
+      ],
+      "equal_weight_return": null,
+      "coverage": 0.0
+    },
+    {
+      "eval_date": "2024-10-01",
+      "side": "long",
+      "segments": [
+        "gen_smr",
+        "front_end_equipment"
+      ],
+      "tickers": [
+        "SMR",
+        "OKLO",
+        "UEC",
+        "NXE",
+        "DNN",
+        "ASML",
+        "KLAC",
+        "LRCX",
+        "8035.TSE",
+        "036930.KQ"
+      ],
+      "equal_weight_return": -0.011475191363914282,
+      "coverage": 1.0
+    },
+    {
+      "eval_date": "2024-10-01",
+      "side": "short",
+      "segments": [],
+      "tickers": [],
+      "equal_weight_return": null,
+      "coverage": 0.0
+    },
+    {
+      "eval_date": "2024-10-01",
+      "side": "watchlist",
+      "segments": [
+        "gen_smr",
+        "front_end_equipment"
+      ],
+      "tickers": [
+        "SMR",
+        "OKLO",
+        "UEC",
+        "NXE",
+        "DNN",
+        "ASML",
+        "KLAC",
+        "LRCX",
+        "8035.TSE",
+        "036930.KQ"
+      ],
+      "equal_weight_return": null,
+      "coverage": 0.0
+    },
+    {
+      "eval_date": "2024-10-31",
+      "side": "long",
+      "segments": [
+        "gen_smr",
+        "front_end_equipment"
+      ],
+      "tickers": [
+        "SMR",
+        "OKLO",
+        "UEC",
+        "NXE",
+        "DNN",
+        "ASML",
+        "KLAC",
+        "LRCX",
+        "8035.TSE",
+        "036930.KQ"
+      ],
+      "equal_weight_return": -0.010671431454755409,
+      "coverage": 1.0
+    },
+    {
+      "eval_date": "2024-10-31",
+      "side": "short",
+      "segments": [],
+      "tickers": [],
+      "equal_weight_return": null,
+      "coverage": 0.0
+    },
+    {
+      "eval_date": "2024-10-31",
+      "side": "watchlist",
+      "segments": [
+        "gen_smr",
+        "front_end_equipment"
+      ],
+      "tickers": [
+        "SMR",
+        "OKLO",
+        "UEC",
+        "NXE",
+        "DNN",
+        "ASML",
+        "KLAC",
+        "LRCX",
+        "8035.TSE",
+        "036930.KQ"
+      ],
+      "equal_weight_return": null,
+      "coverage": 0.0
+    },
+    {
+      "eval_date": "2024-11-30",
+      "side": "long",
+      "segments": [
+        "gen_smr",
+        "front_end_equipment"
+      ],
+      "tickers": [
+        "SMR",
+        "OKLO",
+        "UEC",
+        "NXE",
+        "DNN",
+        "ASML",
+        "KLAC",
+        "LRCX",
+        "8035.TSE",
+        "036930.KQ"
+      ],
+      "equal_weight_return": -0.006959320781005923,
+      "coverage": 1.0
+    },
+    {
+      "eval_date": "2024-11-30",
+      "side": "short",
+      "segments": [],
+      "tickers": [],
+      "equal_weight_return": null,
+      "coverage": 0.0
+    },
+    {
+      "eval_date": "2024-11-30",
+      "side": "watchlist",
+      "segments": [
+        "gen_smr",
+        "front_end_equipment"
+      ],
+      "tickers": [
+        "SMR",
+        "OKLO",
+        "UEC",
+        "NXE",
+        "DNN",
+        "ASML",
+        "KLAC",
+        "LRCX",
+        "8035.TSE",
+        "036930.KQ"
+      ],
+      "equal_weight_return": null,
+      "coverage": 0.0
+    },
+    {
+      "eval_date": "2024-12-30",
+      "side": "long",
+      "segments": [
+        "gen_smr",
+        "front_end_equipment"
+      ],
+      "tickers": [
+        "SMR",
+        "OKLO",
+        "UEC",
+        "NXE",
+        "DNN",
+        "ASML",
+        "KLAC",
+        "LRCX",
+        "8035.TSE",
+        "036930.KQ"
+      ],
+      "equal_weight_return": 0.000719933533929395,
+      "coverage": 1.0
+    },
+    {
+      "eval_date": "2024-12-30",
+      "side": "short",
+      "segments": [],
+      "tickers": [],
+      "equal_weight_return": null,
+      "coverage": 0.0
+    },
+    {
+      "eval_date": "2024-12-30",
+      "side": "watchlist",
+      "segments": [
+        "gen_smr",
+        "front_end_equipment"
+      ],
+      "tickers": [
+        "SMR",
+        "OKLO",
+        "UEC",
+        "NXE",
+        "DNN",
+        "ASML",
+        "KLAC",
+        "LRCX",
+        "8035.TSE",
+        "036930.KQ"
+      ],
+      "equal_weight_return": null,
+      "coverage": 0.0
+    },
+    {
+      "eval_date": "2025-01-29",
+      "side": "long",
+      "segments": [
+        "gen_smr",
+        "front_end_equipment"
+      ],
+      "tickers": [
+        "SMR",
+        "OKLO",
+        "UEC",
+        "NXE",
+        "DNN",
+        "ASML",
+        "KLAC",
+        "LRCX",
+        "8035.TSE",
+        "036930.KQ"
+      ],
+      "equal_weight_return": -0.000210137365491708,
+      "coverage": 1.0
+    },
+    {
+      "eval_date": "2025-01-29",
+      "side": "short",
+      "segments": [],
+      "tickers": [],
+      "equal_weight_return": null,
+      "coverage": 0.0
+    },
+    {
+      "eval_date": "2025-01-29",
+      "side": "watchlist",
+      "segments": [
+        "gen_smr",
+        "front_end_equipment"
+      ],
+      "tickers": [
+        "SMR",
+        "OKLO",
+        "UEC",
+        "NXE",
+        "DNN",
+        "ASML",
+        "KLAC",
+        "LRCX",
+        "8035.TSE",
+        "036930.KQ"
+      ],
+      "equal_weight_return": null,
+      "coverage": 0.0
+    },
+    {
+      "eval_date": "2025-02-28",
+      "side": "long",
+      "segments": [
+        "gen_smr",
+        "front_end_equipment"
+      ],
+      "tickers": [
+        "SMR",
+        "OKLO",
+        "UEC",
+        "NXE",
+        "DNN",
+        "ASML",
+        "KLAC",
+        "LRCX",
+        "8035.TSE",
+        "036930.KQ"
+      ],
+      "equal_weight_return": -0.0012608972533311382,
+      "coverage": 1.0
+    },
+    {
+      "eval_date": "2025-02-28",
+      "side": "short",
+      "segments": [],
+      "tickers": [],
+      "equal_weight_return": null,
+      "coverage": 0.0
+    },
+    {
+      "eval_date": "2025-02-28",
+      "side": "watchlist",
+      "segments": [
+        "gen_smr",
+        "front_end_equipment"
+      ],
+      "tickers": [
+        "SMR",
+        "OKLO",
+        "UEC",
+        "NXE",
+        "DNN",
+        "ASML",
+        "KLAC",
+        "LRCX",
+        "8035.TSE",
+        "036930.KQ"
+      ],
+      "equal_weight_return": null,
+      "coverage": 0.0
+    },
+    {
+      "eval_date": "2025-03-30",
+      "side": "long",
+      "segments": [
+        "gen_smr",
+        "transformers_tnd"
+      ],
+      "tickers": [
+        "SMR",
+        "OKLO",
+        "UEC",
+        "NXE",
+        "DNN",
+        "HUBB",
+        "267260.KS",
+        "103590.KS",
+        "ETN",
+        "SU.PA"
+      ],
+      "equal_weight_return": -0.005168420175719451,
+      "coverage": 1.0
+    },
+    {
+      "eval_date": "2025-03-30",
+      "side": "short",
+      "segments": [],
+      "tickers": [],
+      "equal_weight_return": null,
+      "coverage": 0.0
+    },
+    {
+      "eval_date": "2025-03-30",
+      "side": "watchlist",
+      "segments": [
+        "gen_smr",
+        "transformers_tnd"
+      ],
+      "tickers": [
+        "SMR",
+        "OKLO",
+        "UEC",
+        "NXE",
+        "DNN",
+        "HUBB",
+        "267260.KS",
+        "103590.KS",
+        "ETN",
+        "SU.PA"
+      ],
+      "equal_weight_return": null,
+      "coverage": 0.0
+    },
+    {
+      "eval_date": "2025-04-29",
+      "side": "long",
+      "segments": [
+        "gen_smr",
+        "transformers_tnd"
+      ],
+      "tickers": [
+        "SMR",
+        "OKLO",
+        "UEC",
+        "NXE",
+        "DNN",
+        "HUBB",
+        "267260.KS",
+        "103590.KS",
+        "ETN",
+        "SU.PA"
+      ],
+      "equal_weight_return": 0.005099243220154358,
+      "coverage": 1.0
+    },
+    {
+      "eval_date": "2025-04-29",
+      "side": "short",
+      "segments": [],
+      "tickers": [],
+      "equal_weight_return": null,
+      "coverage": 0.0
+    },
+    {
+      "eval_date": "2025-04-29",
+      "side": "watchlist",
+      "segments": [
+        "gen_smr",
+        "transformers_tnd"
+      ],
+      "tickers": [
+        "SMR",
+        "OKLO",
+        "UEC",
+        "NXE",
+        "DNN",
+        "HUBB",
+        "267260.KS",
+        "103590.KS",
+        "ETN",
+        "SU.PA"
+      ],
+      "equal_weight_return": null,
+      "coverage": 0.0
+    },
+    {
+      "eval_date": "2025-05-29",
+      "side": "long",
+      "segments": [
+        "gen_smr",
+        "transformers_tnd"
+      ],
+      "tickers": [
+        "SMR",
+        "OKLO",
+        "UEC",
+        "NXE",
+        "DNN",
+        "HUBB",
+        "267260.KS",
+        "103590.KS",
+        "ETN",
+        "SU.PA"
+      ],
+      "equal_weight_return": 0.00789732497871592,
+      "coverage": 1.0
+    },
+    {
+      "eval_date": "2025-05-29",
+      "side": "short",
+      "segments": [],
+      "tickers": [],
+      "equal_weight_return": null,
+      "coverage": 0.0
+    },
+    {
+      "eval_date": "2025-05-29",
+      "side": "watchlist",
+      "segments": [
+        "gen_smr",
+        "transformers_tnd"
+      ],
+      "tickers": [
+        "SMR",
+        "OKLO",
+        "UEC",
+        "NXE",
+        "DNN",
+        "HUBB",
+        "267260.KS",
+        "103590.KS",
+        "ETN",
+        "SU.PA"
+      ],
+      "equal_weight_return": null,
+      "coverage": 0.0
+    }
+  ],
+  "fixed_vs_rolling": {
+    "fixed_overall_ic": 0.03241032526920414,
+    "rolling_overall_ic": null,
+    "fixed_n_eval_points": 6990,
+    "rolling_n_eval_points": 0,
+    "per_segment": []
+  },
+  "seed_share_warning_dates": []
+}

@@ -105,6 +105,19 @@ export function QuadrantTickerList({
     return () => document.removeEventListener("mousedown", handleMouseDown);
   }, [anchorEl, onClose]);
 
+  // Close on Escape and return focus to the triggering badge.
+  useEffect(() => {
+    if (!onClose) return;
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        onClose?.();
+      }
+    }
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
+
   const content =
     state.kind === "loading" ? (
       <div className="text-[10px] italic text-gray-400">Loading tickers…</div>
@@ -157,6 +170,9 @@ export function QuadrantTickerList({
     <div
       ref={popupRef}
       style={style}
+      role="dialog"
+      aria-label={`Tickers for ${segment}`}
+      aria-modal="true"
       className="w-80 max-h-72 overflow-y-auto rounded border border-gray-200 bg-white p-3 shadow-lg"
       onMouseDown={(e) => e.stopPropagation()}
     >

@@ -5,7 +5,11 @@ import type { Horizon, SegmentScore } from "./lib/api";
 import { listScoresRegime } from "./lib/api";
 import { RegimeQuadrant } from "./components/RegimeQuadrant";
 import { HorizonToggle } from "./components/HorizonToggle";
+import { RegimeLegend } from "./components/RegimeLegend";
 import { displayName } from "./lib/score_help";
+import { EmptyState } from "./components/ui/EmptyState";
+import { ErrorState } from "./components/ui/ErrorState";
+import { Skeleton } from "./components/ui/Skeleton";
 import Link from "next/link";
 
 type SectorFilter = "all" | "Materials" | "Hardware" | "Infrastructure" | "Downstream";
@@ -61,6 +65,24 @@ export default function ScoreboardPage() {
     [filteredRows],
   );
 
+  if (loading) {
+    return (
+      <section>
+        <div className="mb-4 flex items-center justify-between">
+          <Skeleton className="h-8 w-48" />
+          <Skeleton className="h-5 w-24" />
+        </div>
+        <Skeleton className="mb-6 h-9 w-72" />
+        <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
+          <Skeleton className="h-40" />
+          <Skeleton className="h-40" />
+          <Skeleton className="h-40" />
+        </div>
+        <Skeleton className="h-96" />
+      </section>
+    );
+  }
+
   return (
     <section>
       <div className="mb-4 flex items-center justify-between">
@@ -89,13 +111,27 @@ export default function ScoreboardPage() {
           <option value="Downstream">Downstream</option>
         </select>
         <span className="ml-auto text-xs text-gray-500">
-          {loading ? "Loading…" : `${filteredRows.length} segments`}
+          {filteredRows.length} segments
         </span>
       </div>
 
+      <div className="mb-6 rounded border border-gray-200 bg-white p-3">
+        <RegimeLegend />
+      </div>
+
       {error && (
-        <div className="mb-4 rounded border border-red-200 bg-red-50 p-3 text-sm text-red-800">
-          Failed to load scores: {error}
+        <div className="mb-4">
+          <ErrorState
+            title="Failed to load quadrant"
+            message={error}
+            onRetry={() => {
+              setLoading(true);
+              listScoresRegime(horizon)
+                .then((data) => { setRows(data); setError(null); })
+                .catch((e) => setError(e instanceof Error ? e.message : String(e)))
+                .finally(() => setLoading(false));
+            }}
+          />
         </div>
       )}
 
@@ -105,22 +141,37 @@ export default function ScoreboardPage() {
           subtitle="EMERGING — low B, rising"
           rows={proactiveLongs}
           colorClass="text-blue-700"
+          borderColorClass="border-l-blue-500"
+          emptyTitle="No proactive longs"
+          emptyDescription="No EMERGING segments with a score in this filter."
         />
         <DerivedList
           title="Shorts / avoid-long"
           subtitle="RESOLVING — high B, falling"
           rows={shorts}
           colorClass="text-emerald-700"
+          borderColorClass="border-l-emerald-500"
+          emptyTitle="No shorts / avoid-long"
+          emptyDescription="No RESOLVING segments in this filter."
         />
         <DerivedList
           title="Watchlist"
           subtitle="STABLE with positive B'"
           rows={watchlist}
           colorClass="text-gray-700"
+          borderColorClass="border-l-gray-400"
+          emptyTitle="No watchlist entries"
+          emptyDescription="No STABLE segments with positive momentum."
         />
       </div>
 
       {filteredRows.length > 0 && <RegimeQuadrant rows={filteredRows} />}
+      {filteredRows.length === 0 && !error && (
+        <EmptyState
+          title="No segments match the current filter"
+          description="Try selecting a different sector or horizon."
+        />
+      )}
 
       <div className="mt-6 rounded border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
         <strong>Note:</strong> Momentum (B') requires 6mo of nightly recomputes
@@ -136,18 +187,24 @@ function DerivedList({
   subtitle,
   rows,
   colorClass,
+  borderColorClass,
+  emptyTitle,
+  emptyDescription,
 }: {
   title: string;
   subtitle: string;
   rows: SegmentScore[];
   colorClass: string;
+  borderColorClass: string;
+  emptyTitle: string;
+  emptyDescription: string;
 }) {
   return (
-    <div className="rounded border border-gray-200 bg-white p-3">
+    <div className={`rounded border border-gray-200 border-l-4 bg-white p-3 ${borderColorClass}`}>
       <h3 className={`text-sm font-semibold ${colorClass}`}>{title}</h3>
       <p className="mb-2 text-[11px] text-gray-500">{subtitle}</p>
       {rows.length === 0 ? (
-        <p className="text-xs italic text-gray-400">(none)</p>
+        <EmptyState title={emptyTitle} description={emptyDescription} className="p-2" />
       ) : (
         <ul className="space-y-0.5">
           {rows.slice(0, 5).map((r) => {

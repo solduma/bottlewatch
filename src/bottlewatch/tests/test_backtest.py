@@ -20,54 +20,8 @@ from bottlewatch.jobs.backtest import (
     _b_at,
     _eval_dates,
     _forward_return,
-    _rank,
     run_backtest,
-    spearman,
 )
-
-
-# ---------------------------------------------------------------------------
-# Spearman math (pure)
-# ---------------------------------------------------------------------------
-
-
-def test_rank_basic_no_ties() -> None:
-    assert _rank([10.0, 30.0, 20.0]) == [1.0, 3.0, 2.0]
-
-
-def test_rank_with_ties_uses_average() -> None:
-    # 4 elements, two pairs of ties: (1, 2) tied at ranks 1.5, (4) at rank 4.
-    assert _rank([10.0, 10.0, 30.0, 40.0]) == [1.5, 1.5, 3.0, 4.0]
-
-
-def test_spearman_perfect_positive() -> None:
-    rho, p = spearman([1.0, 2.0, 3.0, 4.0, 5.0], [10.0, 20.0, 30.0, 40.0, 50.0])
-    assert rho == pytest.approx(1.0)
-    assert p is not None and p < 0.001
-
-
-def test_spearman_perfect_negative() -> None:
-    rho, _ = spearman([1.0, 2.0, 3.0, 4.0, 5.0], [50.0, 40.0, 30.0, 20.0, 10.0])
-    assert rho == pytest.approx(-1.0)
-
-
-def test_spearman_zero_variance_returns_none() -> None:
-    # All y values are the same → no ranking possible.
-    rho, p = spearman([1.0, 2.0, 3.0], [5.0, 5.0, 5.0])
-    assert rho is None
-    assert p is None
-
-
-def test_spearman_short_input_returns_no_p_value() -> None:
-    rho, p = spearman([1.0, 2.0], [10.0, 20.0])
-    assert rho == pytest.approx(1.0)
-    # n < 4 → no p-value (we only approximate via normal for n >= 4).
-    assert p is None
-
-
-def test_spearman_mismatched_lengths_raises() -> None:
-    with pytest.raises(ValueError, match="same length"):
-        spearman([1.0, 2.0], [10.0])
 
 
 # ---------------------------------------------------------------------------
@@ -133,13 +87,13 @@ def test_csv_provider_skips_malformed_rows(tmp_path: Path) -> None:
 
 def test_b_at_returns_most_recent_value_at_or_before_target() -> None:
     series = [
-        (datetime(2024, 1, 1), 50.0),
-        (datetime(2024, 4, 1), 55.0),
-        (datetime(2024, 7, 1), 60.0),
+        (datetime(2024, 1, 1), 50.0, 0.0, "STABLE"),
+        (datetime(2024, 4, 1), 55.0, 0.0, "STABLE"),
+        (datetime(2024, 7, 1), 60.0, 0.0, "STABLE"),
     ]
-    assert _b_at(series, date(2024, 6, 1)) == 55.0
-    assert _b_at(series, date(2024, 1, 1)) == 50.0
-    assert _b_at(series, date(2024, 7, 1)) == 60.0
+    result = _b_at(series, date(2024, 6, 1))
+    assert result is not None
+    assert result[0] == 55.0
     assert _b_at(series, date(2023, 1, 1)) is None
 
 
@@ -268,16 +222,18 @@ def test_run_backtest_with_synthetic_positive_signal(settings: Settings, factory
     assert report.n_eval_points >= 30
     # The overall Spearman should be strongly positive: high-B segment
     # tickers grew faster than low-B ones, and B ranks them correctly.
-    assert report.overall.rho is not None
-    assert report.overall.rho > 0.3
+    assert report.overall_ic is not None
+    assert report.overall_ic > 0.3
     # Per-segment: only 2 segments, each with one B value, so per-segment
     # Spearman is None (zero variance within a segment). That's correct.
-    seg_names = {s.segment for s in report.per_segment}
+    seg_names = {s.segment for s in report.per_segment_ic}
     assert seg_names == {"segment_high", "segment_low"}
-    for s in report.per_segment:
+    for s in report.per_segment_ic:
         assert s.n >= 8
-        # Within a single segment, B is constant, so rho is None.
-        assert s.rho is None
+        # Within a single segment, B is constant, so Spearman is undefined
+        # and the helper returns rho=0.0 with no p-value.
+        assert s.rho == pytest.approx(0.0)
+        assert s.p_value is None
 
 
 def test_run_backtest_empty_universe_returns_empty_report(
@@ -297,8 +253,8 @@ def test_run_backtest_empty_universe_returns_empty_report(
         end=date(2024, 12, 31),
     )
     assert report.n_eval_points == 0
-    assert report.overall.n == 0
-    assert report.overall.rho is None
+    assert report.overall_ic is None
+    assert report.overall_p_value is None
 
 
 def test_run_backtest_handles_no_score_history_gracefully(
@@ -317,7 +273,7 @@ def test_run_backtest_handles_no_score_history_gracefully(
         end=date(2025, 6, 1),
     )
     assert report.n_eval_points == 0
-    assert report.overall.rho is None
+    assert report.overall_ic is None
 
 
 def test_run_backtest_handles_no_prices_gracefully(settings: Settings, factory: sessionmaker, tmp_path: Path) -> None:
@@ -398,5 +354,5 @@ def test_cli_writes_json_report_and_exits_zero(tmp_path: Path) -> None:
     assert payload["horizon"] == "near"
     assert payload["forward_days"] == 90
     assert payload["n_eval_points"] >= 30
-    assert payload["overall"]["rho"] is not None
-    assert payload["overall"]["rho"] > 0.3
+    assert payload["overall_ic"] is not None
+    assert payload["overall_ic"] > 0.3

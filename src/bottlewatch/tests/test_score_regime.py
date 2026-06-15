@@ -14,7 +14,9 @@ from bottlewatch.app.score.regime import (
     FAST_RESOLVE_THRESHOLD,
     NO_DATA_THRESHOLD,
     B_THRESHOLD,
-    _THRESHOLDS_VERSION,
+    THRESHOLDS_CHANGELOG,
+    THRESHOLDS_FROZEN_SINCE,
+    THRESHOLDS_VERSION,
     Regime,
     classify,
 )
@@ -111,7 +113,16 @@ def test_thresholds_file_loads_with_expected_version() -> None:
     `version` in research/06_regime_thresholds.json AND update
     this test — that double-keyed lock is the cost of a JSON
     config you can edit without re-deploying Python."""
-    assert _THRESHOLDS_VERSION == "M2-v2"
+    assert THRESHOLDS_VERSION == "M2-v2"
+
+
+def test_thresholds_file_is_frozen_with_date_and_changelog() -> None:
+    """M2-v2 thresholds are frozen as of 2026-06-14. Future
+    recalibration must update `frozen_since` and append a
+    `changelog` entry with a true hold-out justification."""
+    assert THRESHOLDS_FROZEN_SINCE == "2026-06-14"
+    assert len(THRESHOLDS_CHANGELOG) >= 1
+    assert any(entry.get("version") == "M2-v2" for entry in THRESHOLDS_CHANGELOG)
 
 
 def test_thresholds_file_has_all_seven_cells() -> None:
