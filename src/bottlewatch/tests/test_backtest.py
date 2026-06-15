@@ -201,7 +201,7 @@ def test_run_backtest_with_synthetic_positive_signal(settings: Settings, factory
     """High B segment outperforms low B segment → overall Spearman should be positive."""
     universe = _seed_synthetic_universe(tmp_path)
     prices_path = _write_synthetic_prices(tmp_path)
-    _seed_score_history(factory, high=0.9, low=0.3, horizon="near")
+    _seed_score_history(factory, high=90.0, low=30.0, horizon="near")
 
     prices = CsvPriceProvider(prices_path)
     report = run_backtest(
@@ -234,6 +234,16 @@ def test_run_backtest_with_synthetic_positive_signal(settings: Settings, factory
         # and the helper returns rho=0.0 with no p-value.
         assert s.rho == pytest.approx(0.0)
         assert s.p_value is None
+
+    # Basket snapshots carry risk/sizing fields.
+    long_baskets = [b for b in report.baskets if b.side == "long"]
+    assert len(long_baskets) > 0
+    basket = long_baskets[0]
+    assert basket.equal_weight_return is not None
+    assert basket.net_return == pytest.approx(basket.equal_weight_return - 0.001 * len(basket.tickers))
+    assert basket.hit_rate is not None
+    assert 0.0 <= basket.hit_rate <= 1.0
+    assert basket.sector_neutral is False
 
 
 def test_run_backtest_empty_universe_returns_empty_report(
@@ -279,7 +289,7 @@ def test_run_backtest_handles_no_score_history_gracefully(
 def test_run_backtest_handles_no_prices_gracefully(settings: Settings, factory: sessionmaker, tmp_path: Path) -> None:
     """When prices are missing for a ticker, R is None → that tuple is skipped."""
     universe = _seed_synthetic_universe(tmp_path)
-    _seed_score_history(factory, high=0.9, low=0.3, horizon="near")
+    _seed_score_history(factory, high=90.0, low=30.0, horizon="near")
     empty_prices = tmp_path / "prices.csv"
     empty_prices.write_text("ticker,date,close\n")
     prices = CsvPriceProvider(empty_prices)
@@ -319,7 +329,7 @@ def test_cli_writes_json_report_and_exits_zero(tmp_path: Path) -> None:
     engine = make_engine(db_url)
     init_schema(engine)
     factory = make_session_factory(engine)
-    _seed_score_history(factory, high=0.9, low=0.3, horizon="near")
+    _seed_score_history(factory, high=90.0, low=30.0, horizon="near")
     engine.dispose()
 
     result = subprocess.run(

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from datetime import date
 from typing import Any
 
@@ -15,8 +15,14 @@ class BasketSnapshot:
     side: str
     segments: list[str]
     tickers: list[str]
-    equal_weight_return: float | None
-    coverage: float
+    weights: dict[str, float] = field(default_factory=dict)
+    equal_weight_return: float | None = None
+    net_return: float | None = None
+    volatility: float | None = None
+    max_drawdown: float | None = None
+    hit_rate: float | None = None
+    coverage: float = 0.0
+    sector_neutral: bool = False
 
 
 @dataclass(frozen=True)

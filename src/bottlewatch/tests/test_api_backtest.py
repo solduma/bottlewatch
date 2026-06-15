@@ -48,6 +48,19 @@ async def test_backtest_report_returns_valid_shape(client: AsyncClient, factory:
     assert "per_segment_ic" in body
     assert "baskets" in body
     assert "fixed_vs_rolling" in body
+    assert len(body["baskets"]) > 0
+    first = body["baskets"][0]
+    for key in (
+        "weights",
+        "equal_weight_return",
+        "net_return",
+        "volatility",
+        "max_drawdown",
+        "hit_rate",
+        "coverage",
+        "sector_neutral",
+    ):
+        assert key in first
 
 
 @pytest.mark.asyncio

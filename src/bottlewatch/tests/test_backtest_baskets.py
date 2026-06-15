@@ -161,4 +161,110 @@ def test_basket_forward_return(tmp_path: Path) -> None:
     )
     long = baskets["long"]
     assert long.equal_weight_return == pytest.approx(0.10)
+    assert long.net_return == pytest.approx(0.099)
+    assert long.hit_rate == pytest.approx(1.0)
+    assert long.max_drawdown == pytest.approx(0.0)
+    assert long.volatility is None  # only one ticker
     assert long.coverage == 1.0
+
+
+def test_basket_risk_metrics_with_multiple_tickers(tmp_path: Path) -> None:
+    universe = _write_universe(
+        tmp_path,
+        [
+            _Row("AAA", "NASDAQ", "A", "seg_a", "sub", 0.8, 3_000_000_000),
+            _Row("BBB", "NASDAQ", "B", "seg_a", "sub", 0.7, 3_000_000_000),
+        ],
+    )
+    scores = {"seg_a": {"b": 80.0, "momentum": 10.0, "regime": Regime.PEAKED}}
+    prices = {
+        "AAA": [(date(2025, 1, 1), 100.0), (date(2025, 4, 1), 120.0)],
+        "BBB": [(date(2025, 1, 1), 100.0), (date(2025, 4, 1), 100.0)],
+    }
+    baskets = build_baskets(
+        eval_date=date(2025, 1, 1),
+        horizon="near",
+        scores=scores,
+        universe_path=universe,
+        prices=prices,
+        forward_days=90,
+    )
+    long = baskets["long"]
+    assert long.equal_weight_return == pytest.approx(0.10)
+    assert long.hit_rate == pytest.approx(0.5)
+    assert long.net_return == pytest.approx(0.10 - 0.001 * 2)
+    assert long.volatility is not None
+    assert long.max_drawdown == pytest.approx(0.0)
+
+
+def test_basket_sector_neutral_weighting(tmp_path: Path) -> None:
+    universe = _write_universe(
+        tmp_path,
+        [
+            _Row("A1", "NASDAQ", "A1", "seg_a", "sub", 0.8, 3_000_000_000),
+            _Row("A2", "NASDAQ", "A2", "seg_a", "sub", 0.8, 3_000_000_000),
+            _Row("B1", "NASDAQ", "B1", "seg_b", "sub", 0.8, 3_000_000_000),
+        ],
+    )
+    scores = {
+        "seg_a": {"b": 80.0, "momentum": 10.0, "regime": Regime.PEAKED},
+        "seg_b": {"b": 75.0, "momentum": 5.0, "regime": Regime.STABLE},
+    }
+    prices = {
+        "A1": [(date(2025, 1, 1), 100.0), (date(2025, 4, 1), 120.0)],
+        "A2": [(date(2025, 1, 1), 100.0), (date(2025, 4, 1), 120.0)],
+        "B1": [(date(2025, 1, 1), 100.0), (date(2025, 4, 1), 100.0)],
+    }
+    baskets = build_baskets(
+        eval_date=date(2025, 1, 1),
+        horizon="near",
+        scores=scores,
+        universe_path=universe,
+        prices=prices,
+        forward_days=90,
+        sector_neutral=True,
+    )
+    long = baskets["long"]
+    assert long.sector_neutral is True
+    weights = {e.ticker: e.weight for e in long.tickers}
+    assert weights["A1"] == pytest.approx(0.25)
+    assert weights["A2"] == pytest.approx(0.25)
+    assert weights["B1"] == pytest.approx(0.5)
+    # Equal segment weight makes the flat segment hurt more.
+    assert long.equal_weight_return == pytest.approx(0.10)
+
+
+def test_basket_equal_weight_without_sector_neutral(tmp_path: Path) -> None:
+    universe = _write_universe(
+        tmp_path,
+        [
+            _Row("A1", "NASDAQ", "A1", "seg_a", "sub", 0.8, 3_000_000_000),
+            _Row("A2", "NASDAQ", "A2", "seg_a", "sub", 0.8, 3_000_000_000),
+            _Row("B1", "NASDAQ", "B1", "seg_b", "sub", 0.8, 3_000_000_000),
+        ],
+    )
+    scores = {
+        "seg_a": {"b": 80.0, "momentum": 10.0, "regime": Regime.PEAKED},
+        "seg_b": {"b": 75.0, "momentum": 5.0, "regime": Regime.STABLE},
+    }
+    prices = {
+        "A1": [(date(2025, 1, 1), 100.0), (date(2025, 4, 1), 120.0)],
+        "A2": [(date(2025, 1, 1), 100.0), (date(2025, 4, 1), 120.0)],
+        "B1": [(date(2025, 1, 1), 100.0), (date(2025, 4, 1), 100.0)],
+    }
+    baskets = build_baskets(
+        eval_date=date(2025, 1, 1),
+        horizon="near",
+        scores=scores,
+        universe_path=universe,
+        prices=prices,
+        forward_days=90,
+        sector_neutral=False,
+    )
+    long = baskets["long"]
+    assert long.sector_neutral is False
+    weights = {e.ticker: e.weight for e in long.tickers}
+    assert weights["A1"] == pytest.approx(1.0 / 3)
+    assert weights["A2"] == pytest.approx(1.0 / 3)
+    assert weights["B1"] == pytest.approx(1.0 / 3)
+    assert long.equal_weight_return == pytest.approx((0.2 + 0.2 + 0.0) / 3)

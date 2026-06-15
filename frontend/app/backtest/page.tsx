@@ -25,21 +25,15 @@ export default async function BacktestPage({
   const longBaskets = report.baskets.filter((b) => b.side === "long");
   const shortBaskets = report.baskets.filter((b) => b.side === "short");
 
-  const longReturn =
-    longBaskets.length > 0
-      ? longBaskets
-          .filter((b) => b.equal_weight_return !== null)
-          .reduce((sum, b) => sum + (b.equal_weight_return ?? 0), 0) /
-        longBaskets.filter((b) => b.equal_weight_return !== null).length
-      : null;
+  const avg = (xs: (number | null)[]) => {
+    const vals = xs.filter((x): x is number => x !== null);
+    return vals.length > 0 ? vals.reduce((sum, x) => sum + x, 0) / vals.length : null;
+  };
 
-  const shortReturn =
-    shortBaskets.length > 0
-      ? shortBaskets
-          .filter((b) => b.equal_weight_return !== null)
-          .reduce((sum, b) => sum + (b.equal_weight_return ?? 0), 0) /
-        shortBaskets.filter((b) => b.equal_weight_return !== null).length
-      : null;
+  const longReturn = avg(longBaskets.map((b) => b.equal_weight_return));
+  const longNetReturn = avg(longBaskets.map((b) => b.net_return));
+  const shortReturn = avg(shortBaskets.map((b) => b.equal_weight_return));
+  const shortNetReturn = avg(shortBaskets.map((b) => b.net_return));
 
   return (
     <section className="space-y-6">
@@ -69,18 +63,22 @@ export default async function BacktestPage({
           <div className="text-xs text-gray-500">p={report.overall_p_value?.toExponential(2) ?? "n/a"}</div>
         </Card>
         <Card>
-          <div className="text-sm text-gray-600">Avg long basket return</div>
+          <div className="text-sm text-gray-600">Avg long basket return (gross)</div>
           <div className="text-2xl font-semibold">
             {longReturn != null ? `${(longReturn * 100).toFixed(1)}%` : "n/a"}
           </div>
-          <div className="text-xs text-gray-500">{longBaskets.length} rebalances</div>
+          <div className="text-xs text-gray-500">
+            {longBaskets.length} rebalances · net {longNetReturn != null ? `${(longNetReturn * 100).toFixed(1)}%` : "n/a"}
+          </div>
         </Card>
         <Card>
-          <div className="text-sm text-gray-600">Avg short basket return</div>
+          <div className="text-sm text-gray-600">Avg short basket return (gross)</div>
           <div className="text-2xl font-semibold">
             {shortReturn != null ? `${(shortReturn * 100).toFixed(1)}%` : "n/a"}
           </div>
-          <div className="text-xs text-gray-500">{shortBaskets.length} rebalances</div>
+          <div className="text-xs text-gray-500">
+            {shortBaskets.length} rebalances · net {shortNetReturn != null ? `${(shortNetReturn * 100).toFixed(1)}%` : "n/a"}
+          </div>
         </Card>
       </div>
 
@@ -114,6 +112,54 @@ export default async function BacktestPage({
                         : "n/a"}
                     </td>
                     <td className="px-3 py-2">{row.bh_rejected ? "✅" : "—"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Card>
+
+      <Card>
+        <h2 className="mb-3 text-lg font-semibold">Basket snapshots</h2>
+        {report.baskets.length === 0 ? (
+          <p className="text-sm text-gray-600">No baskets available.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-sm">
+              <thead className="bg-gray-50 text-left">
+                <tr>
+                  <th className="px-3 py-2 font-medium">Date</th>
+                  <th className="px-3 py-2 font-medium">Side</th>
+                  <th className="px-3 py-2 font-medium">Tickers</th>
+                  <th className="px-3 py-2 font-medium">Gross</th>
+                  <th className="px-3 py-2 font-medium">Net</th>
+                  <th className="px-3 py-2 font-medium">Vol (ann)</th>
+                  <th className="px-3 py-2 font-medium">Max DD</th>
+                  <th className="px-3 py-2 font-medium">Hit rate</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {report.baskets.map((b) => (
+                  <tr key={`${b.eval_date}-${b.side}`}>
+                    <td className="px-3 py-2">{b.eval_date}</td>
+                    <td className="px-3 py-2">{b.side}</td>
+                    <td className="px-3 py-2">{b.tickers.join(", ")}</td>
+                    <td className="px-3 py-2">
+                      {b.equal_weight_return != null ? `${(b.equal_weight_return * 100).toFixed(1)}%` : "n/a"}
+                    </td>
+                    <td className="px-3 py-2">
+                      {b.net_return != null ? `${(b.net_return * 100).toFixed(1)}%` : "n/a"}
+                    </td>
+                    <td className="px-3 py-2">
+                      {b.volatility != null ? `${(b.volatility * 100).toFixed(1)}%` : "n/a"}
+                    </td>
+                    <td className="px-3 py-2">
+                      {b.max_drawdown != null ? `${(b.max_drawdown * 100).toFixed(1)}%` : "n/a"}
+                    </td>
+                    <td className="px-3 py-2">
+                      {b.hit_rate != null ? `${(b.hit_rate * 100).toFixed(0)}%` : "n/a"}
+                    </td>
                   </tr>
                 ))}
               </tbody>

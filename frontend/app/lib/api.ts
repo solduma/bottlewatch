@@ -332,8 +332,14 @@ export interface BasketSnapshot {
   side: "long" | "short" | "watchlist";
   segments: string[];
   tickers: string[];
+  weights: Record<string, number>;
   equal_weight_return: number | null;
+  net_return: number | null;
+  volatility: number | null;
+  max_drawdown: number | null;
+  hit_rate: number | null;
   coverage: number;
+  sector_neutral: boolean;
 }
 
 export interface SegmentICRow {

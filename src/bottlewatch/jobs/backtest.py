@@ -290,8 +290,14 @@ def _run_single_mode(
                     side=side,
                     segments=basket.segments,
                     tickers=[e.ticker for e in basket.tickers],
+                    weights={e.ticker: e.weight for e in basket.tickers},
                     equal_weight_return=basket.equal_weight_return,
+                    net_return=basket.net_return,
+                    volatility=basket.volatility,
+                    max_drawdown=basket.max_drawdown,
+                    hit_rate=basket.hit_rate,
                     coverage=basket.coverage,
+                    sector_neutral=basket.sector_neutral,
                 )
             )
 
