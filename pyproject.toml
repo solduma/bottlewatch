@@ -58,6 +58,7 @@ line-length = 120
 exclude = [".venv", "__pycache__", ".pytest_cache", "*.ipynb", ".ipynb_checkpoints"]
 
 [tool.pyright]
+include = ["src", "alembic"]
 exclude = [".venv", "__pycache__", ".pytest_cache"]
 reportUnknownParameterType = "warning"
 reportUnannotatedClassAttribute = "warning"
