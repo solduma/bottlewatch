@@ -177,9 +177,12 @@ export function QuadrantTickerList({
       onMouseDown={(e) => e.stopPropagation()}
     >
       <div className="mb-2 flex items-center justify-between">
-        <span className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">
-          Tickers
-        </span>
+        <Link
+          href={`/segment/${encodeURIComponent(segment)}`}
+          className="text-[10px] font-semibold uppercase tracking-wide text-blue-600 hover:text-blue-800 hover:underline"
+        >
+          View segment →
+        </Link>
         {onClose && (
           <button
             type="button"

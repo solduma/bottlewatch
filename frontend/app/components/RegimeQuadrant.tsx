@@ -149,9 +149,7 @@ export function RegimeQuadrant({ rows }: { rows: SegmentScore[] }) {
       cellKey={k}
       rows={buckets[k]}
       expandedSegment={expandedSegment}
-      anchorEl={anchorEl}
       onToggle={handleToggle}
-      onClose={handleClose}
     />
   );
 
@@ -199,6 +197,21 @@ export function RegimeQuadrant({ rows }: { rows: SegmentScore[] }) {
           <div className="space-y-2">{order.slice(3, 6).map(cell)}</div>
         </div>
       </div>
+
+      {/* Single popup for the whole quadrant. The cell grid is rendered
+          twice (desktop + mobile layouts), so rendering the popup inside
+          a cell would mount two instances — each fixed-positioned at the
+          same spot, and each running an outside-click listener that tears
+          the other down on mousedown, killing link clicks. Rendering once
+          here against the anchor's rect avoids that. */}
+      {expandedSegment && anchorEl && (
+        <QuadrantTickerList
+          key={expandedSegment}
+          segment={expandedSegment}
+          anchorEl={anchorEl}
+          onClose={handleClose}
+        />
+      )}
     </div>
   );
 }
@@ -207,16 +220,12 @@ function Cell({
   cellKey,
   rows,
   expandedSegment,
-  anchorEl,
   onToggle,
-  onClose,
 }: {
   cellKey: CellKey;
   rows: SegmentScore[];
   expandedSegment: string | null;
-  anchorEl: HTMLElement | null;
   onToggle: (segment: string, el: HTMLElement) => void;
-  onClose: () => void;
 }) {
   const prefix = CELL_PREFIXES[cellKey];
   return (
@@ -240,32 +249,20 @@ function Cell({
       {rows.length === 0 ? (
         <div className="mt-auto text-[11px] italic text-gray-400">(empty)</div>
       ) : (
-        <>
-          <div className="flex flex-wrap gap-1.5">
-            {rows.map((r) => (
-              <Fragment key={r.segment}>
-                <SegmentBadge
-                  segment={r.segment}
-                  name={r.name}
-                  score={r.score}
-                  regime={r.regime}
-                  onToggle={onToggle}
-                  expanded={expandedSegment === r.segment}
-                />
-              </Fragment>
-            ))}
-          </div>
-          {expandedSegment &&
-            anchorEl &&
-            rows.some((r) => r.segment === expandedSegment) && (
-              <QuadrantTickerList
-                key={expandedSegment}
-                segment={expandedSegment}
-                anchorEl={anchorEl}
-                onClose={onClose}
+        <div className="flex flex-wrap gap-1.5">
+          {rows.map((r) => (
+            <Fragment key={r.segment}>
+              <SegmentBadge
+                segment={r.segment}
+                name={r.name}
+                score={r.score}
+                regime={r.regime}
+                onToggle={onToggle}
+                expanded={expandedSegment === r.segment}
               />
-            )}
-        </>
+            </Fragment>
+          ))}
+        </div>
       )}
     </div>
   );

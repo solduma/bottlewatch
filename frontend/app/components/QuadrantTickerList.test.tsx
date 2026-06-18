@@ -144,6 +144,21 @@ describe("QuadrantTickerList", () => {
     document.body.removeChild(button);
   });
 
+  it("links to the segment page from the popup header", async () => {
+    const button = document.createElement("button");
+    document.body.appendChild(button);
+    render(
+      <QuadrantTickerList
+        segment="transformers_tnd"
+        anchorEl={button}
+        onClose={() => {}}
+      />,
+    );
+    const link = await screen.findByRole("link", { name: /view segment/i });
+    expect(link.getAttribute("href")).toBe("/segment/transformers_tnd");
+    document.body.removeChild(button);
+  });
+
   it("calls onClose when Escape is pressed", async () => {
     const button = document.createElement("button");
     document.body.appendChild(button);
