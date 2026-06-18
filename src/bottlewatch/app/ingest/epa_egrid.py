@@ -48,7 +48,7 @@ Design notes (spec frozen 2026-06-07):
 from __future__ import annotations
 
 import logging
-from datetime import date
+from datetime import date, datetime
 from pathlib import Path
 
 import httpx
@@ -212,6 +212,10 @@ class EPAEGridAdapter(Adapter):
     # current edition. Update when a new edition lands.
     EGRID_PUBLICATION_DATE = date(2025, 6, 12)
     WRI_PUBLICATION_DATE = date(2023, 8, 16)
+    # released_at = the publication date as a datetime, so the point-in-time
+    # recompute gates on when EPA/WRI actually published (not fetch time).
+    EGRID_RELEASED_AT = datetime(2025, 6, 12)
+    WRI_RELEASED_AT = datetime(2023, 8, 16)
 
     def __init__(self, settings: Settings) -> None:
         self._settings = settings
@@ -419,6 +423,7 @@ class EPAEGridAdapter(Adapter):
                         source=self.name,
                         source_id=f"egrid2023:{sr}:lb_per_mwh",
                         observed_at=self.EGRID_PUBLICATION_DATE,
+                        released_at=self.EGRID_RELEASED_AT,
                         value_text="annual output emission rate",
                         geography=geo,
                         tickers="[]",
@@ -432,6 +437,7 @@ class EPAEGridAdapter(Adapter):
                         source=self.name,
                         source_id=f"egrid2023:{sr}:g_per_kwh",
                         observed_at=self.EGRID_PUBLICATION_DATE,
+                        released_at=self.EGRID_RELEASED_AT,
                         value_text="annual output emission rate",
                         geography=geo,
                         tickers="[]",
@@ -505,6 +511,7 @@ class EPAEGridAdapter(Adapter):
                     source=self.name,
                     source_id=f"wri_aqueduct_4:{sr}",
                     observed_at=self.WRI_PUBLICATION_DATE,
+                    released_at=self.WRI_RELEASED_AT,
                     value_text="country-level (US-wide); per-subregion join deferred to v1.1",
                     geography=f"eGRID:{sr}",
                     tickers="[]",

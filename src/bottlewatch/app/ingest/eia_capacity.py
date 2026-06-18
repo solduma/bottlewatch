@@ -22,7 +22,7 @@ because the request shape is facets-based rather than the v1-bridge
 from __future__ import annotations
 
 import logging
-from datetime import date
+from datetime import date, datetime
 from typing import Any
 
 import httpx
@@ -83,6 +83,20 @@ def _latest_month_window(today: date) -> tuple[str, str]:
         month += 12
         year -= 1
     return f"{year:04d}-{month:02d}", f"{year:04d}-{month:02d}"
+
+
+def _released_at_for_period(period: str) -> datetime:
+    """Publication date for a YYYY-MM data period: the period plus the
+    modeled 3-month lag (the inverse of `_latest_month_window`). Derived
+    from the period, not `today`, so a backfilled run is point-in-time
+    correct rather than stamped with the fetch time.
+    """
+    year, month = (int(x) for x in period.split("-"))
+    month += 3
+    while month > 12:
+        month -= 12
+        year += 1
+    return datetime(year, month, 1)
 
 
 class EIAV2CapacityAdapter(Adapter):
@@ -158,6 +172,7 @@ class EIAV2CapacityAdapter(Adapter):
         del period_start, period_end  # window is "latest month", not the orchestrator's range
 
         _, latest = _latest_month_window(date.today())
+        released_at = _released_at_for_period(latest)
         signals: list[RawSignal] = []
         state_totals: dict[str, float] = {}
         with httpx.Client(timeout=self._settings.eia_timeout_s) as client:
@@ -186,6 +201,7 @@ class EIAV2CapacityAdapter(Adapter):
                             source=self.name,
                             source_id=f"operating-generator-capacity:{s}:{latest}",
                             observed_at=date.fromisoformat(f"{latest}-01"),
+                            released_at=released_at,
                         )
                     )
                 except ValidationError:
@@ -208,6 +224,7 @@ class EIAV2CapacityAdapter(Adapter):
                     source=self.name,
                     source_id=f"operating-generator-capacity:US:{latest}",
                     observed_at=date.fromisoformat(f"{latest}-01"),
+                    released_at=released_at,
                 )
             )
         except ValidationError:

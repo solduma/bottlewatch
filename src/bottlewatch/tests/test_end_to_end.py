@@ -163,8 +163,10 @@ async def test_full_user_journey(tmp_path: Path, factory: sessionmaker, client: 
     assert "HUBB" in hubb["companies"], hubb
     assert len(hubb["companies"]) > 1
 
-    # The transformers segment has a FRED-sourced scoreboard entry
-    # with a non-None capacity_tightness (the FRED data flowed
-    # end-to-end).
+    # transformers_tnd has no live capacity_tightness extractor, so that
+    # sub-score is imputed; on the near horizon its weight is 0.35, so
+    # completeness is 1 - 0.35 = 0.65 (the four research sub-scores are
+    # seed-backed and count as complete). This reflects the imputation
+    # honestly rather than the old constant-1.0 bug.
     transformers = next(r for r in scores if r["segment"] == "transformers_tnd")
-    assert transformers["data_completeness"] >= 0.8
+    assert transformers["data_completeness"] == pytest.approx(0.65)

@@ -169,20 +169,27 @@ def test_idempotent_recompute_overwrites_existing_rows(settings, factory: sessio
 
 
 def test_power_segment_gets_computed_capacity(settings, factory: sessionmaker) -> None:
-    """power_generation_oem and data_center_shell should have live
-    capacity_tightness; transformers_tnd falls back to imputed 0.5.
-    data_completeness is now always 1.0 because the normalizer fills
-    missing values with the universe median.
+    """Only power_generation_oem gets a live capacity_tightness from the
+    seeded planned+operating capacity signals → completeness 1.0.
+    data_center_shell (seeded with retail_sales_mwh, a different
+    sub-score) and transformers_tnd (no signals) both impute
+    capacity_tightness, so their completeness drops by that sub-score's
+    horizon weight (near 0.35 → 0.65, med 0.20 → 0.80, long 0.10 → 0.90).
+    This reflects the imputation rather than the old constant-1.0 bug.
     """
+    # Completeness when capacity_tightness is the only imputed sub-score,
+    # by horizon (1 - capacity_tightness weight).
+    imputed_capacity_completeness = {"near": 0.65, "med": 0.80, "long": 0.90}
     _seed_signals(factory)
     recompute_scores.run(settings=settings, factory=factory)
     with factory() as session:
         rows = session.execute(select(Score)).scalars().all()
         by_segment = {(s.segment, s.horizon): s for s in rows}
         for horizon in settings.score_horizons:
+            expected = imputed_capacity_completeness[horizon]
             assert by_segment[("power_generation_oem", horizon)].data_completeness == 1.0
-            assert by_segment[("data_center_shell", horizon)].data_completeness == 1.0
-            assert by_segment[("transformers_tnd", horizon)].data_completeness == 1.0
+            assert by_segment[("data_center_shell", horizon)].data_completeness == pytest.approx(expected)
+            assert by_segment[("transformers_tnd", horizon)].data_completeness == pytest.approx(expected)
             assert (
                 by_segment[("transformers_tnd", horizon)].sub_score_provenance["capacity_tightness"]["source"]
                 == "imputed"
@@ -204,17 +211,20 @@ def test_recompute_preserves_horizon_subset(settings, factory: sessionmaker) -> 
 
 
 def test_no_signals_still_writes_research_only_scores(settings, factory: sessionmaker) -> None:
-    """A fresh DB with zero signals still gets 30 rows: 4 research
-    sub-scores per segment × 3 horizons. The capacity_tightness is
-    imputed from the universe median (0.5), so data_completeness=1.0.
+    """A fresh DB with zero signals still gets a full row set: 4 research
+    sub-scores per segment × 3 horizons. capacity_tightness is imputed
+    (0.5), so completeness drops by that sub-score's horizon weight
+    (near 0.35 → 0.65, med 0.20 → 0.80, long 0.10 → 0.90). The imputed
+    weight stays below the 0.4 no-data threshold, so no row is NO_DATA.
     """
+    capacity_completeness = {"near": 0.65, "med": 0.80, "long": 0.90}
     report = recompute_scores.run(settings=settings, factory=factory)
     assert report.rows_written == len(known_segments()) * 3
     assert report.no_data_count == 0
     with factory() as session:
         rows = session.execute(select(Score)).scalars().all()
         for r in rows:
-            assert r.data_completeness == 1.0
+            assert r.data_completeness == pytest.approx(capacity_completeness[r.horizon])
             assert r.sub_scores["capacity_tightness"] == pytest.approx(0.5)
             assert r.sub_score_provenance["capacity_tightness"]["source"] == "imputed"
             assert r.regime != "NO_DATA"

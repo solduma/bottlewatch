@@ -103,6 +103,73 @@ def test_regime_confidence_increases_with_age() -> None:
     assert result_high.regime_confidence == "high"
 
 
+def test_data_completeness_reflects_imputed_weight() -> None:
+    # transformers_tnd has seed values for most sub-scores but no
+    # capacity_tightness extractor → that sub-score is imputed. The
+    # completeness must drop below 1.0 by exactly the imputed weight,
+    # NOT report a misleading 1.0 (the old `v is not None` bug).
+    result = compute_segment_score(
+        "transformers_tnd",
+        "near",
+        now=datetime(2026, 6, 4, tzinfo=timezone.utc),
+    )
+    imputed = {name for name, p in result.sub_score_provenance.items() if p.imputed}
+    assert imputed, "expected at least one imputed sub-score for this segment"
+    assert result.data_completeness < 1.0
+    # Seeds are curated, not imputed — they must NOT reduce completeness.
+    seeded = {name for name, p in result.sub_score_provenance.items() if p.source == "seed" and not p.imputed}
+    assert seeded, "transformers_tnd should be seed-backed, keeping completeness high"
+
+
+def test_data_completeness_is_one_when_nothing_imputed() -> None:
+    # power_generation_oem with both capacity inputs → capacity_tightness
+    # is computed (not imputed), and the other four are seed-backed (not
+    # imputed). Completeness is exactly 1.0 — the meaningful "all real" case.
+    result = compute_segment_score(
+        "power_generation_oem",
+        "near",
+        signals=[
+            _Row("planned_capacity_mw", 5000.0, None),
+            _Row("capacity_mw", 20000.0, None),
+        ],
+        now=datetime(2026, 6, 4, tzinfo=timezone.utc),
+    )
+    assert not any(p.imputed for p in result.sub_score_provenance.values())
+    assert result.data_completeness == pytest.approx(1.0)
+
+
+def test_no_data_gate_fires_when_imputed_weight_exceeds_threshold() -> None:
+    # NO_DATA is reachable when imputed sub-scores carry > (1 - 0.4) = 0.6
+    # of the weight. With mandatory seeds only capacity_tightness can be
+    # imputed in production, so we inject a seed that omits the four
+    # research sub-scores to simulate a segment with no curated data —
+    # proving the gate is correctly wired end-to-end, not just in
+    # `classify`. (See the spec's note: in the live config every segment
+    # has a full seed, so this state does not occur today.)
+    # Seed entry present (keys exist) but every research value is None,
+    # so the normalizer imputes all four; capacity_tightness has no
+    # signals, so it imputes too → all five imputed → completeness 0.0.
+    bare_seed = {
+        "bare_segment": {
+            "lead_time_growth": None,
+            "geo_concentration": None,
+            "regulatory_friction": None,
+            "demand_signal": None,
+        }
+    }
+    result = compute_segment_score(
+        "bare_segment",
+        "near",
+        seed=bare_seed,  # type: ignore[arg-type]
+        now=datetime(2026, 6, 4, tzinfo=timezone.utc),
+    )
+    assert all(p.imputed for p in result.sub_score_provenance.values())
+    assert result.data_completeness == pytest.approx(0.0)
+    assert result.regime is Regime.NO_DATA
+    # Score stays populated (the regime label is the trust signal).
+    assert result.score is not None
+
+
 def test_unknown_horizon_raises() -> None:
     with pytest.raises(ValueError, match="unknown horizon"):
         compute_segment_score("transformers_tnd", "weekly", now=datetime.now(tz=timezone.utc))

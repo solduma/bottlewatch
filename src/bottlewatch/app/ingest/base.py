@@ -14,7 +14,7 @@ the network code.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, datetime
 from enum import Enum
 from typing import Callable, Protocol, runtime_checkable
 
@@ -68,6 +68,13 @@ class RawSignal(BaseModel):
     source: str
     source_id: str | None = None
     observed_at: date
+    # When the source *published* this value, as opposed to `observed_at`
+    # (the period it describes). EIA capacity/860M and eGRID lag their
+    # observation period by 2–3 months; gating the point-in-time recompute
+    # on `released_at` (not fetch time) is what prevents look-ahead bias.
+    # Adapters that don't know the publication date leave this None, and the
+    # recompute coalesces to `ingested_at` — unchanged behavior for them.
+    released_at: datetime | None = None
     tickers: str = "[]"  # JSON array; defaults to "[]"
 
 

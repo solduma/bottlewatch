@@ -64,14 +64,15 @@ async def test_detail_returns_404_for_unknown(client: AsyncClient) -> None:
 @pytest.mark.asyncio
 async def test_research_only_segment_has_no_data_regime(client: AsyncClient, settings, factory) -> None:
     """transformers_tnd has no live capacity_tightness extractor, so that
-    sub-score is imputed as 0.5. Completeness is now 1.0 because the
-    normalizer fills missing values; the regime is still real (not
-    NO_DATA).
+    sub-score is imputed. Completeness reflects the imputed weight (the
+    near horizon imputes capacity_tightness, weight 0.35 → completeness
+    0.65), NOT a misleading 1.0. The regime is still real (not NO_DATA)
+    because the imputed weight stays below the 0.4 no-data threshold.
     """
     recompute_scores.run(settings=settings, factory=factory)
     body = (await client.get("/api/v1/segments/transformers_tnd")).json()
     near = next(h for h in body["horizons"] if h["horizon"] == "near")
-    assert near["data_completeness"] == 1.0
+    assert near["data_completeness"] == pytest.approx(0.65)
     assert near["regime"] != "NO_DATA"
 
 

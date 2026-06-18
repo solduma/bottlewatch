@@ -7,7 +7,7 @@ covered by `test_main_via_argparse`.
 
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, datetime
 from typing import Any
 
 import pytest
@@ -16,6 +16,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import sessionmaker
 
 from bottlewatch.app.db import IngestRun, Signal
+from bottlewatch.app.ingest.base import RawSignal
 from bottlewatch.app.ingest.eia import _SERIES_SPEC
 from bottlewatch.config import Settings
 from bottlewatch.jobs import refresh_daily
@@ -76,6 +77,38 @@ def test_happy_path_writes_signals_and_upserts_watermark(settings: Settings, fac
         assert run is not None
         assert run.status == "OK"
         assert run.rows_written == 3 * len(_SERIES_SPEC)
+
+
+def test_write_signals_persists_released_at(factory: sessionmaker) -> None:
+    # A RawSignal carrying released_at must round-trip into the signals
+    # table so the point-in-time recompute can gate on it. A signal
+    # without released_at persists NULL (unchanged behavior).
+    released = datetime(2025, 6, 12)
+    rows = [
+        RawSignal(
+            segment="data_center_shell",
+            signal_name="co2_rate_lb_per_mwh",
+            value_num=1.0,
+            source="epa_egrid",
+            source_id="t:with",
+            observed_at=date(2025, 6, 12),
+            released_at=released,
+        ),
+        RawSignal(
+            segment="data_center_shell",
+            signal_name="co2_rate_lb_per_mwh",
+            value_num=2.0,
+            source="epa_egrid",
+            source_id="t:without",
+            observed_at=date(2025, 6, 12),
+        ),
+    ]
+    with factory() as session:
+        refresh_daily._write_signals(session, rows)
+        session.commit()
+        persisted = {s.source_id: s.released_at for s in session.execute(select(Signal)).scalars().all()}
+    assert persisted["t:with"] == released
+    assert persisted["t:without"] is None
 
 
 def test_watermark_skips_second_run_within_cadence(settings: Settings, factory: sessionmaker) -> None:

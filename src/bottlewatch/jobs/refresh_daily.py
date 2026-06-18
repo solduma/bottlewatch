@@ -240,6 +240,7 @@ def _write_signals(session, signals: list[RawSignal]) -> None:
             source=s.source,
             source_id=s.source_id,
             observed_at=s.observed_at,
+            released_at=s.released_at,
             ingested_at=now,
             tickers=s.tickers,
         )
