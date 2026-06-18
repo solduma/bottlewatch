@@ -234,7 +234,7 @@ def _make_context(
 ) -> tuple[research_daily.SegmentContext, dict]:
     """Build a SegmentContext + near score_row for validation tests."""
     seed = research_daily.load_seed()
-    segment_seed: dict[str, float] = dict(research_daily.for_segment(segment, seed))  # type: ignore[arg-type]
+    segment_seed = research_daily.for_segment(segment, seed)
     score_row = {
         "segment": segment,
         "horizon": "near",
