@@ -21,6 +21,7 @@ from __future__ import annotations
 import argparse
 import json
 import logging
+import re
 import sys
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta, timezone
@@ -42,6 +43,19 @@ _LOGGER = logging.getLogger(__name__)
 _SCORE_DELTA_THRESHOLD = 5.0
 _MOMENTUM_THRESHOLD = 5.0
 _DIVERGENCE_THRESHOLD = 0.2
+
+# Numeric-claim validation: a number in the LLM rationale is considered
+# grounded if it matches some context value within these tolerances
+# (absolute OR relative, to allow rounding like "B=64.8" cited as "65").
+_ABS_TOL = 0.05
+_REL_TOL = 0.02
+# Policy knob: max ungrounded numbers tolerated before the rationale is
+# rejected. 0 = strict. Tunable once the rejection logs show the real
+# false-positive rate; the fallback is a safe machine rationale, not data loss.
+_MAX_UNVERIFIED_CLAIMS = 0
+
+# Matches integer or decimal numbers (optionally signed) in rationale text.
+_NUMBER_RE = re.compile(r"-?\d+(?:\.\d+)?")
 
 # Project root: src/bottlewatch/jobs/research_daily.py -> ../../../..
 _PROJECT_ROOT = Path(__file__).resolve().parents[3]
@@ -352,6 +366,86 @@ def _machine_rationale(context: SegmentContext, horizon: str, score_row: dict[st
     )
 
 
+def _date_year_month_parts(iso_date: str | None) -> list[float]:
+    """Return the integer year and month of an ISO date as floats.
+
+    Included in the grounding set so legitimate date citations (e.g. the
+    year "2026") don't read as hallucinated numbers.
+    """
+    if not iso_date:
+        return []
+    try:
+        d = date.fromisoformat(iso_date[:10])
+    except ValueError:
+        return []
+    return [float(d.year), float(d.month)]
+
+
+def _build_grounding_set(context: SegmentContext, score_row: dict[str, Any]) -> list[float]:
+    """Collect every numeric value the prompt showed the model.
+
+    These are the only numbers a rationale may legitimately cite: signal
+    values, score B, momentum B', prev score, sub-scores, seed values,
+    divergence seed/dynamic/gap, and the year/month parts of shown dates.
+    """
+    values: list[float] = []
+
+    def add(v: Any) -> None:
+        if isinstance(v, bool):
+            return
+        if isinstance(v, (int, float)):
+            values.append(float(v))
+
+    # Today's score, momentum, sub-scores.
+    add(score_row.get("score"))
+    add(score_row.get("momentum"))
+    for v in (score_row.get("sub_scores") or {}).values():
+        add(v)
+
+    # Yesterday's score for this horizon.
+    prev = (context.prev_scores or {}).get(score_row.get("horizon", ""))
+    if prev:
+        add(prev.get("score"))
+
+    # Research seed sub-scores.
+    for v in context.seed.values():
+        add(v)
+
+    # Divergence seed / dynamic / gap.
+    for d in context.divergences:
+        add(d.get("seed"))
+        add(d.get("dynamic"))
+        add(d.get("gap"))
+
+    # Signal values and the year/month of their observation dates.
+    for s in context.signals:
+        add(s.get("value_num"))
+        values.extend(_date_year_month_parts(s.get("observed_at")))
+
+    return values
+
+
+def _validate_numeric_claims(
+    rationale: str,
+    context: SegmentContext,
+    score_row: dict[str, Any],
+) -> list[float]:
+    """Return the numbers in `rationale` not grounded in the prompt context.
+
+    Pure and deterministic: extracts every number via `_NUMBER_RE` and
+    keeps those that match no grounding value within tolerance
+    (`abs(a-b) <= max(_ABS_TOL, _REL_TOL*|b|)`). An empty result means the
+    rationale's numeric claims are all grounded.
+    """
+    grounding = _build_grounding_set(context, score_row)
+    unverified: list[float] = []
+    for match in _NUMBER_RE.findall(rationale):
+        a = float(match)
+        if not any(abs(a - b) <= max(_ABS_TOL, _REL_TOL * abs(b)) for b in grounding):
+            unverified.append(a)
+    return unverified
+
+
 def _generate_for_segment_horizon(
     context: SegmentContext,
     horizon: str,
@@ -367,26 +461,39 @@ def _generate_for_segment_horizon(
     score_row = context.scores[horizon]
     prev_row = (context.prev_scores or {}).get(horizon)
 
+    generated_by = "machine"
     if api_key and _is_interesting(score_row, prev_row, context.divergences):
         try:
             prompt = _build_prompt(context, horizon, score_row)
             rationale = _call_llm(prompt, api_key, base_url, model)
-            return RationaleResult(
-                segment=context.segment,
-                horizon=horizon,
-                rationale_md=rationale,
-                divergences=list(context.divergences),
-                generated_by="llm",
-            )
+            unverified = _validate_numeric_claims(rationale, context, score_row)
+            if len(unverified) > _MAX_UNVERIFIED_CLAIMS:
+                _LOGGER.warning(
+                    "LLM rationale rejected for %s/%s: %d ungrounded number(s) %s; using machine fallback",
+                    context.segment,
+                    horizon,
+                    len(unverified),
+                    unverified,
+                )
+                generated_by = "machine_rejected"
+            else:
+                return RationaleResult(
+                    segment=context.segment,
+                    horizon=horizon,
+                    rationale_md=rationale,
+                    divergences=list(context.divergences),
+                    generated_by="llm",
+                )
         except Exception as e:
             _LOGGER.warning("LLM rationale failed for %s/%s: %s; using fallback", context.segment, horizon, e)
+            generated_by = "machine_llm_error"
 
     return RationaleResult(
         segment=context.segment,
         horizon=horizon,
         rationale_md=_machine_rationale(context, horizon, score_row),
         divergences=list(context.divergences),
-        generated_by="machine",
+        generated_by=generated_by,
     )
 
 
@@ -514,13 +621,19 @@ def run(
 
     out_dir = _write_artifacts(snapshot_date, results)
     llm_count = sum(1 for r in results if r.generated_by == "llm")
-    machine_count = len(results) - llm_count
+    llm_error_count = sum(1 for r in results if r.generated_by == "machine_llm_error")
+    rejected_count = sum(1 for r in results if r.generated_by == "machine_rejected")
+    # "machine" = no LLM attempted (no key / not interesting). The four
+    # counts partition `total`.
+    machine_count = len(results) - llm_count - llm_error_count - rejected_count
 
     _LOGGER.info(
-        "research_daily: %d rationales written (%d LLM, %d machine) to %s",
+        "research_daily: %d rationales written (%d LLM, %d machine, %d llm_error, %d rejected) to %s",
         len(results),
         llm_count,
         machine_count,
+        llm_error_count,
+        rejected_count,
         out_dir,
     )
     return {
@@ -528,6 +641,8 @@ def run(
         "total": len(results),
         "llm": llm_count,
         "machine": machine_count,
+        "llm_error": llm_error_count,
+        "rejected": rejected_count,
         "output_dir": str(out_dir),
     }
 

@@ -218,3 +218,181 @@ def test_llm_called_for_interesting_segment(settings, factory: sessionmaker, tmp
             assert row.rationale_md == fake_rationale
     finally:
         research_daily._DAILY_OUTPUT_DIR = original_dir
+
+
+# ---------------------------------------------------------------------------
+# T2.2 — numeric-claim validation (the 6 spec properties)
+# ---------------------------------------------------------------------------
+
+
+def _make_context(
+    *,
+    segment: str = "advanced_node_fabs",
+    score: float = 64.8,
+    momentum: float = 10.0,
+    signals: list[dict] | None = None,
+) -> tuple[research_daily.SegmentContext, dict]:
+    """Build a SegmentContext + near score_row for validation tests."""
+    seed = research_daily.load_seed()
+    segment_seed: dict[str, float] = dict(research_daily.for_segment(segment, seed))  # type: ignore[arg-type]
+    score_row = {
+        "segment": segment,
+        "horizon": "near",
+        "score": score,
+        "momentum": momentum,
+        "regime": "EMERGING",
+        "sub_scores": {
+            "lead_time_growth": 0.5,
+            "capacity_tightness": None,
+            "geo_concentration": 0.5,
+            "regulatory_friction": 0.5,
+            "demand_signal": 0.5,
+        },
+    }
+    context = research_daily.SegmentContext(
+        segment=segment,
+        seed=segment_seed,
+        scores={"near": score_row},
+        prev_scores=None,
+        signals=signals or [],
+        divergences=[],
+    )
+    return context, score_row
+
+
+def test_validate_grounded_passes() -> None:
+    """Property 1: a rationale citing only context numbers (incl. a rounded
+    form like 65 for 64.8) has no unverified claims.
+    """
+    context, score_row = _make_context(score=64.8, momentum=10.0)
+    rationale = "Score is 65 and momentum is 10. Geo concentration sits at 0.5."
+    assert research_daily._validate_numeric_claims(rationale, context, score_row) == []
+
+
+def test_validate_hallucination_flagged() -> None:
+    """Property 2 (helper level): an ungrounded number is returned as unverified."""
+    context, score_row = _make_context(score=64.8, momentum=10.0)
+    rationale = "Lead times grew 999 weeks, an unprecedented figure."
+    unverified = research_daily._validate_numeric_claims(rationale, context, score_row)
+    assert 999.0 in unverified
+
+
+def test_validate_no_numbers_passes() -> None:
+    """Property 3: qualitative-only text never produces a false reject."""
+    context, score_row = _make_context()
+    rationale = "The segment remains in an emerging regime driven by demand."
+    assert research_daily._validate_numeric_claims(rationale, context, score_row) == []
+
+
+def test_validate_determinism() -> None:
+    """Property 6: same (text, context) → same verdict."""
+    context, score_row = _make_context(score=64.8)
+    rationale = "Score 65, momentum 10, but exports jumped 4321."
+    first = research_daily._validate_numeric_claims(rationale, context, score_row)
+    second = research_daily._validate_numeric_claims(rationale, context, score_row)
+    assert first == second
+    assert 4321.0 in first
+
+
+def _mock_llm_response(content: str) -> MagicMock:
+    resp = MagicMock()
+    resp.raise_for_status = MagicMock()
+    resp.json.return_value = {"choices": [{"message": {"content": content}}]}
+    return resp
+
+
+def test_hallucinated_rationale_rejected(settings, factory: sessionmaker, tmp_path: Path) -> None:
+    """Property 2: an LLM rationale citing a fabricated number is rejected →
+    machine_rejected, and the fabricated text is NOT persisted.
+    """
+    today = datetime.now(tz=timezone.utc)
+    _seed_score(factory, "advanced_node_fabs", "near", today, momentum=10.0, regime="EMERGING")
+
+    fabricated = "Lead times exploded to 4321 weeks, a record high."
+    original_dir = research_daily._DAILY_OUTPUT_DIR
+    research_daily._DAILY_OUTPUT_DIR = tmp_path / "daily"
+    try:
+        with patch("httpx.Client") as mock_httpx:
+            mock_httpx.return_value.__enter__ = MagicMock(return_value=mock_httpx.return_value)
+            mock_httpx.return_value.__exit__ = MagicMock(return_value=False)
+            mock_httpx.return_value.post.return_value = _mock_llm_response(fabricated)
+            report = research_daily.run(
+                settings=settings.model_copy(update={"ollama_api_key": "test-key"}),
+                factory=factory,
+                now=today,
+                api_key="test-key",
+            )
+
+        assert report["llm"] == 0
+        assert report["rejected"] == 1
+
+        with factory() as session:
+            row = session.execute(select(ResearchSnapshot)).scalar_one()
+            assert row.generated_by == "machine_rejected"
+            assert "4321" not in row.rationale_md
+    finally:
+        research_daily._DAILY_OUTPUT_DIR = original_dir
+
+
+def test_llm_error_path_counted(settings, factory: sessionmaker, tmp_path: Path) -> None:
+    """Property 4: when _call_llm raises, generated_by == machine_llm_error and
+    the run report's llm_error count increments.
+    """
+    today = datetime.now(tz=timezone.utc)
+    _seed_score(factory, "advanced_node_fabs", "near", today, momentum=10.0, regime="EMERGING")
+
+    original_dir = research_daily._DAILY_OUTPUT_DIR
+    research_daily._DAILY_OUTPUT_DIR = tmp_path / "daily"
+    try:
+        with patch.object(research_daily, "_call_llm", side_effect=RuntimeError("boom")):
+            report = research_daily.run(
+                settings=settings.model_copy(update={"ollama_api_key": "test-key"}),
+                factory=factory,
+                now=today,
+                api_key="test-key",
+            )
+
+        assert report["llm_error"] == 1
+        assert report["llm"] == 0
+
+        with factory() as session:
+            row = session.execute(select(ResearchSnapshot)).scalar_one()
+            assert row.generated_by == "machine_llm_error"
+    finally:
+        research_daily._DAILY_OUTPUT_DIR = original_dir
+
+
+def test_run_report_counts_partition_total(settings, factory: sessionmaker, tmp_path: Path) -> None:
+    """Property 5: a run mixing happy / rejected / errored / not-interesting
+    segments yields four counts that sum to total.
+
+    Three horizons of one interesting segment: the LLM is mocked to return a
+    grounded rationale, so all three pass (llm=3). We then assert the four
+    counts partition total regardless.
+    """
+    today = datetime.now(tz=timezone.utc)
+    # Interesting near horizon (momentum) + two non-interesting horizons that
+    # still get a machine rationale.
+    _seed_score(factory, "advanced_node_fabs", "near", today, momentum=10.0, regime="EMERGING")
+    _seed_score(factory, "advanced_node_fabs", "med", today, momentum=0.0, score=50.0)
+    _seed_score(factory, "advanced_node_fabs", "long", today, momentum=0.0, score=50.0)
+
+    grounded = "Regime is emerging with strong demand."  # no numbers → passes
+    original_dir = research_daily._DAILY_OUTPUT_DIR
+    research_daily._DAILY_OUTPUT_DIR = tmp_path / "daily"
+    try:
+        with patch("httpx.Client") as mock_httpx:
+            mock_httpx.return_value.__enter__ = MagicMock(return_value=mock_httpx.return_value)
+            mock_httpx.return_value.__exit__ = MagicMock(return_value=False)
+            mock_httpx.return_value.post.return_value = _mock_llm_response(grounded)
+            report = research_daily.run(
+                settings=settings.model_copy(update={"ollama_api_key": "test-key"}),
+                factory=factory,
+                now=today,
+                api_key="test-key",
+            )
+
+        assert report["llm"] + report["machine"] + report["llm_error"] + report["rejected"] == report["total"]
+        assert report["total"] == 3
+    finally:
+        research_daily._DAILY_OUTPUT_DIR = original_dir

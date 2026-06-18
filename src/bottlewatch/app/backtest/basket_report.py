@@ -60,6 +60,10 @@ class BacktestReport:
     baskets: list[BasketSnapshot]
     fixed_vs_rolling: dict[str, Any] | None
     seed_share_warning_dates: list[date]
+    overall_ci_low: float | None = None
+    overall_ci_high: float | None = None
+    n_constant_score_segments: int = 0
+    n_segments_evaluated: int = 0
 
     def to_jsonable(self) -> dict[str, Any]:
         def _convert(value: Any) -> Any:
