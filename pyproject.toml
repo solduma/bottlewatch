@@ -22,7 +22,6 @@ dependencies = [
     "uvicorn[standard]>=0.30",  # M2 ASGI server (httptools + uvloop extras)
     "psycopg[binary]>=3.2",  # Postgres adapter (v1.1 cutover target)
     "beautifulsoup4>=4.12",  # 10-K/10-Q HTML stripping for sec_edgar capacity keyword extraction
-    "anthropic>=0.49",  # daily research reasoning (Claude API)
     "scipy>=1.14",  # Phase 3 backtest statistics (Spearman, t-dist, bootstrap)
     "yfinance>=0.2",  # daily equity price ingest for backtest
 ]
