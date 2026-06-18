@@ -64,6 +64,11 @@ class BacktestReport:
     overall_ci_high: float | None = None
     n_constant_score_segments: int = 0
     n_segments_evaluated: int = 0
+    # Point-in-time disclosure: basket ticker membership is gated as-of by price
+    # existence, but mcap_usd/exposure_pct are static present-day values (no
+    # historical fundamentals source), so baskets are not fully point-in-time.
+    universe_is_point_in_time: bool = False
+    universe_caveat: str = ""
 
     def to_jsonable(self) -> dict[str, Any]:
         def _convert(value: Any) -> Any:

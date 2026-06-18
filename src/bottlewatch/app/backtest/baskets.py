@@ -2,6 +2,15 @@
 
 Builds long, short, and watchlist baskets at each evaluation date from
 segment scores and the universe CSV.
+
+Point-in-time caveat: ticker membership is gated as-of `eval_date` by price
+existence (a ticker is only held if it was actually trading at-or-before that
+date), which removes the most concrete survivorship/look-ahead. BUT
+`mcap_usd` and `exposure_pct` are STATIC present-day values from the universe
+CSV applied retroactively — there is no historical fundamentals source — so
+the eligibility filter and `score_contribution` are not fully point-in-time.
+The backtest report discloses this (`universe_is_point_in_time=False`); a
+proper fix needs a point-in-time fundamentals/membership feed.
 """
 
 from __future__ import annotations
@@ -107,7 +116,11 @@ def _eligible_tickers(
     segment: str,
     score: float,
 ) -> list[UniverseRow]:
-    """Filter universe rows for basket inclusion."""
+    """Filter universe rows for basket inclusion.
+
+    Note: `exposure_pct`/`mcap_usd` are static present-day values (see module
+    docstring) — this filter is not point-in-time on fundamentals.
+    """
     return [
         r
         for r in rows
@@ -117,6 +130,20 @@ def _eligible_tickers(
         and r.ticker
         and r.name
     ]
+
+
+def _is_listed_at(
+    prices: dict[str, list[tuple[date, float]]],
+    ticker: str,
+    eval_date: date,
+) -> bool:
+    """True if `ticker` had a price bar at-or-before `eval_date`.
+
+    The as-of membership gate: prices dated <= eval_date are point-in-time by
+    construction, so this excludes tickers not yet trading at `eval_date`
+    (survivorship/membership leak) and tickers with no price data at all.
+    """
+    return _find_close_on_or_before(prices.get(ticker, []), eval_date) is not None
 
 
 def _select_top_segments(
@@ -337,6 +364,11 @@ def _build_basket(
     for segment in selected_segments:
         score = scores.get(segment, {}).get("b", 0.0)
         eligible = _eligible_tickers(universe_rows, segment, score)
+        # As-of membership gate: only hold tickers actually trading at eval_date.
+        # Applied only when price data is provided; with no prices we cannot make
+        # an as-of determination (selection-only callers pass prices={}).
+        if prices:
+            eligible = [r for r in eligible if _is_listed_at(prices, r.ticker, eval_date)]
         eligible.sort(key=lambda r: r.exposure_pct * score, reverse=True)
         max_tickers = _MAX_LONG_TICKERS if side == "long" else _MAX_SHORT_TICKERS
         min_tickers = _MIN_LONG_TICKERS if side == "long" else _MIN_SHORT_TICKERS
@@ -407,6 +439,9 @@ def _build_watchlist(
     for segment in selected:
         score = scores.get(segment, {}).get("b", 0.0)
         eligible = _eligible_tickers(universe_rows, segment, score)
+        # As-of membership gate when price data is provided (return-mode).
+        if prices:
+            eligible = [r for r in eligible if _is_listed_at(prices, r.ticker, eval_date)]
         eligible.sort(key=lambda r: r.exposure_pct * score, reverse=True)
         for row in eligible[:_MAX_LONG_TICKERS]:
             entries.append(
@@ -457,7 +492,7 @@ def build_baskets(
     eval_date: date,
     horizon: str,
     scores: dict[str, dict[str, Any]],
-    universe_path: Path,
+    universe_rows: list[UniverseRow],
     prices: dict[str, list[tuple[date, float]]],
     forward_days: int,
     sector_neutral: bool = False,
@@ -468,7 +503,8 @@ def build_baskets(
         eval_date: the as-of date for the basket.
         horizon: one of "near", "med", "long".
         scores: dict segment -> {"b": float, "momentum": float, "regime": Regime}.
-        universe_path: path to the universe CSV.
+        universe_rows: parsed universe rows (load once with `_load_universe`;
+            do NOT pass a path so the CSV isn't re-parsed per eval date).
         prices: dict ticker -> list of (date, close) sorted ascending.
         forward_days: forward return horizon for long/short baskets.
         sector_neutral: when True, allocate equal total weight to each
@@ -477,7 +513,6 @@ def build_baskets(
     Returns:
         dict keyed by "long", "short", "watchlist".
     """
-    universe_rows = _load_universe(universe_path)
     long_segments = _select_top_segments(scores, "long")
     short_segments = _select_top_segments(scores, "short")
     return {

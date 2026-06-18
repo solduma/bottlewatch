@@ -243,6 +243,11 @@ def test_run_backtest_with_synthetic_positive_signal(settings: Settings, factory
     assert report.n_constant_score_segments == 2
     assert report.n_segments_evaluated == 0
 
+    # Universe-leak disclosure: baskets are NOT fully point-in-time (static
+    # mcap/exposure), and the report states so in-band.
+    assert report.universe_is_point_in_time is False
+    assert report.universe_caveat
+
     # Property 6 — determinism: identical inputs + seed → identical inference.
     report2 = run_backtest(
         prices=prices,

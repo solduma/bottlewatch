@@ -68,6 +68,12 @@ export default async function BacktestPage({
         </div>
       )}
 
+      {report.universe_is_point_in_time === false && report.universe_caveat && (
+        <div className="rounded border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
+          ⚠️ Basket point-in-time caveat: {report.universe_caveat}
+        </div>
+      )}
+
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <Card>
           <div className="text-sm text-gray-600">Overall IC</div>

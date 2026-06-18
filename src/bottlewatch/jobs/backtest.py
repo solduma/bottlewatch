@@ -40,6 +40,7 @@ from sqlalchemy.orm import sessionmaker
 
 from bottlewatch.app.backtest.basket_report import BacktestReport, BasketSnapshot, SegmentICRow
 from bottlewatch.app.backtest.baskets import build_baskets
+from bottlewatch.app.backtest.baskets import _load_universe as _load_universe_rows
 from bottlewatch.app.backtest.prices import CsvPriceProvider, PriceBar, PriceProvider
 from bottlewatch.app.backtest.stats import (
     SegmentICResult,
@@ -56,6 +57,16 @@ _LOGGER = logging.getLogger(__name__)
 # Eval dates step monthly; the bootstrap block size derives from
 # forward_days / _STEP_DAYS (see stats.block_size_for).
 _STEP_DAYS = 30
+
+# Point-in-time disclosure for basket results. Membership is gated as-of by
+# price existence, but mcap_usd/exposure_pct are static present-day values
+# (no historical fundamentals source), so basket returns are not fully PIT.
+_UNIVERSE_CAVEAT = (
+    "Basket membership is gated as-of by price existence, but mcap_usd and "
+    "exposure_pct are static present-day values applied retroactively (no "
+    "historical fundamentals source). Basket returns are not fully "
+    "point-in-time; treat them as indicative, not as a clean walk-forward."
+)
 
 # Project root: src/bottlewatch/jobs/backtest.py -> ../../../
 _PROJECT_ROOT = Path(__file__).resolve().parents[3]
@@ -217,6 +228,9 @@ def _run_single_mode(
     mode (e.g., by running a point-in-time recompute beforehand).
     """
     universe = _load_universe(universe_path)
+    # Parse the universe once (typed rows) for basket construction, instead of
+    # re-reading the CSV on every eval date inside build_baskets.
+    universe_rows = _load_universe_rows(universe_path)
     eval_dates = _eval_dates(start, end, step_days=_STEP_DAYS)
     if not universe or not eval_dates:
         return (
@@ -238,6 +252,8 @@ def _run_single_mode(
                 overall_ci_high=None,
                 n_constant_score_segments=0,
                 n_segments_evaluated=0,
+                universe_is_point_in_time=False,
+                universe_caveat=_UNIVERSE_CAVEAT,
             ),
             [],
         )
@@ -280,7 +296,7 @@ def _run_single_mode(
             eval_date=t,
             horizon=horizon,
             scores=segment_scores,
-            universe_path=universe_path,
+            universe_rows=universe_rows,
             prices=ticker_prices,
             forward_days=forward_days,
         )
@@ -414,6 +430,8 @@ def _run_single_mode(
         overall_ci_high=overall.ci_high,
         n_constant_score_segments=len(constant_score_segments),
         n_segments_evaluated=len(segments_in_data) - len(constant_score_segments),
+        universe_is_point_in_time=False,
+        universe_caveat=_UNIVERSE_CAVEAT,
     )
     return report, eval_points
 

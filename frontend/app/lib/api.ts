@@ -387,6 +387,8 @@ export interface BacktestReport {
   baskets: BasketSnapshot[];
   fixed_vs_rolling: FixedVsRolling | null;
   seed_share_warning_dates: string[];
+  universe_is_point_in_time?: boolean;
+  universe_caveat?: string;
 }
 
 export const getBacktestReport = (opts?: {
