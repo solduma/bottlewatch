@@ -121,7 +121,9 @@ export default function TickerDetailPage() {
             <div className="grid grid-cols-3 gap-2 text-xs text-gray-600">
               <div>
                 <div className="text-gray-400">Exposure</div>
-                <div className="font-mono font-medium">{seg.exposure_pct.toFixed(0)}%</div>
+                <div className="font-mono font-medium">
+                  {seg.exposure_pct === null ? "—" : `${seg.exposure_pct.toFixed(0)}%`}
+                </div>
               </div>
               <div>
                 <div className="text-gray-400">Score</div>

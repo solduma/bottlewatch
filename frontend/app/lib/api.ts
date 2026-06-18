@@ -81,7 +81,9 @@ export interface TickerRow {
   name: string;
   segment: string;
   subsegment: string | null;
-  exposure_pct: number;
+  // null when the universe CSV cell is missing/unparseable (the API
+  // emits float | None). Render/sort sites must guard against null.
+  exposure_pct: number | null;
   market_cap_bucket: string;
   mcap_usd: number | null;
   currency_hedge: string;
@@ -167,7 +169,7 @@ export interface TickerDetailSegment {
   segment: string;
   name: string;
   subsegment: string | null;
-  exposure_pct: number;
+  exposure_pct: number | null;
   regime_near: string | null;
   score_near: number | null;
   momentum_near: number | null;

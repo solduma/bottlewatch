@@ -150,7 +150,7 @@ export function QuadrantTickerList({
               </span>
               <span className="flex-1 truncate text-gray-700">{t.name}</span>
               <span className="font-mono text-gray-500">
-                {t.exposure_pct}%
+                {t.exposure_pct === null ? "—" : `${t.exposure_pct}%`}
               </span>
             </Link>
           </li>
