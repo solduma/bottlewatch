@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from datetime import date
 from typing import Any
 
@@ -63,6 +64,19 @@ def test_retry_on_503_then_succeeds(settings: Settings) -> None:
     # One series * its number of target segments.
     assert len(result) == len(_SERIES_SPEC[0].segments)
     assert result[0].value_num == 100.0
+
+
+def test_failing_series_is_logged_and_skipped(settings: Settings, caplog) -> None:
+    # A series that 404s on every attempt must not silently vanish: the
+    # adapter logs a WARNING and continues, so a degraded fetch is visible
+    # rather than reported as a clean empty run.
+    adapter = FredAdapter(settings)
+    with respx.mock(base_url="https://api.stlouisfed.org") as mock:
+        mock.get("/fred/series/observations").respond(404, text="not found")
+        with caplog.at_level(logging.WARNING):
+            result = adapter.fetch(date(2024, 1, 1), date(2024, 12, 31))
+    assert result == []
+    assert any("FRED series" in r.message and "failed" in r.message for r in caplog.records)
 
 
 # ---------------------------------------------------------------------------

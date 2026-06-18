@@ -6,6 +6,7 @@ using Harmonized System (HS) codes.
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 from datetime import date
 
@@ -14,6 +15,8 @@ import tenacity
 
 from bottlewatch.app.ingest.base import Cadence, ProgressCallback, RawSignal
 from bottlewatch.config import Settings
+
+_LOGGER = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -64,7 +67,11 @@ class ComtradeAdapter:
                 try:
                     commodity_signals = self._fetch_commodity(client, spec, period_start, period_end)
                     signals.extend(commodity_signals)
-                except Exception:
+                except Exception as e:
+                    # Log and continue: one bad HS code shouldn't kill the run,
+                    # but the failure must be visible so a degraded fetch isn't
+                    # reported as a clean OK-with-zero-rows.
+                    _LOGGER.warning("Comtrade HS code %s failed: %s", spec.hs_code, e)
                     continue
 
         return signals

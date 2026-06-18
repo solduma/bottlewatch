@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from datetime import date
 from typing import Any
 
@@ -65,3 +66,16 @@ def test_retry_on_503_then_succeeds(settings: Settings) -> None:
 
     assert route.call_count == 2
     assert len(result) > 0
+
+
+def test_failing_commodity_is_logged_and_skipped(settings: Settings, caplog) -> None:
+    # A commodity that 404s on every attempt must be logged-and-skipped,
+    # not silently swallowed — otherwise a degraded fetch reads as a clean
+    # empty run.
+    adapter = ComtradeAdapter(settings)
+    with respx.mock(base_url="https://comtradeapi.un.org") as mock:
+        mock.get("/api/get").respond(404, text="not found")
+        with caplog.at_level(logging.WARNING):
+            result = adapter.fetch(date(2024, 1, 1), date(2024, 12, 31))
+    assert result == []
+    assert any("Comtrade HS code" in r.message and "failed" in r.message for r in caplog.records)
