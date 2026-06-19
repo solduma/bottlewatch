@@ -47,7 +47,8 @@ frontend/.turbo/
 frontend/coverage/
 frontend/*.log
 frontend/.env*.local
-frontend/tsconfig.tsbuildinfo  # incremental tsc build cache
+# incremental tsc build cache
+frontend/tsconfig.tsbuildinfo
 
 # --- Notebooks ----------------------------------------------------------
 notebooks/.ipynb_checkpoints/
