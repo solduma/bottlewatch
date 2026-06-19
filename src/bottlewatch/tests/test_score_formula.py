@@ -5,7 +5,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 import pytest
@@ -14,6 +14,8 @@ from bottlewatch.app.score.extractors import ExtractorResult
 from bottlewatch.app.score.formula import (
     HORIZONS,
     ScoreResult,
+    _momentum,
+    _trailing_median_b,
     compute_segment_score,
 )
 from bottlewatch.app.score.regime import Regime
@@ -76,6 +78,64 @@ def test_momentum_zero_on_first_compute() -> None:
     )
     assert result.momentum == 0.0
     assert result.regime_confidence == "low"
+
+
+# ---------------------------------------------------------------------------
+# Momentum baseline: trailing-6-month median (methodology §7.5)
+# ---------------------------------------------------------------------------
+
+_NOW = datetime(2026, 6, 1, tzinfo=timezone.utc)
+
+
+def _hist(*pairs: tuple[int, float]) -> list[tuple[datetime, float]]:
+    """Build [(now - days, B), ...] history."""
+    return [(_NOW - timedelta(days=d), v) for d, v in pairs]
+
+
+def test_baseline_is_trailing_median_not_point_sample() -> None:
+    # Property 1: the point near t-6mo (180d, value 90) is an outlier; the
+    # trailing-6mo median of all points is 50. The baseline must be 50 — the
+    # old code sampled only the ±15d window near t-6mo and would have used 90.
+    history = _hist((180, 90.0), (150, 50.0), (120, 50.0), (90, 50.0), (60, 50.0), (30, 50.0))
+    assert _trailing_median_b(history, _NOW) == pytest.approx(50.0)
+    # B_now=60 vs median 50 → +20 (old code: 60 vs 90 → -33).
+    assert _momentum(60.0, history, _NOW) == pytest.approx(20.0)
+
+
+def test_baseline_suppresses_single_outlier() -> None:
+    # Property 2: one outlier month moves the median baseline little.
+    clean = _hist((150, 50.0), (120, 50.0), (90, 50.0), (60, 50.0), (30, 50.0))
+    with_outlier = clean + _hist((100, 200.0))
+    assert _trailing_median_b(with_outlier, _NOW) == pytest.approx(50.0)
+
+
+def test_monthly_cadence_uses_all_points() -> None:
+    # Property 3: one point per month for 6 months → median over all 6,
+    # not a degenerate single point near t-6mo.
+    history = _hist((30, 10.0), (60, 20.0), (90, 30.0), (120, 40.0), (150, 50.0), (175, 60.0))
+    assert _trailing_median_b(history, _NOW) == pytest.approx(35.0)  # median(10,20,30,40,50,60)
+
+
+def test_cold_start_and_stale_history_return_zero_momentum() -> None:
+    # Property 4: empty history, and history entirely older than 6 months.
+    assert _momentum(60.0, [], _NOW) == 0.0
+    assert _momentum(60.0, _hist((400, 50.0)), _NOW) == 0.0
+    assert _trailing_median_b(_hist((400, 50.0)), _NOW) is None
+
+
+def test_momentum_conventions_preserved() -> None:
+    # Property 5: B_then < 5 → +100; flat → ~0; cap at ±100.
+    assert _momentum(60.0, _hist((60, 2.0)), _NOW) == 100.0  # near-zero baseline
+    assert _momentum(50.0, _hist((30, 50.0), (90, 50.0), (150, 50.0)), _NOW) == pytest.approx(0.0)  # flat
+    assert _momentum(1000.0, _hist((60, 10.0)), _NOW) == 100.0  # capped
+    assert _momentum(1.0, _hist((60, 100.0)), _NOW) == pytest.approx(-99.0)
+
+
+def test_current_point_excluded_from_baseline() -> None:
+    # Property 6 (seam): a point exactly at `now` must not seed its own
+    # baseline (ts < now), so only the prior history forms the median.
+    history = _hist((0, 999.0), (30, 50.0), (90, 50.0))  # (0,999) is "now"
+    assert _trailing_median_b(history, _NOW) == pytest.approx(50.0)
 
 
 def test_regime_confidence_increases_with_age() -> None:

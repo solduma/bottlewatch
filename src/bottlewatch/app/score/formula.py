@@ -27,6 +27,7 @@ This module is pure. No I/O, no datetime.now() (caller passes
 
 from __future__ import annotations
 
+import statistics
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Iterable
@@ -88,6 +89,12 @@ _CONFIDENCE_MEDIUM_DAYS = 180
 # this (absolute), keep the seed value while the override file is being
 # curated.
 _HHI_SEED_DIVERGENCE_THRESHOLD = 0.30
+
+# Momentum B' (methodology §7.5): the baseline B(t-6mo) is the median of B
+# over the trailing 6 months, to suppress month-to-month volatility. A
+# baseline below _MOMENTUM_NEAR_ZERO_B is treated as ≈0 → B' = +100.
+_MOMENTUM_WINDOW_DAYS = 180
+_MOMENTUM_NEAR_ZERO_B = 5.0
 
 
 @dataclass(frozen=True)
@@ -320,32 +327,43 @@ def _geo_input(
     return extractors.ExtractorResult(geo_concentration, "hhi")
 
 
+def _trailing_median_b(
+    history: list[tuple[datetime, float]],
+    now: datetime,
+) -> float | None:
+    """Median of B over the trailing 6 months [now - 180d, now).
+
+    Per methodology §7.5 this is the baseline B(t-6mo) for momentum — the
+    *median of the whole trailing window*, not a point sample at t-6mo, so
+    a single volatile month doesn't whipsaw B'. The current point (ts == now)
+    is excluded so B_now never seeds its own baseline. Returns None when the
+    trailing window is empty (cold start / long gap in history).
+    """
+    cutoff = now - timedelta(days=_MOMENTUM_WINDOW_DAYS)
+    window = [v for ts, v in history if cutoff <= ts < now]
+    if not window:
+        return None
+    return statistics.median(window)
+
+
 def _momentum(
     b_now: float | None,
     history: list[tuple[datetime, float]],
     now: datetime,
 ) -> float | None:
-    """B'(s, h) = 100 * (B_now − B_6mo) / B_6mo, capped to [-100, +100].
+    """B'(s, h) = 100 * (B_now − B_then) / B_then, capped to [-100, +100].
 
-    Per methodology §7.5, we use the 6-month *median* of B (not the
-    end-point) to suppress noise. A segment with B_6mo ≈ 0 returns
-    +100 by convention.
+    Per methodology §7.5, B_then is the trailing-6-month *median* of B (not
+    the end-point) to suppress noise. A baseline below _MOMENTUM_NEAR_ZERO_B
+    is treated as ≈0 → +100 by convention. Empty history → 0.0 (first compute).
     """
     if b_now is None:
         return None
-    if not history:
-        return 0.0
-    # Collect all B values within a 30-day window around t-6mo.
-    target = now - timedelta(days=180)
-    window = [v for ts, v in history if abs((ts - target).total_seconds()) <= 15 * 86_400]
-    if not window:
-        return 0.0  # no history near t-6mo → treat as first compute
-    # Median of the 6-month window.
-    sorted_w = sorted(window)
-    n = len(sorted_w)
-    b_then = sorted_w[n // 2] if n % 2 == 1 else (sorted_w[n // 2 - 1] + sorted_w[n // 2]) / 2.0
-    # Methodology edge case: B_6mo < 5 ≈ effectively zero → +100 by convention.
-    if b_then < 5.0:
+    b_then = _trailing_median_b(history, now)
+    if b_then is None:
+        return 0.0  # no trailing-6mo history → treat as first compute
+    # Methodology edge case: B_then < 5 ≈ effectively zero → +100 by convention.
+    if b_then < _MOMENTUM_NEAR_ZERO_B:
         return 100.0
     raw = 100.0 * (b_now - b_then) / b_then
     return max(-100.0, min(100.0, raw))
