@@ -78,6 +78,72 @@ def test_data_center_shell_returns_iso_capacity_ratio() -> None:
     assert result.source_key == "iso_capacity_ratio"
 
 
+def test_iso_capacity_pairs_peak_and_capacity_on_different_dates() -> None:
+    # Property 1 (the cadence bug): peak is monthly, capacity is published
+    # ~3 months lagged, so they never share an observation date. The latest
+    # peak and latest capacity must still be paired per region.
+    signals = [
+        _Row("iso_capacity_mw", 1000.0, date(2025, 1, 1), geography="PJM"),
+        _Row("iso_peak_load_mw", 700.0, date(2025, 1, 1), geography="PJM"),
+        _Row("iso_peak_load_mw", 800.0, date(2025, 4, 1), geography="PJM"),  # newest peak
+    ]
+    result = capacity_tightness("data_center_shell", signals)
+    assert isinstance(result, ExtractorResult)
+    # newest peak (800) / latest capacity (1000) = 0.8
+    assert result.raw_value == pytest.approx(0.8, abs=1e-3)
+    assert result.source_key == "iso_capacity_ratio"
+
+
+def test_iso_capacity_skips_region_without_capacity() -> None:
+    # Property 2: a region with peak but no capacity at all is skipped;
+    # only the region with both contributes.
+    signals = [
+        _Row("iso_peak_load_mw", 900.0, date(2025, 4, 1), geography="ERCOT"),  # no capacity
+        _Row("iso_capacity_mw", 1000.0, date(2025, 1, 1), geography="PJM"),
+        _Row("iso_peak_load_mw", 600.0, date(2025, 4, 1), geography="PJM"),
+    ]
+    result = capacity_tightness("data_center_shell", signals)
+    assert isinstance(result, ExtractorResult)
+    assert result.raw_value == pytest.approx(0.6, abs=1e-3)  # PJM only
+
+
+def test_iso_capacity_handles_capacity_newer_than_peak() -> None:
+    # Property 3: pairing works regardless of which signal is newer.
+    signals = [
+        _Row("iso_peak_load_mw", 800.0, date(2025, 1, 1), geography="PJM"),
+        _Row("iso_capacity_mw", 1000.0, date(2025, 4, 1), geography="PJM"),  # capacity newer
+    ]
+    result = capacity_tightness("data_center_shell", signals)
+    assert isinstance(result, ExtractorResult)
+    assert result.raw_value == pytest.approx(0.8, abs=1e-3)
+
+
+def test_iso_capacity_clamps_and_averages_across_regions() -> None:
+    # Property 4: utilization is clamped to 1.0 and averaged across regions.
+    signals = [
+        # PJM over-100% utilization → clamps to 1.0
+        _Row("iso_capacity_mw", 1000.0, date(2025, 1, 1), geography="PJM"),
+        _Row("iso_peak_load_mw", 1200.0, date(2025, 2, 1), geography="PJM"),
+        # ERCOT at 0.5
+        _Row("iso_capacity_mw", 1000.0, date(2025, 1, 1), geography="ERCOT"),
+        _Row("iso_peak_load_mw", 500.0, date(2025, 2, 1), geography="ERCOT"),
+    ]
+    result = capacity_tightness("data_center_shell", signals)
+    assert isinstance(result, ExtractorResult)
+    # mean(1.0, 0.5) = 0.75
+    assert result.raw_value == pytest.approx(0.75, abs=1e-3)
+
+
+def test_iso_capacity_skips_stale_capacity_pairing() -> None:
+    # Capacity far older than peak (> _ISO_MAX_PEAK_CAPACITY_GAP_DAYS) is too
+    # stale to trust → region skipped → falls back (no other signals → None).
+    signals = [
+        _Row("iso_capacity_mw", 1000.0, date(2023, 1, 1), geography="PJM"),
+        _Row("iso_peak_load_mw", 800.0, date(2025, 6, 1), geography="PJM"),  # ~2.4y later
+    ]
+    assert capacity_tightness("data_center_shell", signals) is None
+
+
 def test_data_center_shell_falls_back_to_power_ratio() -> None:
     signals = [
         _Row("planned_capacity_mw", 100.0, date(2027, 1, 1)),
