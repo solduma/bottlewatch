@@ -25,6 +25,9 @@ type Side = "long" | "short" | "all";
 export default function TickersPage() {
   const [tickers, setTickers] = useState<TickerRow[]>([]);
   const [allSegments, setAllSegments] = useState<string[]>([]);
+  // segment slug → sector, sourced from the segments API (which reads
+  // research/00_value_chain.json, the single source of truth).
+  const [segmentToSector, setSegmentToSector] = useState<Map<string, string>>(new Map());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filterSide, setFilterSide] = useState<Side>("all");
@@ -139,8 +142,13 @@ export default function TickersPage() {
       ]);
       setTickers(tickerData);
       const segmentsSet = new Set<string>();
-      segmentData.forEach(seg => segmentsSet.add(seg.segment));
+      const sectorMap = new Map<string, string>();
+      segmentData.forEach(seg => {
+        segmentsSet.add(seg.segment);
+        if (seg.sector) sectorMap.set(seg.segment, seg.sector);
+      });
       setAllSegments([...segmentsSet].sort());
+      setSegmentToSector(sectorMap);
       setError(null);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
@@ -152,88 +160,9 @@ export default function TickersPage() {
   useEffect(() => { load(); }, [load]);
 
   // const segments = [...new Set(tickers.map(t => t.segment))].sort();
-
-  // Map segments to sectors (loaded from listSegments API).
-  const segmentToSector = useMemo(() => {
-    const map = new Map<string, string>();
-    allSegments.forEach((segment) => {
-      // This is a temporary fallback; we should get this from the API.
-      // For now, use the same logic as in segments_meta.py.
-      // Eventually, we should add sector to TickerDetail and TickerRow.
-      const valueChain = [
-        { segment: "raw_inputs", sector: "MaterialsSector" },
-        { segment: "semiconductor_materials", sector: "MaterialsSector" },
-        { segment: "front_end_equipment", sector: "HardwareSector" },
-        { segment: "advanced_node_fabs", sector: "HardwareSector" },
-        { segment: "advanced_packaging", sector: "HardwareSector" },
-        { segment: "hbm_memory", sector: "HardwareSector" },
-        { segment: "networking_interconnect", sector: "HardwareSector" },
-        { segment: "gpu_asic_silicon", sector: "HardwareSector" },
-        { segment: "systems_oem_odm", sector: "HardwareSector" },
-        { segment: "rack_scale_integration", sector: "HardwareSector" },
-        { segment: "fuel_power_inputs", sector: "InfrastructureSector" },
-        { segment: "power_generation_oem", sector: "InfrastructureSector" },
-        { segment: "transformers_switchgear", sector: "InfrastructureSector" },
-        { segment: "td_utilities", sector: "InfrastructureSector" },
-        { segment: "data_center_shell", sector: "InfrastructureSector" },
-        { segment: "cooling_water", sector: "InfrastructureSector" },
-        { segment: "inference_at_scale", sector: "DownstreamSector" },
-        { segment: "raw_oil_gas", sector: "MaterialsSector" },
-        { segment: "raw_mining", sector: "MaterialsSector" },
-        { segment: "raw_nuclear_fuel", sector: "MaterialsSector" },
-        { segment: "raw_water_utilities", sector: "MaterialsSector" },
-        { segment: "mat_process_gases", sector: "MaterialsSector" },
-        { segment: "mat_silicon_wafers", sector: "MaterialsSector" },
-        { segment: "mat_photoresist", sector: "MaterialsSector" },
-        { segment: "mat_cmp_slurries", sector: "MaterialsSector" },
-        { segment: "fee_optical_components", sector: "HardwareSector" },
-        { segment: "fee_vacuum_robotics", sector: "HardwareSector" },
-        { segment: "fee_vacuum_pumps", sector: "HardwareSector" },
-        { segment: "fab_utilities", sector: "InfrastructureSector" },
-        { segment: "fab_process_chemicals", sector: "MaterialsSector" },
-        { segment: "pkg_substrates", sector: "HardwareSector" },
-        { segment: "pkg_ubm", sector: "MaterialsSector" },
-        { segment: "hbm_dram_platform", sector: "HardwareSector" },
-        { segment: "hbm_tsv_equipment", sector: "HardwareSector" },
-        { segment: "net_optical_transceivers", sector: "HardwareSector" },
-        { segment: "net_high_speed_pcb", sector: "HardwareSector" },
-        { segment: "net_switch_asics", sector: "HardwareSector" },
-        { segment: "sil_power_delivery", sector: "HardwareSector" },
-        { segment: "sil_ip_eda", sector: "HardwareSector" },
-        { segment: "sys_psu", sector: "HardwareSector" },
-        { segment: "sys_chassis", sector: "HardwareSector" },
-        { segment: "rack_cdu", sector: "HardwareSector" },
-        { segment: "rack_busbars", sector: "HardwareSector" },
-        { segment: "shell_land_reits", sector: "InfrastructureSector" },
-        { segment: "shell_dark_fiber", sector: "InfrastructureSector" },
-        { segment: "shell_colo_reits", sector: "InfrastructureSector" },
-        { segment: "cool_chillers", sector: "InfrastructureSector" },
-        { segment: "cool_pumps", sector: "InfrastructureSector" },
-        { segment: "cool_water_treatment", sector: "MaterialsSector" },
-        { segment: "gen_smr", sector: "InfrastructureSector" },
-        { segment: "gen_gas_turbines", sector: "InfrastructureSector" },
-        { segment: "gen_wind", sector: "InfrastructureSector" },
-        { segment: "gen_solar", sector: "InfrastructureSector" },
-        { segment: "gen_rare_earths", sector: "MaterialsSector" },
-        { segment: "tnd_electrical_steel", sector: "MaterialsSector" },
-        { segment: "tnd_copper", sector: "MaterialsSector" },
-        { segment: "tnd_insulation", sector: "MaterialsSector" },
-        { segment: "util_regulators", sector: "InfrastructureSector" },
-        { segment: "fuel_oil_gas", sector: "MaterialsSector" },
-        { segment: "fuel_uranium", sector: "MaterialsSector" },
-        { segment: "fuel_mining", sector: "MaterialsSector" },
-        { segment: "fuel_renewables", sector: "InfrastructureSector" },
-        { segment: "inf_neocloud", sector: "DownstreamSector" },
-        { segment: "inf_enterprise_saas", sector: "DownstreamSector" },
-      ];
-
-      const match = valueChain.find(vc => vc.segment === segment);
-      if (match) {
-        map.set(segment, match.sector);
-      }
-    });
-    return map;
-  }, [allSegments]);
+  //
+  // `segmentToSector` is populated in `load()` from the segments API
+  // (which reads research/00_value_chain.json) — no hardcoded map.
 
   const filtered = tickers
     .filter(t => {
