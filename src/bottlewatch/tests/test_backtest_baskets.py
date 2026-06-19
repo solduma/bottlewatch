@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytest
 
-from bottlewatch.app.backtest.baskets import build_baskets
+from bottlewatch.app.backtest.baskets import _load_universe, build_baskets
 from bottlewatch.app.score.regime import Regime
 
 
@@ -54,7 +54,7 @@ def test_long_basket_selects_top_segment_and_tickers(tmp_path: Path) -> None:
         eval_date=date(2025, 1, 1),
         horizon="near",
         scores=scores,
-        universe_path=universe,
+        universe_rows=_load_universe(universe),
         prices={},
         forward_days=90,
     )
@@ -81,7 +81,7 @@ def test_long_basket_includes_second_segment_within_proximity(tmp_path: Path) ->
         eval_date=date(2025, 1, 1),
         horizon="near",
         scores=scores,
-        universe_path=universe,
+        universe_rows=_load_universe(universe),
         prices={},
         forward_days=90,
     )
@@ -102,7 +102,7 @@ def test_long_basket_excludes_resolving(tmp_path: Path) -> None:
         eval_date=date(2025, 1, 1),
         horizon="near",
         scores=scores,
-        universe_path=universe,
+        universe_rows=_load_universe(universe),
         prices={},
         forward_days=90,
     )
@@ -126,7 +126,7 @@ def test_short_basket_selects_only_resolving(tmp_path: Path) -> None:
         eval_date=date(2025, 1, 1),
         horizon="near",
         scores=scores,
-        universe_path=universe,
+        universe_rows=_load_universe(universe),
         prices={},
         forward_days=90,
     )
@@ -155,7 +155,7 @@ def test_basket_forward_return(tmp_path: Path) -> None:
         eval_date=date(2025, 1, 1),
         horizon="near",
         scores=scores,
-        universe_path=universe,
+        universe_rows=_load_universe(universe),
         prices=prices,
         forward_days=90,
     )
@@ -185,7 +185,7 @@ def test_basket_risk_metrics_with_multiple_tickers(tmp_path: Path) -> None:
         eval_date=date(2025, 1, 1),
         horizon="near",
         scores=scores,
-        universe_path=universe,
+        universe_rows=_load_universe(universe),
         prices=prices,
         forward_days=90,
     )
@@ -219,7 +219,7 @@ def test_basket_sector_neutral_weighting(tmp_path: Path) -> None:
         eval_date=date(2025, 1, 1),
         horizon="near",
         scores=scores,
-        universe_path=universe,
+        universe_rows=_load_universe(universe),
         prices=prices,
         forward_days=90,
         sector_neutral=True,
@@ -256,7 +256,7 @@ def test_basket_equal_weight_without_sector_neutral(tmp_path: Path) -> None:
         eval_date=date(2025, 1, 1),
         horizon="near",
         scores=scores,
-        universe_path=universe,
+        universe_rows=_load_universe(universe),
         prices=prices,
         forward_days=90,
         sector_neutral=False,
@@ -268,3 +268,80 @@ def test_basket_equal_weight_without_sector_neutral(tmp_path: Path) -> None:
     assert weights["A2"] == pytest.approx(1.0 / 3)
     assert weights["B1"] == pytest.approx(1.0 / 3)
     assert long.equal_weight_return == pytest.approx((0.2 + 0.2 + 0.0) / 3)
+
+
+# ---------------------------------------------------------------------------
+# Point-in-time as-of membership gate (universe-leak fix)
+# ---------------------------------------------------------------------------
+
+
+def test_not_yet_listed_ticker_excluded_as_of(tmp_path: Path) -> None:
+    """Property 1: a ticker whose first price bar is AFTER eval_date is not in
+    the basket built at eval_date (it wasn't trading then).
+    """
+    universe = _write_universe(
+        tmp_path,
+        [
+            _Row("LIVE", "NASDAQ", "Live", "seg_a", "sub", 0.8, 3_000_000_000),
+            _Row("IPO", "NASDAQ", "Ipo", "seg_a", "sub", 0.8, 3_000_000_000),
+        ],
+    )
+    scores = {"seg_a": {"b": 80.0, "momentum": 10.0, "regime": Regime.PEAKED}}
+    prices = {
+        "LIVE": [(date(2025, 1, 1), 100.0), (date(2025, 4, 1), 110.0)],
+        # IPO's first bar is AFTER the eval date → not listed as-of 2025-01-01.
+        "IPO": [(date(2025, 3, 1), 50.0), (date(2025, 6, 1), 60.0)],
+    }
+    baskets = build_baskets(
+        eval_date=date(2025, 1, 1),
+        horizon="near",
+        scores=scores,
+        universe_rows=_load_universe(universe),
+        prices=prices,
+        forward_days=90,
+    )
+    tickers = {e.ticker for e in baskets["long"].tickers}
+    assert tickers == {"LIVE"}  # IPO excluded — not trading at eval_date
+
+
+def test_listed_ticker_retained_as_of(tmp_path: Path) -> None:
+    """Property 2: a ticker trading at-or-before eval_date is included."""
+    universe = _write_universe(
+        tmp_path,
+        [_Row("LIVE", "NASDAQ", "Live", "seg_a", "sub", 0.8, 3_000_000_000)],
+    )
+    scores = {"seg_a": {"b": 80.0, "momentum": 10.0, "regime": Regime.PEAKED}}
+    prices = {"LIVE": [(date(2024, 12, 1), 90.0), (date(2025, 4, 1), 110.0)]}
+    baskets = build_baskets(
+        eval_date=date(2025, 1, 1),
+        horizon="near",
+        scores=scores,
+        universe_rows=_load_universe(universe),
+        prices=prices,
+        forward_days=90,
+    )
+    assert {e.ticker for e in baskets["long"].tickers} == {"LIVE"}
+
+
+def test_ticker_with_no_prices_excluded_when_prices_present(tmp_path: Path) -> None:
+    """Property 3: a selected-eligible ticker with no price series at all is
+    excluded once any price data is provided (can't confirm it was trading).
+    """
+    universe = _write_universe(
+        tmp_path,
+        [
+            _Row("LIVE", "NASDAQ", "Live", "seg_a", "sub", 0.8, 3_000_000_000),
+            _Row("GHOST", "NASDAQ", "Ghost", "seg_a", "sub", 0.8, 3_000_000_000),
+        ],
+    )
+    scores = {"seg_a": {"b": 80.0, "momentum": 10.0, "regime": Regime.PEAKED}}
+    prices = {"LIVE": [(date(2025, 1, 1), 100.0), (date(2025, 4, 1), 110.0)]}
+    baskets = build_baskets(
+        eval_date=date(2025, 1, 1),
+        horizon="near",
+        scores=scores,
+        universe_rows=_load_universe(universe),
+        prices=prices,
+        forward_days=90,
+    )
+    assert {e.ticker for e in baskets["long"].tickers} == {"LIVE"}  # GHOST has no prices

@@ -224,6 +224,10 @@ def test_run_backtest_with_synthetic_positive_signal(settings: Settings, factory
     # tickers grew faster than low-B ones, and B ranks them correctly.
     assert report.overall_ic is not None
     assert report.overall_ic > 0.3
+    # Overall CI brackets the point estimate (both from one bootstrap).
+    assert report.overall_ci_low is not None
+    assert report.overall_ci_high is not None
+    assert report.overall_ci_low <= report.overall_ic <= report.overall_ci_high
     # Per-segment: only 2 segments, each with one B value, so per-segment
     # Spearman is None (zero variance within a segment). That's correct.
     seg_names = {s.segment for s in report.per_segment_ic}
@@ -231,9 +235,33 @@ def test_run_backtest_with_synthetic_positive_signal(settings: Settings, factory
     for s in report.per_segment_ic:
         assert s.n >= 8
         # Within a single segment, B is constant, so Spearman is undefined
-        # and the helper returns rho=0.0 with no p-value.
-        assert s.rho == pytest.approx(0.0)
+        # and the job now reports rho=None with no p-value.
+        assert s.rho is None
         assert s.p_value is None
+    # Property 5 — disclosure: both segments are constant-score, so neither
+    # is evaluated and the report carries the counts in-band.
+    assert report.n_constant_score_segments == 2
+    assert report.n_segments_evaluated == 0
+
+    # Universe-leak disclosure: baskets are NOT fully point-in-time (static
+    # mcap/exposure), and the report states so in-band.
+    assert report.universe_is_point_in_time is False
+    assert report.universe_caveat
+
+    # Property 6 — determinism: identical inputs + seed → identical inference.
+    report2 = run_backtest(
+        prices=prices,
+        factory=factory,
+        universe_path=universe,
+        start=date(2024, 9, 1),
+        end=date(2025, 6, 1),
+        forward_days=90,
+        horizon="near",
+    )
+    assert report2.overall_ic == report.overall_ic
+    assert report2.overall_p_value == report.overall_p_value
+    assert report2.overall_ci_low == report.overall_ci_low
+    assert report2.overall_ci_high == report.overall_ci_high
 
     # Basket snapshots carry risk/sizing fields.
     long_baskets = [b for b in report.baskets if b.side == "long"]

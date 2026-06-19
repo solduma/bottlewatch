@@ -73,6 +73,7 @@ def pg_schema():
     DROP SCHEMA privileges on the database.
     """
     import psycopg
+    from psycopg.sql import SQL, Identifier
 
     # Parse the URL to get the credentials (the same ones in the URL).
     parts = urlsplit(_pg_url())
@@ -89,12 +90,12 @@ def pg_schema():
     admin_conn = psycopg.connect(host=host, port=port, dbname=dbname, user=user, password=password, autocommit=True)
     try:
         with admin_conn.cursor() as cur:
-            cur.execute(f'CREATE SCHEMA "{schema}"')
+            cur.execute(SQL('CREATE SCHEMA "{}"').format(Identifier(schema)))
         yield schema
     finally:
         try:
             with admin_conn.cursor() as cur:
-                cur.execute(f'DROP SCHEMA "{schema}" CASCADE')
+                cur.execute(SQL('DROP SCHEMA "{}" CASCADE').format(Identifier(schema)))
         finally:
             admin_conn.close()
 

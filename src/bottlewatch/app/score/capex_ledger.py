@@ -20,7 +20,7 @@ _DEFAULT_LEDGER_PATH = _PROJECT_ROOT / "research" / "06_capacity_ledger.json"
 
 class LedgerEntry(TypedDict):
     ticker: str
-    fiscal_quarter: str
+    quarter: str
     ai_capex_usd_b: float
     source: str
     url: NotRequired[str | None]
@@ -89,7 +89,7 @@ def series_for_segment(segment: str, ledger: Ledger | None = None) -> CapexSerie
     by_quarter: dict[str, float] = {}
     tickers: set[str] = set()
     for e in entries:
-        q = e["fiscal_quarter"]
+        q = e["quarter"]
         by_quarter[q] = by_quarter.get(q, 0.0) + e["ai_capex_usd_b"]
         tickers.add(e["ticker"])
 

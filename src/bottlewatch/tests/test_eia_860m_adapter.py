@@ -11,6 +11,7 @@ from __future__ import annotations
 
 from datetime import date
 from pathlib import Path
+from typing import cast
 
 import polars as pl
 import pytest
@@ -63,11 +64,12 @@ def _build_fixture_xlsx(path: Path, rows: list[dict[str, object]]) -> None:
     # Row 2: all blank (kept by the parser via drop_empty_rows=False).
     # Row 3: header.
     # Row 4..: data.
-    body: list[list[object]] = [
-        ["Inventory of Planned Generators as of April 2026"] + [None] * (len(cols) - 1),
-        [None] * len(cols),
-        list(cols),
-    ]
+    title_row: list[object] = cast(
+        list[object], ["Inventory of Planned Generators as of April 2026"] + [None] * (len(cols) - 1)
+    )
+    blank_row: list[object] = [None] * len(cols)
+    header_row: list[object] = list(cols)
+    body: list[list[object]] = [title_row, blank_row, header_row]
     body.extend([list(r.get(c) for c in cols) for r in rows])
     full = pl.DataFrame(body, schema=cols, orient="row")
     full.write_excel(path, worksheet="Planned", include_header=False)

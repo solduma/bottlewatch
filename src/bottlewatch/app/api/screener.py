@@ -86,8 +86,10 @@ def get_screener(
 
     # side == "short"
     resolving = [r for r in rows if r.regime == "RESOLVING" and r.score is not None and r.momentum is not None]
-    # Sort by B × |B'| descending.
-    resolving.sort(key=lambda r: -(r.score * abs(r.momentum)))
+    # Sort by B × |B'| descending. The list filter guarantees both
+    # fields are non-None, but the lambda needs explicit guards for
+    # the type checker.
+    resolving.sort(key=lambda r: -((r.score or 0.0) * abs(r.momentum or 0.0)))
     return [ScreenerRow(**_score_to_screener_row(r, include_rank=True)) for r in resolving]
 
 

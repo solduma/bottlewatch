@@ -150,7 +150,7 @@ export function QuadrantTickerList({
               </span>
               <span className="flex-1 truncate text-gray-700">{t.name}</span>
               <span className="font-mono text-gray-500">
-                {t.exposure_pct}%
+                {t.exposure_pct === null ? "—" : `${t.exposure_pct}%`}
               </span>
             </Link>
           </li>
@@ -177,9 +177,12 @@ export function QuadrantTickerList({
       onMouseDown={(e) => e.stopPropagation()}
     >
       <div className="mb-2 flex items-center justify-between">
-        <span className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">
-          Tickers
-        </span>
+        <Link
+          href={`/segment/${encodeURIComponent(segment)}`}
+          className="text-[10px] font-semibold uppercase tracking-wide text-blue-600 hover:text-blue-800 hover:underline"
+        >
+          View segment →
+        </Link>
         {onClose && (
           <button
             type="button"

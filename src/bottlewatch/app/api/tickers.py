@@ -309,7 +309,7 @@ def get_ticker(request: Request, ticker: str) -> TickerDetail:
         ticker=ticker,
         exchange=(first_row.get("exchange") or "").strip(),
         name=(first_row.get("name") or "").strip(),
-        segments=segments_out,
+        segments=[TickerDetailSegment(**s) for s in segments_out],
         companies=sorted(companies),
         thesis=thesis_notes,
         eta=eta,

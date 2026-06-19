@@ -24,7 +24,7 @@ def _make_ledger(yoy: float) -> Ledger:
             "signal_name": "hyperscaler_ai_capex",
             "unit": "USD_B",
             "entries": [
-                {"ticker": "MSFT", "fiscal_quarter": f"2024-Q{i + 1}", "ai_capex_usd_b": v, "source": "test"}
+                {"ticker": "MSFT", "quarter": f"2024-Q{i + 1}", "ai_capex_usd_b": v, "source": "test"}
                 for i, v in enumerate(values)
             ],
         }
@@ -45,9 +45,9 @@ def test_series_aggregates_by_quarter() -> None:
             "signal_name": "hyperscaler_ai_capex",
             "unit": "USD_B",
             "entries": [
-                {"ticker": "MSFT", "fiscal_quarter": "2025-Q1", "ai_capex_usd_b": 10.0, "source": "test"},
-                {"ticker": "GOOG", "fiscal_quarter": "2025-Q1", "ai_capex_usd_b": 8.0, "source": "test"},
-                {"ticker": "MSFT", "fiscal_quarter": "2025-Q2", "ai_capex_usd_b": 12.0, "source": "test"},
+                {"ticker": "MSFT", "quarter": "2025-Q1", "ai_capex_usd_b": 10.0, "source": "test"},
+                {"ticker": "GOOG", "quarter": "2025-Q1", "ai_capex_usd_b": 8.0, "source": "test"},
+                {"ticker": "MSFT", "quarter": "2025-Q2", "ai_capex_usd_b": 12.0, "source": "test"},
             ],
         }
     }
@@ -63,7 +63,7 @@ def test_hyperscaler_demand_signal_returns_none_for_short_series() -> None:
             "signal_name": "hyperscaler_ai_capex",
             "unit": "USD_B",
             "entries": [
-                {"ticker": "MSFT", "fiscal_quarter": "2025-Q1", "ai_capex_usd_b": 10.0, "source": "test"},
+                {"ticker": "MSFT", "quarter": "2025-Q1", "ai_capex_usd_b": 10.0, "source": "test"},
             ],
         }
     }

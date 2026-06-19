@@ -21,6 +21,7 @@ from __future__ import annotations
 import argparse
 import json
 import logging
+import re
 import sys
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta, timezone
@@ -33,7 +34,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import sessionmaker
 
 from bottlewatch.app.db import ResearchSnapshot, Score, Signal, make_engine, make_session_factory, session_scope
-from bottlewatch.app.score.research_values import for_segment, known_segments, load_seed
+from bottlewatch.app.score.research_values import SeedEntry, for_segment, known_segments, load_seed
 from bottlewatch.config import Settings, get_settings
 
 _LOGGER = logging.getLogger(__name__)
@@ -42,6 +43,31 @@ _LOGGER = logging.getLogger(__name__)
 _SCORE_DELTA_THRESHOLD = 5.0
 _MOMENTUM_THRESHOLD = 5.0
 _DIVERGENCE_THRESHOLD = 0.2
+
+# Numeric-claim validation: a number in the LLM rationale is considered
+# grounded if it matches some context value within these tolerances
+# (absolute OR relative, to allow rounding like "B=64.8" cited as "65").
+_ABS_TOL = 0.05
+_REL_TOL = 0.02
+# Policy knob: max ungrounded numbers tolerated before the rationale is
+# rejected. 0 = strict. Tunable once the rejection logs show the real
+# false-positive rate; the fallback is a safe machine rationale, not data loss.
+_MAX_UNVERIFIED_CLAIMS = 0
+
+# ISO date tokens (2026-06, 2026-06-15) are stripped before number
+# extraction: dates are not quantitative claims, and their inter-component
+# hyphens would otherwise parse as spurious negative numbers (e.g.
+# "2026-06-15" -> 2026, -6, -15).
+_DATE_RE = re.compile(r"\b\d{4}-\d{1,2}(?:-\d{1,2})?\b")
+
+# A standalone integer/decimal, optionally signed, optionally a percent.
+# Leading (?<![\w.]) keeps digits inside identifiers (co2, A35SNO, tickers
+# like 034020.KS) and inter-digit hyphens from being read as numbers/negatives.
+# Trailing (?![\w]|\.\w) blocks a word char or a dot-then-word-char (so
+# "034020.KS" and "1.5x"-style tokens aren't matched as bare numbers) while
+# still allowing sentence-ending punctuation like "50%." or "65.". Group 1 =
+# number, group 2 = "%" or "".
+_NUMBER_RE = re.compile(r"(?<![\w.])(-?\d+(?:\.\d+)?)(%?)(?![\w]|\.\w)")
 
 # Project root: src/bottlewatch/jobs/research_daily.py -> ../../../..
 _PROJECT_ROOT = Path(__file__).resolve().parents[3]
@@ -53,7 +79,7 @@ class SegmentContext:
     """Inputs needed to reason about one segment."""
 
     segment: str
-    seed: dict[str, float]
+    seed: SeedEntry
     scores: dict[str, dict[str, Any]]  # horizon -> score row dict
     prev_scores: dict[str, dict[str, Any]] | None
     signals: list[dict[str, Any]]
@@ -172,7 +198,7 @@ def _load_recent_signals(
     ]
 
 
-def _detect_divergences(score_row: dict[str, Any], seed: dict[str, float]) -> list[dict[str, Any]]:
+def _detect_divergences(score_row: dict[str, Any], seed: SeedEntry) -> list[dict[str, Any]]:
     """Compare the score row's actual sub-scores to research seeds.
 
     Only sub-scores that are backed by a seed value can diverge:
@@ -303,7 +329,7 @@ def _call_llm(prompt: str, api_key: str | None, base_url: str, model: str) -> st
         "max_tokens": 512,
     }
 
-    with httpx.Client(timeout=60.0) as client:
+    with httpx.Client(timeout=60.0, follow_redirects=True) as client:
         response = client.post(url, headers=headers, json=payload)
         response.raise_for_status()
         data = response.json()
@@ -311,9 +337,17 @@ def _call_llm(prompt: str, api_key: str | None, base_url: str, model: str) -> st
     choices = data.get("choices") or []
     if not choices:
         raise RuntimeError("LLM returned no choices")
-    content = choices[0].get("message", {}).get("content")
+    message = choices[0].get("message", {})
+    content = message.get("content") or ""
+    # Some Ollama models (e.g. qwen3.5:cloud) return the final answer in
+    # a `reasoning` field and leave `content` empty. Fall back to
+    # reasoning text, but warn so the operator can switch models.
     if not content:
-        raise RuntimeError("LLM returned empty content")
+        reasoning = message.get("reasoning") or ""
+        if reasoning:
+            _LOGGER.warning("LLM model %r returned empty content; using reasoning field", model)
+            return str(reasoning).strip()
+        raise RuntimeError("LLM returned empty content and no reasoning")
     return str(content).strip()
 
 
@@ -344,6 +378,91 @@ def _machine_rationale(context: SegmentContext, horizon: str, score_row: dict[st
     )
 
 
+def _date_year_month_parts(iso_date: str | None) -> list[float]:
+    """Return the integer year and month of an ISO date as floats.
+
+    Included in the grounding set so legitimate date citations (e.g. the
+    year "2026") don't read as hallucinated numbers.
+    """
+    if not iso_date:
+        return []
+    try:
+        d = date.fromisoformat(iso_date[:10])
+    except ValueError:
+        return []
+    return [float(d.year), float(d.month)]
+
+
+def _build_grounding_set(context: SegmentContext, score_row: dict[str, Any]) -> list[float]:
+    """Collect every numeric value the prompt showed the model.
+
+    These are the only numbers a rationale may legitimately cite: signal
+    values, score B, momentum B', prev score, sub-scores, seed values,
+    divergence seed/dynamic/gap, and the year/month parts of shown dates.
+    """
+    values: list[float] = []
+
+    def add(v: Any) -> None:
+        if isinstance(v, bool):
+            return
+        if isinstance(v, (int, float)):
+            values.append(float(v))
+
+    # Today's score, momentum, sub-scores.
+    add(score_row.get("score"))
+    add(score_row.get("momentum"))
+    for v in (score_row.get("sub_scores") or {}).values():
+        add(v)
+
+    # Yesterday's score for this horizon.
+    prev = (context.prev_scores or {}).get(score_row.get("horizon", ""))
+    if prev:
+        add(prev.get("score"))
+
+    # Research seed sub-scores.
+    for v in context.seed.values():
+        add(v)
+
+    # Divergence seed / dynamic / gap.
+    for d in context.divergences:
+        add(d.get("seed"))
+        add(d.get("dynamic"))
+        add(d.get("gap"))
+
+    # Signal values and the year/month of their observation dates.
+    for s in context.signals:
+        add(s.get("value_num"))
+        values.extend(_date_year_month_parts(s.get("observed_at")))
+
+    return values
+
+
+def _validate_numeric_claims(
+    rationale: str,
+    context: SegmentContext,
+    score_row: dict[str, Any],
+) -> list[float]:
+    """Return the numbers in `rationale` not grounded in the prompt context.
+
+    Pure and deterministic. ISO dates are stripped first (not quantitative
+    claims). Each remaining number is grounded if it matches some context
+    value within tolerance (`abs(a-b) <= max(_ABS_TOL, _REL_TOL*|b|)`). A
+    percent ("50%") is matched against BOTH its literal value (50.0) and its
+    fraction form (0.50), since sub-scores live on a 0-1 scale but the prompt
+    also frames B on 0-100 — so analyst phrasings either way are accepted.
+    An empty result means the rationale's numeric claims are all grounded.
+    """
+    grounding = _build_grounding_set(context, score_row)
+    text = _DATE_RE.sub(" ", rationale)
+    unverified: list[float] = []
+    for number, percent in _NUMBER_RE.findall(text):
+        a = float(number)
+        candidates = [a, a / 100.0] if percent else [a]
+        if not any(abs(cand - b) <= max(_ABS_TOL, _REL_TOL * abs(b)) for cand in candidates for b in grounding):
+            unverified.append(a)
+    return unverified
+
+
 def _generate_for_segment_horizon(
     context: SegmentContext,
     horizon: str,
@@ -359,26 +478,39 @@ def _generate_for_segment_horizon(
     score_row = context.scores[horizon]
     prev_row = (context.prev_scores or {}).get(horizon)
 
+    generated_by = "machine"
     if api_key and _is_interesting(score_row, prev_row, context.divergences):
         try:
             prompt = _build_prompt(context, horizon, score_row)
             rationale = _call_llm(prompt, api_key, base_url, model)
-            return RationaleResult(
-                segment=context.segment,
-                horizon=horizon,
-                rationale_md=rationale,
-                divergences=list(context.divergences),
-                generated_by="llm",
-            )
+            unverified = _validate_numeric_claims(rationale, context, score_row)
+            if len(unverified) > _MAX_UNVERIFIED_CLAIMS:
+                _LOGGER.warning(
+                    "LLM rationale rejected for %s/%s: %d ungrounded number(s) %s; using machine fallback",
+                    context.segment,
+                    horizon,
+                    len(unverified),
+                    unverified,
+                )
+                generated_by = "machine_rejected"
+            else:
+                return RationaleResult(
+                    segment=context.segment,
+                    horizon=horizon,
+                    rationale_md=rationale,
+                    divergences=list(context.divergences),
+                    generated_by="llm",
+                )
         except Exception as e:
             _LOGGER.warning("LLM rationale failed for %s/%s: %s; using fallback", context.segment, horizon, e)
+            generated_by = "machine_llm_error"
 
     return RationaleResult(
         segment=context.segment,
         horizon=horizon,
         rationale_md=_machine_rationale(context, horizon, score_row),
         divergences=list(context.divergences),
-        generated_by="machine",
+        generated_by=generated_by,
     )
 
 
@@ -463,7 +595,7 @@ def run(
 
         context = SegmentContext(
             segment=segment,
-            seed=dict(segment_seed),
+            seed=segment_seed,
             scores=scores,
             prev_scores=prev_scores if prev_scores else None,
             signals=signals,
@@ -506,13 +638,19 @@ def run(
 
     out_dir = _write_artifacts(snapshot_date, results)
     llm_count = sum(1 for r in results if r.generated_by == "llm")
-    machine_count = len(results) - llm_count
+    llm_error_count = sum(1 for r in results if r.generated_by == "machine_llm_error")
+    rejected_count = sum(1 for r in results if r.generated_by == "machine_rejected")
+    # "machine" = no LLM attempted (no key / not interesting). The four
+    # counts partition `total`.
+    machine_count = len(results) - llm_count - llm_error_count - rejected_count
 
     _LOGGER.info(
-        "research_daily: %d rationales written (%d LLM, %d machine) to %s",
+        "research_daily: %d rationales written (%d LLM, %d machine, %d llm_error, %d rejected) to %s",
         len(results),
         llm_count,
         machine_count,
+        llm_error_count,
+        rejected_count,
         out_dir,
     )
     return {
@@ -520,6 +658,8 @@ def run(
         "total": len(results),
         "llm": llm_count,
         "machine": machine_count,
+        "llm_error": llm_error_count,
+        "rejected": rejected_count,
         "output_dir": str(out_dir),
     }
 

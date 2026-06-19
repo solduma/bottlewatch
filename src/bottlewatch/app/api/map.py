@@ -96,8 +96,9 @@ def _load_chain_graph() -> dict:
         _LOGGER.warning("value chain JSON not found at %s", _CHAIN_JSON)
         return {"nodes": [], "edges": []}
     with _CHAIN_JSON.open(encoding="utf-8") as fh:
-        _chain_graph = json.load(fh)
-    return _chain_graph
+        data = json.load(fh)
+    _chain_graph = data
+    return data
 
 
 def _build_adjacency() -> tuple[dict[str, list[str]], dict[str, dict]]:

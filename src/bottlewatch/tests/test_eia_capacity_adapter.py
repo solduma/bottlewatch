@@ -7,7 +7,7 @@ per-state to control the totals; tests don't touch the real EIA.
 
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, datetime
 from typing import Any
 from urllib.parse import parse_qs, urlparse
 
@@ -16,7 +16,11 @@ import pytest
 import respx
 
 from bottlewatch.app.ingest import EIAV2CapacityAdapter
-from bottlewatch.app.ingest.eia_capacity import _STATES, _latest_month_window
+from bottlewatch.app.ingest.eia_capacity import (
+    _STATES,
+    _latest_month_window,
+    _released_at_for_period,
+)
 from bottlewatch.config import Settings
 
 _BASE_URL = "https://api.eia.gov/v2"
@@ -99,6 +103,38 @@ def test_latest_month_window_walks_back_three_months() -> None:
     assert _latest_month_window(date(2026, 1, 15)) == ("2025-10", "2025-10")
     # March → December of the prior year.
     assert _latest_month_window(date(2026, 3, 1)) == ("2025-12", "2025-12")
+
+
+def test_released_at_is_period_plus_three_month_lag() -> None:
+    # Inverse of _latest_month_window: the data period plus the modeled
+    # 3-month publication lag, derived from the period (not today) so a
+    # backfill stays point-in-time correct.
+    assert _released_at_for_period("2026-03") == datetime(2026, 6, 1)
+    assert _released_at_for_period("2025-10") == datetime(2026, 1, 1)
+    assert _released_at_for_period("2025-12") == datetime(2026, 3, 1)
+
+
+def test_window_and_released_at_are_exact_inverses() -> None:
+    # Guard against the two functions drifting apart (review #5): for any
+    # `today`, releasing the window's period must land on the first of the
+    # month that `today` falls in. month-1 normalizes to day 1.
+    for today in (date(2026, 6, 3), date(2026, 1, 15), date(2026, 3, 1), date(2025, 12, 31)):
+        period, _ = _latest_month_window(today)
+        released = _released_at_for_period(period)
+        assert released == datetime(today.year, today.month, 1)
+
+
+def test_emitted_signals_carry_released_at(settings: Settings) -> None:
+    adapter = EIAV2CapacityAdapter(settings)
+    per_state = {state: [100.0, 200.0] for state in _STATES}
+    with respx.mock(base_url=_BASE_URL) as mock:
+        mock.get(_CAPACITY_PATH).mock(side_effect=_per_state_side_effect(per_state=per_state))
+        result = adapter.fetch(date(2024, 1, 1), date(2024, 12, 31))
+    # Every emitted signal must carry a non-null released_at = period + 3mo.
+    assert result
+    for r in result:
+        assert r.released_at is not None
+        assert r.released_at == _released_at_for_period(r.observed_at.strftime("%Y-%m"))
 
 
 def test_happy_path_emits_one_signal_per_state_plus_us_total(settings: Settings) -> None:

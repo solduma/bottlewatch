@@ -193,7 +193,7 @@ def test_idempotent_source_mix_of_single_and_multi_source_ids(factory: sessionma
     rows = out.get("power_generation_oem", [])
     planned = sorted(
         (r for r in rows if r.signal_name == "planned_capacity_mw"),
-        key=lambda r: r.value_num,
+        key=lambda r: r.value_num or 0.0,
     )
 
     assert len(planned) == 2, f"expected 2 deduped rows, got {len(planned)}"

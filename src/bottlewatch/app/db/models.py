@@ -245,7 +245,7 @@ class ResearchSnapshot(Base):
     horizon: Mapped[str] = mapped_column(String, nullable=False)
     date: Mapped[date] = mapped_column(Date, nullable=False)
     rationale_md: Mapped[str] = mapped_column(Text, nullable=False)
-    divergences: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False, default=dict)
+    divergences: Mapped[list[dict[str, Any]]] = mapped_column(JSON, nullable=False, default=list)
     generated_by: Mapped[str] = mapped_column(String, nullable=False)  # "llm" | "machine"
     created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
 

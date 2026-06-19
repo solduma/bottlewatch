@@ -55,6 +55,15 @@ def load_eta_table() -> dict[str, dict[str, str]]:
     return _load_json("eta.json")
 
 
+def load_score_bands() -> dict[str, dict[str, Any]]:
+    """Return {sub_score: {source_key: band_spec}} from research/config/score_bands.json.
+
+    Band specs are used by extractors and the normalizer to map raw
+    signals to [0, 1]. The loader strips top-level `_` annotations.
+    """
+    return _load_json("score_bands.json")
+
+
 def load_eia_series_spec() -> list[dict[str, Any]]:
     """Return the EIA v2 series spec list (one dict per series)."""
     return _load_json("eia_series_spec.json")

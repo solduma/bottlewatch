@@ -35,19 +35,38 @@ from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
-from scipy import stats
 from sqlalchemy import select
 from sqlalchemy.orm import sessionmaker
 
 from bottlewatch.app.backtest.basket_report import BacktestReport, BasketSnapshot, SegmentICRow
 from bottlewatch.app.backtest.baskets import build_baskets
+from bottlewatch.app.backtest.baskets import _load_universe as _load_universe_rows
 from bottlewatch.app.backtest.prices import CsvPriceProvider, PriceBar, PriceProvider
-from bottlewatch.app.backtest.stats import SegmentICResult, benjamini_hochberg, segment_ic_with_ci
+from bottlewatch.app.backtest.stats import (
+    SegmentICResult,
+    benjamini_hochberg,
+    date_level_ic,
+    segment_ic_with_ci,
+)
 from bottlewatch.app.db import ScoreHistory, make_engine, make_session_factory
 from bottlewatch.app.score.regime import Regime, regime_from_value
 from bottlewatch.config import get_settings
 
 _LOGGER = logging.getLogger(__name__)
+
+# Eval dates step monthly; the bootstrap block size derives from
+# forward_days / _STEP_DAYS (see stats.block_size_for).
+_STEP_DAYS = 30
+
+# Point-in-time disclosure for basket results. Membership is gated as-of by
+# price existence, but mcap_usd/exposure_pct are static present-day values
+# (no historical fundamentals source), so basket returns are not fully PIT.
+_UNIVERSE_CAVEAT = (
+    "Basket membership is gated as-of by price existence, but mcap_usd and "
+    "exposure_pct are static present-day values applied retroactively (no "
+    "historical fundamentals source). Basket returns are not fully "
+    "point-in-time; treat them as indicative, not as a clean walk-forward."
+)
 
 # Project root: src/bottlewatch/jobs/backtest.py -> ../../../
 _PROJECT_ROOT = Path(__file__).resolve().parents[3]
@@ -191,17 +210,6 @@ def _eval_dates(start: date, end: date, step_days: int = 30) -> list[date]:
     return out
 
 
-def _compute_ic(xs: list[float], ys: list[float]) -> tuple[float | None, float | None]:
-    """Spearman rho and two-sided p-value via scipy."""
-    n = len(xs)
-    if n < 4 or len(set(xs)) < 2 or len(set(ys)) < 2:
-        return None, None
-    spearman_result: Any = stats.spearmanr(xs, ys)
-    return float(spearman_result.statistic), float(
-        spearman_result.pvalue
-    ) if spearman_result.pvalue is not None else None
-
-
 def _run_single_mode(
     *,
     prices: PriceProvider,
@@ -220,7 +228,10 @@ def _run_single_mode(
     mode (e.g., by running a point-in-time recompute beforehand).
     """
     universe = _load_universe(universe_path)
-    eval_dates = _eval_dates(start, end)
+    # Parse the universe once (typed rows) for basket construction, instead of
+    # re-reading the CSV on every eval date inside build_baskets.
+    universe_rows = _load_universe_rows(universe_path)
+    eval_dates = _eval_dates(start, end, step_days=_STEP_DAYS)
     if not universe or not eval_dates:
         return (
             BacktestReport(
@@ -237,6 +248,12 @@ def _run_single_mode(
                 baskets=[],
                 fixed_vs_rolling=None,
                 seed_share_warning_dates=[],
+                overall_ci_low=None,
+                overall_ci_high=None,
+                n_constant_score_segments=0,
+                n_segments_evaluated=0,
+                universe_is_point_in_time=False,
+                universe_caveat=_UNIVERSE_CAVEAT,
             ),
             [],
         )
@@ -279,7 +296,7 @@ def _run_single_mode(
             eval_date=t,
             horizon=horizon,
             scores=segment_scores,
-            universe_path=universe_path,
+            universe_rows=universe_rows,
             prices=ticker_prices,
             forward_days=forward_days,
         )
@@ -331,14 +348,40 @@ def _run_single_mode(
     per_segment_raw: list[SegmentICResult] = []
     segments_in_data = sorted({p.segment for p in eval_points})
     p_values_for_bh: list[tuple[str, float | None]] = []
+    constant_score_segments: set[str] = set()
     for seg in segments_in_data:
         seg_points = [p for p in eval_points if p.segment == seg]
         xs = [p.b for p in seg_points]
-        ys = [p.forward_return for p in seg_points]
+        if len(set(xs)) < 2:
+            # A constant score across the entire backtest window means
+            # no statistical relationship can be measured. This happens
+            # when the historical recompute pipeline used static seeds
+            # with no time-varying dynamic inputs.
+            constant_score_segments.add(seg)
+            p_values_for_bh.append((seg, None))
+            per_segment_raw.append(
+                SegmentICResult(
+                    segment=seg,
+                    n=len(seg_points),
+                    rho=None,
+                    p_value=None,
+                    ci_low=None,
+                    ci_high=None,
+                    bh_rejected=False,
+                )
+            )
+            continue
         points_by_date: dict[date, list[tuple[float, float]]] = {}
         for p in seg_points:
             points_by_date.setdefault(p.eval_date, []).append((p.b, p.forward_return))
-        result = segment_ic_with_ci(seg, xs, ys, eval_dates, points_by_date)
+        result = segment_ic_with_ci(
+            seg,
+            len(seg_points),
+            eval_dates,
+            points_by_date,
+            forward_days=forward_days,
+            step_days=_STEP_DAYS,
+        )
         p_values_for_bh.append((seg, result.p_value))
         per_segment_raw.append(result)
 
@@ -355,11 +398,19 @@ def _run_single_mode(
         )
         for r in per_segment_raw
     ]
+    if constant_score_segments:
+        _LOGGER.warning(
+            "%d segments had constant scores over the backtest window (no IC computable): %s",
+            len(constant_score_segments),
+            ", ".join(sorted(constant_score_segments)[:10]) + ("..." if len(constant_score_segments) > 10 else ""),
+        )
 
-    # Overall IC.
-    xs = [p.b for p in eval_points]
-    ys = [p.forward_return for p in eval_points]
-    overall_ic, overall_p = _compute_ic(xs, ys)
+    # Overall IC: same date-level method, pooled across all segments
+    # (one cross-sectional IC per date over every segment's points).
+    overall_points_by_date: dict[date, list[tuple[float, float]]] = {}
+    for p in eval_points:
+        overall_points_by_date.setdefault(p.eval_date, []).append((p.b, p.forward_return))
+    overall = date_level_ic(eval_dates, overall_points_by_date, forward_days=forward_days, step_days=_STEP_DAYS)
 
     report = BacktestReport(
         horizon=horizon,
@@ -369,12 +420,18 @@ def _run_single_mode(
         normalization_mode=normalization_mode,
         n_eval_dates=len(eval_dates),
         n_eval_points=len(eval_points),
-        overall_ic=overall_ic,
-        overall_p_value=overall_p,
+        overall_ic=overall.mean,
+        overall_p_value=overall.p_value,
         per_segment_ic=per_segment_results,
         baskets=basket_snapshots,
         fixed_vs_rolling=None,
         seed_share_warning_dates=seed_share_warning_dates,
+        overall_ci_low=overall.ci_low,
+        overall_ci_high=overall.ci_high,
+        n_constant_score_segments=len(constant_score_segments),
+        n_segments_evaluated=len(segments_in_data) - len(constant_score_segments),
+        universe_is_point_in_time=False,
+        universe_caveat=_UNIVERSE_CAVEAT,
     )
     return report, eval_points
 

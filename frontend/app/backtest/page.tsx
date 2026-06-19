@@ -54,13 +54,38 @@ export default async function BacktestPage({
         </div>
       )}
 
+      {report.n_eval_dates > 0 && report.n_eval_dates < 8 && (
+        <div className="rounded border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
+          ⚠️ Low confidence: only {report.n_eval_dates} evaluation dates. The date-level bootstrap CI and
+          p-value are wide and unstable on so few dates — treat the IC as indicative, not conclusive.
+        </div>
+      )}
+
+      {(report.n_constant_score_segments > 0 || report.n_segments_evaluated > 0) && (
+        <div className="text-xs text-gray-500">
+          Disclosure: {report.n_segments_evaluated} segment(s) evaluated;{" "}
+          {report.n_constant_score_segments} dropped for constant scores over the window (no IC computable).
+        </div>
+      )}
+
+      {report.universe_is_point_in_time === false && report.universe_caveat && (
+        <div className="rounded border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
+          ⚠️ Basket point-in-time caveat: {report.universe_caveat}
+        </div>
+      )}
+
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <Card>
           <div className="text-sm text-gray-600">Overall IC</div>
           <div className="text-2xl font-semibold">
             {report.overall_ic != null ? report.overall_ic.toFixed(3) : "n/a"}
           </div>
-          <div className="text-xs text-gray-500">p={report.overall_p_value?.toExponential(2) ?? "n/a"}</div>
+          <div className="text-xs text-gray-500">
+            p={report.overall_p_value?.toFixed(3) ?? "n/a"} ·{" "}
+            {report.overall_ci_low != null && report.overall_ci_high != null
+              ? `95% CI [${report.overall_ci_low.toFixed(3)}, ${report.overall_ci_high.toFixed(3)}]`
+              : "CI n/a"}
+          </div>
         </Card>
         <Card>
           <div className="text-sm text-gray-600">Avg long basket return (gross)</div>
@@ -105,7 +130,7 @@ export default async function BacktestPage({
                     <td className="px-3 py-2 font-medium">{row.segment}</td>
                     <td className="px-3 py-2">{row.n}</td>
                     <td className="px-3 py-2">{row.rho != null ? row.rho.toFixed(3) : "n/a"}</td>
-                    <td className="px-3 py-2">{row.p_value?.toExponential(2) ?? "n/a"}</td>
+                    <td className="px-3 py-2">{row.p_value?.toFixed(3) ?? "n/a"}</td>
                     <td className="px-3 py-2">
                       {row.ci_low != null && row.ci_high != null
                         ? `[${row.ci_low.toFixed(3)}, ${row.ci_high.toFixed(3)}]`

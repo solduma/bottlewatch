@@ -81,7 +81,9 @@ export interface TickerRow {
   name: string;
   segment: string;
   subsegment: string | null;
-  exposure_pct: number;
+  // null when the universe CSV cell is missing/unparseable (the API
+  // emits float | None). Render/sort sites must guard against null.
+  exposure_pct: number | null;
   market_cap_bucket: string;
   mcap_usd: number | null;
   currency_hedge: string;
@@ -167,7 +169,7 @@ export interface TickerDetailSegment {
   segment: string;
   name: string;
   subsegment: string | null;
-  exposure_pct: number;
+  exposure_pct: number | null;
   regime_near: string | null;
   score_near: number | null;
   momentum_near: number | null;
@@ -377,10 +379,16 @@ export interface BacktestReport {
   n_eval_points: number;
   overall_ic: number | null;
   overall_p_value: number | null;
+  overall_ci_low: number | null;
+  overall_ci_high: number | null;
+  n_constant_score_segments: number;
+  n_segments_evaluated: number;
   per_segment_ic: SegmentICRow[];
   baskets: BasketSnapshot[];
   fixed_vs_rolling: FixedVsRolling | null;
   seed_share_warning_dates: string[];
+  universe_is_point_in_time?: boolean;
+  universe_caveat?: string;
 }
 
 export const getBacktestReport = (opts?: {

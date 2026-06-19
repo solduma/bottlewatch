@@ -24,11 +24,12 @@ from bottlewatch.app.score.extractors import (
 )
 
 
-@dataclass(frozen=True)
+@dataclass
 class _Row:
     signal_name: str
     value_num: Optional[float]
     observed_at: date
+    geography: str | None = None
 
 
 def _add_months(d: date, n: int) -> date:
@@ -66,21 +67,26 @@ def test_power_returns_none_without_planned_signal() -> None:
     assert capacity_tightness("power_generation_oem", signals) is None
 
 
-def test_data_center_shell_returns_raw_yoy() -> None:
-    signals = []
-    for m in range(1, 25):
-        val = 1000.0 if m <= 12 else 1200.0
-        signals.append(
-            _Row(
-                "retail_sales_mwh",
-                val,
-                date(2024, m, 1) if m <= 12 else date(2025, m - 12, 1),
-            )
-        )
+def test_data_center_shell_returns_iso_capacity_ratio() -> None:
+    signals = [
+        _Row("iso_capacity_mw", 1000.0, date(2025, 1, 1), geography="PJM"),
+        _Row("iso_peak_load_mw", 800.0, date(2025, 1, 1), geography="PJM"),
+    ]
     result = capacity_tightness("data_center_shell", signals)
     assert isinstance(result, ExtractorResult)
-    assert result.raw_value == pytest.approx(0.20, abs=1e-3)
-    assert result.source_key == "retail_sales_yoy"
+    assert result.raw_value == pytest.approx(0.8, abs=1e-3)
+    assert result.source_key == "iso_capacity_ratio"
+
+
+def test_data_center_shell_falls_back_to_power_ratio() -> None:
+    signals = [
+        _Row("planned_capacity_mw", 100.0, date(2027, 1, 1)),
+        _Row("capacity_mw", 1000.0, date(2025, 1, 1)),
+    ]
+    result = capacity_tightness("data_center_shell", signals)
+    assert isinstance(result, ExtractorResult)
+    assert result.raw_value == pytest.approx(0.1, abs=1e-3)
+    assert result.source_key == "power_ratio"
 
 
 def test_data_center_shell_returns_none_for_short_history() -> None:
@@ -163,33 +169,13 @@ def test_comtrade_capacity_tightness_returns_none_for_unmapped_segment() -> None
     assert capacity_tightness("cooling_water", signals) is None
 
 
-# ---------------------------------------------------------------------------
-# transformers_tnd demand_signal
-# ---------------------------------------------------------------------------
-
-
-def test_transformer_demand_signal_returns_raw_yoy() -> None:
-    base = date(2025, 1, 1)
-    signals = [_Row("electrical_equipment_orders", 80.0, base)]
-    for i in range(12):
-        v = 80.0 + ((i + 1) * (100 - 80) / 12)
-        signals.append(_Row("electrical_equipment_orders", v, _add_months(base, i + 1)))
-    result = demand_signal("transformers_tnd", signals)
-    assert isinstance(result, ExtractorResult)
-    assert result.raw_value == pytest.approx(0.25)
-    assert result.source_key == "transformer_orders"
-
-
-def test_transformer_demand_signal_returns_none_for_short_history() -> None:
-    base = date(2025, 1, 1)
-    signals = [_Row("electrical_equipment_orders", 100.0, _add_months(base, i)) for i in range(6)]
-    assert demand_signal("transformers_tnd", signals) is None
-
-
-def test_unknown_segment_demand_signal_returns_none() -> None:
+def test_transformer_demand_signal_is_no_longer_a_macro_proxy() -> None:
+    """The electrical-equipment-orders proxy was removed; transformers_tnd
+    now has no dynamic demand signal and falls back to the seed.
+    """
     base = date(2025, 1, 1)
     signals = [_Row("electrical_equipment_orders", 100.0, _add_months(base, i)) for i in range(13)]
-    assert demand_signal("cooling_water", signals) is None
+    assert demand_signal("transformers_tnd", signals) is None
 
 
 # ---------------------------------------------------------------------------
@@ -323,11 +309,11 @@ def test_hhi_all_zero_returns_none() -> None:
 
 
 class _MockWorld:
-    def __init__(self, results_by_role: dict[str, list[tuple[Any, int]]]) -> None:
+    def __init__(self, results_by_role: dict[str, list[tuple[Any, Any]]]) -> None:
         self._results = results_by_role
         self.calls: list[str] = []
 
-    def sparql(self, query: str) -> list[tuple[Any, int]]:
+    def sparql(self, query: str) -> list[tuple[Any, Any]]:
         self.calls.append(query)
         for role, rows in self._results.items():
             if f":{role} " in query or f":{role} ." in query:

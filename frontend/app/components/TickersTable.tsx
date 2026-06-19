@@ -25,7 +25,7 @@ function compareMarketCap(a: TickerRow, b: TickerRow): number {
 const COMPARATORS: Record<SortKey, (a: TickerRow, b: TickerRow) => number> = {
   ticker: (a, b) => a.ticker.localeCompare(b.ticker),
   name: (a, b) => a.name.localeCompare(b.name),
-  exposure_pct: (a, b) => a.exposure_pct - b.exposure_pct,
+  exposure_pct: (a, b) => (a.exposure_pct ?? 0) - (b.exposure_pct ?? 0),
   market_cap: compareMarketCap,
   currency_hedge: (a, b) => a.currency_hedge.localeCompare(b.currency_hedge),
 };
@@ -84,7 +84,9 @@ export function TickersTable({ tickers }: { tickers: TickerRow[] }) {
                 </a>
               </td>
               <td className="px-3 py-2 text-gray-700">{t.name}</td>
-              <td className="px-3 py-2 font-mono text-gray-700">{t.exposure_pct}%</td>
+              <td className="px-3 py-2 font-mono text-gray-700">
+                {t.exposure_pct === null ? "—" : `${t.exposure_pct}%`}
+              </td>
               <td className="px-3 py-2 text-gray-700">{t.market_cap_bucket}</td>
               <td className="px-3 py-2 text-gray-700">{t.currency_hedge}</td>
             </tr>

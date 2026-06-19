@@ -16,6 +16,7 @@ from bottlewatch.app.ingest.base import Adapter, AdapterSpec, Cadence, RawSignal
 from bottlewatch.app.ingest.eia import EIAV2Adapter
 from bottlewatch.app.ingest.eia_860m import EIA860MAdapter
 from bottlewatch.app.ingest.eia_capacity import EIAV2CapacityAdapter
+from bottlewatch.app.ingest.eia_isorto import EIAISORTOAdapter
 from bottlewatch.app.ingest.fred import FredAdapter
 from bottlewatch.app.ingest.comtrade import ComtradeAdapter
 from bottlewatch.app.ingest.epa_egrid import EPAEGridAdapter
@@ -29,6 +30,7 @@ __all__ = [
     "AdapterSpec",
     "Cadence",
     "EIA860MAdapter",
+    "EIAISORTOAdapter",
     "EIAV2Adapter",
     "EIAV2CapacityAdapter",
     "FredAdapter",
@@ -54,6 +56,7 @@ def _build_registry() -> list[AdapterSpec]:
     from bottlewatch.app.ingest.eia import build_eia_v2_adapter
     from bottlewatch.app.ingest.eia_860m import build_eia_860m_adapter
     from bottlewatch.app.ingest.eia_capacity import build_eia_v2_capacity_adapter
+    from bottlewatch.app.ingest.eia_isorto import build_eia_isorto_adapter
     from bottlewatch.app.ingest.fred import build_fred_adapter
     from bottlewatch.app.ingest.comtrade import build_comtrade_adapter
     from bottlewatch.app.ingest.epa_egrid import build_epa_egrid_adapter
@@ -77,6 +80,11 @@ def _build_registry() -> list[AdapterSpec]:
             name="eia_860m",
             cadence=Cadence.MONTHLY,
             factory=build_eia_860m_adapter,  # type: ignore[arg-type]
+        ),
+        AdapterSpec(
+            name="eia_isorto",
+            cadence=Cadence.MONTHLY,
+            factory=build_eia_isorto_adapter,  # type: ignore[arg-type]
         ),
         AdapterSpec(
             name="fred",

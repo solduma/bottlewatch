@@ -119,8 +119,11 @@ class ScoreResult:
 
     `sub_scores` is a 5-tuple dict keyed by sub-score name; values are
     always floats because the normalizer substitutes 0.5 for missing
-    values and flags them as imputed. `score` and `momentum` are None
-    for NO_DATA rows.
+    values and flags them as imputed. `score`/`momentum` are populated
+    even when `regime` is NO_DATA (the regime label, driven by
+    `data_completeness`, is the trust signal; the score is still shown
+    so the UI can render B). They are None only when the caller passes
+    no inputs at all.
     """
 
     segment: str
@@ -258,7 +261,14 @@ def compute_segment_score(
             imputed=normalized.imputed,
         )
 
-    completeness = sum(1 for v in sub_scores.values() if v is not None) / len(sub_scores)
+    # Completeness = share of the weighted score backed by real (non-imputed)
+    # inputs. The normalizer substitutes 0.5 for missing values and flags them
+    # `imputed=True`, so a None-check would always be 1.0 (every sub_score is a
+    # float). Seeds are curated values, NOT imputed, so seed-backed segments stay
+    # complete; only genuinely-missing inputs reduce completeness. When the
+    # imputed weight is large enough, `classify` returns NO_DATA.
+    imputed_weight = sum(_WEIGHTS[horizon][name] for name in _SUB_SCORE_NAMES if provenance[name].imputed)
+    completeness = 1.0 - imputed_weight
 
     # Score: 100 * Σ w_i * s_i. The normalizer has already substituted
     # missing values with 0.5 and flagged them as imputed, so every

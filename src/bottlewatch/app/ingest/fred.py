@@ -6,6 +6,7 @@ that serve as lead indicators for the bottleneck scorecard.
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 from datetime import date
 
@@ -14,6 +15,8 @@ import tenacity
 
 from bottlewatch.app.ingest.base import Cadence, ProgressCallback, RawSignal
 from bottlewatch.config import Settings
+
+_LOGGER = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -115,9 +118,11 @@ class FredAdapter:
                 try:
                     series_signals = self._fetch_series(client, spec, period_start, period_end)
                     signals.extend(series_signals)
-                except Exception:
-                    # We log and continue to avoid one failing series killing the whole run.
-                    # The orchestrator handles the fatal error if the adapter itself crashes.
+                except Exception as e:
+                    # Log and continue so one failing series (e.g. a renamed
+                    # series_id that 404s) doesn't kill the run — but it must
+                    # be visible, not silent, or a degraded fetch reads as OK.
+                    _LOGGER.warning("FRED series %s failed: %s", spec.series_id, e)
                     continue
 
         return signals

@@ -22,7 +22,7 @@ because the request shape is facets-based rather than the v1-bridge
 from __future__ import annotations
 
 import logging
-from datetime import date
+from datetime import date, datetime
 from typing import Any
 
 import httpx
@@ -70,19 +70,39 @@ def _coerce_float(raw: Any) -> float | None:
         return None
 
 
+# Observed publication lag: data for month-2 is sometimes partial; month-3
+# is reliably complete. `_latest_month_window` subtracts this and
+# `_released_at_for_period` adds it back, so they MUST share one constant —
+# if they drift, backfilled `released_at` values are wrong and the
+# point-in-time recompute gate silently leaks future data.
+_PUBLICATION_LAG_MONTHS = 3
+
+
 def _latest_month_window(today: date) -> tuple[str, str]:
     """Return a (start, end) string pair in YYYY-MM covering the latest
-    month EIA actually has data for. Observed on 2026-06-03: the latest
-    period with rows is 2026-03, so we walk back three months.
+    month EIA actually has data for, walking back `_PUBLICATION_LAG_MONTHS`.
+    Observed on 2026-06-03: the latest period with rows is 2026-03.
     """
     year, month = today.year, today.month
-    # Three-month lag: month-2 (e.g. 2026-04) is sometimes partial;
-    # month-3 (2026-03) is reliably complete.
-    month -= 3
+    month -= _PUBLICATION_LAG_MONTHS
     while month <= 0:
         month += 12
         year -= 1
     return f"{year:04d}-{month:02d}", f"{year:04d}-{month:02d}"
+
+
+def _released_at_for_period(period: str) -> datetime:
+    """Publication date for a YYYY-MM data period: the period plus the
+    modeled publication lag (the exact inverse of `_latest_month_window`).
+    Derived from the period, not `today`, so a backfilled run is
+    point-in-time correct rather than stamped with the fetch time.
+    """
+    year, month = (int(x) for x in period.split("-"))
+    month += _PUBLICATION_LAG_MONTHS
+    while month > 12:
+        month -= 12
+        year += 1
+    return datetime(year, month, 1)
 
 
 class EIAV2CapacityAdapter(Adapter):
@@ -158,6 +178,7 @@ class EIAV2CapacityAdapter(Adapter):
         del period_start, period_end  # window is "latest month", not the orchestrator's range
 
         _, latest = _latest_month_window(date.today())
+        released_at = _released_at_for_period(latest)
         signals: list[RawSignal] = []
         state_totals: dict[str, float] = {}
         with httpx.Client(timeout=self._settings.eia_timeout_s) as client:
@@ -186,6 +207,7 @@ class EIAV2CapacityAdapter(Adapter):
                             source=self.name,
                             source_id=f"operating-generator-capacity:{s}:{latest}",
                             observed_at=date.fromisoformat(f"{latest}-01"),
+                            released_at=released_at,
                         )
                     )
                 except ValidationError:
@@ -208,6 +230,7 @@ class EIAV2CapacityAdapter(Adapter):
                     source=self.name,
                     source_id=f"operating-generator-capacity:US:{latest}",
                     observed_at=date.fromisoformat(f"{latest}-01"),
+                    released_at=released_at,
                 )
             )
         except ValidationError:

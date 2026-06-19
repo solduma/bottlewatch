@@ -47,7 +47,7 @@ class Settings(BaseSettings):
     comtrade_api_key: str | None = Field(default=None, description="UN Comtrade API key")
     ollama_api_key: str | None = Field(default=None, description="Ollama Cloud API key for daily research reasoning")
     ollama_base_url: str = Field(
-        default="https://api.ollama.com/v1",
+        default="https://ollama.com/v1",
         description="Ollama Cloud API base URL",
     )
     ollama_model: str = Field(default="llama3.2", description="Ollama model for daily research reasoning")
@@ -85,6 +85,10 @@ class Settings(BaseSettings):
     )
     eia_timeout_s: float = Field(default=30.0, description="httpx timeout per request")
     eia_max_retries: int = Field(default=3, description="tenacity stop_after_attempt")
+    eia_isorto_regions: list[str] = Field(
+        default_factory=lambda: ["ERCO", "CISO", "PJM"],
+        description="EIA-930 respondents used for ISO/RTO capacity-tightness data.",
+    )
 
     # M2 web surface. CORS default is the Next.js dev origin; override
     # in .env for prod. The API is read-only in M2 so methods are

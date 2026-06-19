@@ -169,20 +169,27 @@ def test_idempotent_recompute_overwrites_existing_rows(settings, factory: sessio
 
 
 def test_power_segment_gets_computed_capacity(settings, factory: sessionmaker) -> None:
-    """power_generation_oem and data_center_shell should have live
-    capacity_tightness; transformers_tnd falls back to imputed 0.5.
-    data_completeness is now always 1.0 because the normalizer fills
-    missing values with the universe median.
+    """Only power_generation_oem gets a live capacity_tightness from the
+    seeded planned+operating capacity signals → completeness 1.0.
+    data_center_shell (seeded with retail_sales_mwh, a different
+    sub-score) and transformers_tnd (no signals) both impute
+    capacity_tightness, so their completeness drops by that sub-score's
+    horizon weight (near 0.35 → 0.65, med 0.20 → 0.80, long 0.10 → 0.90).
+    This reflects the imputation rather than the old constant-1.0 bug.
     """
+    # Completeness when capacity_tightness is the only imputed sub-score,
+    # by horizon (1 - capacity_tightness weight).
+    imputed_capacity_completeness = {"near": 0.65, "med": 0.80, "long": 0.90}
     _seed_signals(factory)
     recompute_scores.run(settings=settings, factory=factory)
     with factory() as session:
         rows = session.execute(select(Score)).scalars().all()
         by_segment = {(s.segment, s.horizon): s for s in rows}
         for horizon in settings.score_horizons:
+            expected = imputed_capacity_completeness[horizon]
             assert by_segment[("power_generation_oem", horizon)].data_completeness == 1.0
-            assert by_segment[("data_center_shell", horizon)].data_completeness == 1.0
-            assert by_segment[("transformers_tnd", horizon)].data_completeness == 1.0
+            assert by_segment[("data_center_shell", horizon)].data_completeness == pytest.approx(expected)
+            assert by_segment[("transformers_tnd", horizon)].data_completeness == pytest.approx(expected)
             assert (
                 by_segment[("transformers_tnd", horizon)].sub_score_provenance["capacity_tightness"]["source"]
                 == "imputed"
@@ -204,17 +211,20 @@ def test_recompute_preserves_horizon_subset(settings, factory: sessionmaker) -> 
 
 
 def test_no_signals_still_writes_research_only_scores(settings, factory: sessionmaker) -> None:
-    """A fresh DB with zero signals still gets 30 rows: 4 research
-    sub-scores per segment × 3 horizons. The capacity_tightness is
-    imputed from the universe median (0.5), so data_completeness=1.0.
+    """A fresh DB with zero signals still gets a full row set: 4 research
+    sub-scores per segment × 3 horizons. capacity_tightness is imputed
+    (0.5), so completeness drops by that sub-score's horizon weight
+    (near 0.35 → 0.65, med 0.20 → 0.80, long 0.10 → 0.90). The imputed
+    weight stays below the 0.4 no-data threshold, so no row is NO_DATA.
     """
+    capacity_completeness = {"near": 0.65, "med": 0.80, "long": 0.90}
     report = recompute_scores.run(settings=settings, factory=factory)
     assert report.rows_written == len(known_segments()) * 3
     assert report.no_data_count == 0
     with factory() as session:
         rows = session.execute(select(Score)).scalars().all()
         for r in rows:
-            assert r.data_completeness == 1.0
+            assert r.data_completeness == pytest.approx(capacity_completeness[r.horizon])
             assert r.sub_scores["capacity_tightness"] == pytest.approx(0.5)
             assert r.sub_score_provenance["capacity_tightness"]["source"] == "imputed"
             assert r.regime != "NO_DATA"
@@ -317,11 +327,15 @@ def test_signals_are_deduped_to_latest_observed_at(settings, factory: sessionmak
         rows_out = session.execute(select(Score)).scalars().all()
         for r in rows_out:
             if r.segment == "power_generation_oem":
-                # Without dedup: 3 * 2000 / 20000 = 0.3 (tight)
-                # With dedup: 1 * 2000 / 20000 = 0.1 (loose)
-                cap = r.sub_scores["capacity_tightness"]
-                assert cap is not None
-                assert cap == pytest.approx(0.1, abs=1e-6), f"expected dedup'd capacity_tightness=0.1, got {cap}"
+                # Without dedup: 3 * 2000 / 20000 = 0.3 raw (tight).
+                # With dedup: 1 * 2000 / 20000 = 0.1 raw (loose).
+                # The calibrated fixed band [0, 0.5] maps 0.1 -> 0.2.
+                assert r.raw_sub_scores["capacity_tightness"] == pytest.approx(0.1, abs=1e-6), (
+                    f"expected dedup'd raw capacity_tightness=0.1, got {r.raw_sub_scores['capacity_tightness']}"
+                )
+                assert r.sub_scores["capacity_tightness"] == pytest.approx(0.2, abs=1e-6), (
+                    f"expected normalized capacity_tightness=0.2, got {r.sub_scores['capacity_tightness']}"
+                )
 
 
 def test_future_planned_capacity_is_included(settings, factory: sessionmaker) -> None:
@@ -367,8 +381,10 @@ def test_future_planned_capacity_is_included(settings, factory: sessionmaker) ->
             if r.segment == "power_generation_oem":
                 cap = r.sub_scores["capacity_tightness"]
                 assert cap is not None
-                assert cap == pytest.approx(0.25, abs=1e-6), (
-                    f"expected future planned capacity to give tightness=0.25, got {cap}"
+                # Raw planned/operating ratio is 5000/20000 = 0.25.
+                # The calibrated fixed band [0, 0.5] maps it to 0.5.
+                assert cap == pytest.approx(0.5, abs=1e-6), (
+                    f"expected future planned capacity to give tightness=0.5, got {cap}"
                 )
 
 
@@ -395,29 +411,29 @@ def test_geo_concentration_computed_when_ontology_available(settings, factory: s
             assert by_segment[("transformers_tnd", horizon)].sub_scores["geo_concentration"] == pytest.approx(0.35)
 
 
-def test_demand_signal_override_when_fred_signal_present(settings, factory: sessionmaker) -> None:
-    """When the recompute job is given FRED `A35SNO` signals for
-    `transformers_tnd`, the score rows for that segment reflect
-    the dynamically-extracted demand_signal (1.0 for +25% YoY),
-    not the seed value (0.80).
+def test_transformers_tnd_demand_signal_uses_seed_after_proxy_removal(settings, factory: sessionmaker) -> None:
+    """The `transformers_tnd` macro-proxy demand_signal band was
+    removed during Phase 4 calibration. Even when FRED `A35SNO`
+    signals are present, the segment falls back to the static seed
+    (0.80) rather than using a broad electrical-equipment orders
+    proxy.
 
-    Mirrors `test_geo_concentration_computed_when_ontology_available`
-    for the new demand_signal override path. The transformer
-    segment is the first one to have a dynamic demand_signal
-    extractor (FRED A35SNO → electrical_equipment_orders).
+    Other segments with real primary demand sources (hyperscaler
+    capex ledger, manufacturing INDPRO) still override their seeds
+    when signals are available.
     """
     _seed_transformer_signals(factory)
     recompute_scores.run(settings=settings, factory=factory)
     with factory() as session:
         rows = session.execute(select(Score)).scalars().all()
         by_segment = {(s.segment, s.horizon): s for s in rows}
-        # The transformers_tnd segment should have the dynamic
-        # demand_signal (1.0 for the seeded +25% YoY growth).
+        # transformers_tnd no longer has a macro-proxy band, so
+        # FRED A35SNO signals do not override the seed.
         for horizon in settings.score_horizons:
             assert by_segment[("transformers_tnd", horizon)].sub_scores["demand_signal"] == pytest.approx(
-                1.0, abs=1e-3
+                0.80, abs=1e-3
             ), (
-                f"expected dynamic demand_signal=1.0, got {by_segment[('transformers_tnd', horizon)].sub_scores['demand_signal']}"
+                f"expected seed fallback demand_signal=0.80, got {by_segment[('transformers_tnd', horizon)].sub_scores['demand_signal']}"
             )
         # Hyperscaler-linked segments now get a ledger-derived demand_signal
         # instead of the seed. e.g. advanced_node_fabs seed = 0.90.

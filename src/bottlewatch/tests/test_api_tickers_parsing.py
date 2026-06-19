@@ -95,6 +95,7 @@ def test_pick_eta_treats_none_as_lower_than_zero() -> None:
         "transformers_tnd": {"exposure_pct": 0.0},
     }
     eta = _pick_eta(seg_map, _STATIC_ETA)
+    assert eta is not None
     assert eta["segment"] == "transformers_tnd"
 
 

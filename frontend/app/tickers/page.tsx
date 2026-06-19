@@ -476,7 +476,9 @@ export default function TickersPage() {
                 <td className="px-3 py-2 font-mono text-xs text-gray-600">
                   <Link href={`/segment/${t.segment}`} className="hover:underline">{displayName(t.segment)}</Link>
                 </td>
-                <td className="px-3 py-2 font-mono text-right text-gray-600">{t.exposure_pct.toFixed(0)}%</td>
+                <td className="px-3 py-2 font-mono text-right text-gray-600">
+                  {t.exposure_pct === null ? "—" : `${t.exposure_pct.toFixed(0)}%`}
+                </td>
                 <td className="px-3 py-2 text-xs text-gray-500">{t.market_cap_bucket}</td>
                 <td className="px-3 py-2 font-mono text-xs text-gray-500">{t.currency_hedge || "—"}</td>
                 <td className="px-3 py-2">

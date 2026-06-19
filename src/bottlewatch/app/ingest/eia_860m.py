@@ -26,7 +26,7 @@ to `(state × prime_mover × planned_year)` for the §7.3 ETA.
 from __future__ import annotations
 
 import logging
-from datetime import date
+from datetime import date, datetime
 from pathlib import Path
 from urllib.parse import urljoin
 
@@ -207,6 +207,7 @@ class EIA860MAdapter(Adapter):
                 source=self.name,
                 source_id=source_id,
                 observed_at=observed,
+                released_at=datetime(release_year, release_month, 1),
                 value_text=status or None,
             )
         except ValidationError:
