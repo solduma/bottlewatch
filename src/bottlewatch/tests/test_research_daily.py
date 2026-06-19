@@ -294,6 +294,35 @@ def test_validate_determinism() -> None:
     assert 4321.0 in first
 
 
+def test_validate_iso_dates_are_not_treated_as_numbers() -> None:
+    """Regression (review #1): ISO dates must not be split into spurious
+    negatives. "2026-06-15" previously parsed as 2026, -6, -15, none of which
+    are grounded, wrongly rejecting any rationale that mentions a date.
+    """
+    context, score_row = _make_context(score=64.8, momentum=10.0)
+    rationale = "As of 2026-06-15 the score is 65; the 2026-06 release confirmed momentum 10."
+    assert research_daily._validate_numeric_claims(rationale, context, score_row) == []
+
+
+def test_validate_percent_matches_fraction_subscore() -> None:
+    """Regression (review #2): a sub-score on the 0-1 scale cited as a percent
+    ("50%") must ground against its fraction form (0.50), not be rejected.
+    """
+    context, score_row = _make_context(score=64.8, momentum=10.0)
+    # geo_concentration sub-score is 0.5 → "50%" should be accepted.
+    rationale = "Geographic concentration is around 50%."
+    assert research_daily._validate_numeric_claims(rationale, context, score_row) == []
+
+
+def test_validate_does_not_parse_numbers_inside_identifiers() -> None:
+    """Regression (review #1): digits embedded in tickers/series/codes
+    ("034020.KS", "A35SNO", "co2") must not be extracted as numeric claims.
+    """
+    context, score_row = _make_context(score=64.8, momentum=10.0)
+    rationale = "034020.KS and series A35SNO drove co2 lower; score 65."
+    assert research_daily._validate_numeric_claims(rationale, context, score_row) == []
+
+
 def _mock_llm_response(content: str) -> MagicMock:
     resp = MagicMock()
     resp.raise_for_status = MagicMock()

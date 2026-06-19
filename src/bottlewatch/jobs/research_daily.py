@@ -54,8 +54,20 @@ _REL_TOL = 0.02
 # false-positive rate; the fallback is a safe machine rationale, not data loss.
 _MAX_UNVERIFIED_CLAIMS = 0
 
-# Matches integer or decimal numbers (optionally signed) in rationale text.
-_NUMBER_RE = re.compile(r"-?\d+(?:\.\d+)?")
+# ISO date tokens (2026-06, 2026-06-15) are stripped before number
+# extraction: dates are not quantitative claims, and their inter-component
+# hyphens would otherwise parse as spurious negative numbers (e.g.
+# "2026-06-15" -> 2026, -6, -15).
+_DATE_RE = re.compile(r"\b\d{4}-\d{1,2}(?:-\d{1,2})?\b")
+
+# A standalone integer/decimal, optionally signed, optionally a percent.
+# Leading (?<![\w.]) keeps digits inside identifiers (co2, A35SNO, tickers
+# like 034020.KS) and inter-digit hyphens from being read as numbers/negatives.
+# Trailing (?![\w]|\.\w) blocks a word char or a dot-then-word-char (so
+# "034020.KS" and "1.5x"-style tokens aren't matched as bare numbers) while
+# still allowing sentence-ending punctuation like "50%." or "65.". Group 1 =
+# number, group 2 = "%" or "".
+_NUMBER_RE = re.compile(r"(?<![\w.])(-?\d+(?:\.\d+)?)(%?)(?![\w]|\.\w)")
 
 # Project root: src/bottlewatch/jobs/research_daily.py -> ../../../..
 _PROJECT_ROOT = Path(__file__).resolve().parents[3]
@@ -432,16 +444,21 @@ def _validate_numeric_claims(
 ) -> list[float]:
     """Return the numbers in `rationale` not grounded in the prompt context.
 
-    Pure and deterministic: extracts every number via `_NUMBER_RE` and
-    keeps those that match no grounding value within tolerance
-    (`abs(a-b) <= max(_ABS_TOL, _REL_TOL*|b|)`). An empty result means the
-    rationale's numeric claims are all grounded.
+    Pure and deterministic. ISO dates are stripped first (not quantitative
+    claims). Each remaining number is grounded if it matches some context
+    value within tolerance (`abs(a-b) <= max(_ABS_TOL, _REL_TOL*|b|)`). A
+    percent ("50%") is matched against BOTH its literal value (50.0) and its
+    fraction form (0.50), since sub-scores live on a 0-1 scale but the prompt
+    also frames B on 0-100 — so analyst phrasings either way are accepted.
+    An empty result means the rationale's numeric claims are all grounded.
     """
     grounding = _build_grounding_set(context, score_row)
+    text = _DATE_RE.sub(" ", rationale)
     unverified: list[float] = []
-    for match in _NUMBER_RE.findall(rationale):
-        a = float(match)
-        if not any(abs(a - b) <= max(_ABS_TOL, _REL_TOL * abs(b)) for b in grounding):
+    for number, percent in _NUMBER_RE.findall(text):
+        a = float(number)
+        candidates = [a, a / 100.0] if percent else [a]
+        if not any(abs(cand - b) <= max(_ABS_TOL, _REL_TOL * abs(b)) for cand in candidates for b in grounding):
             unverified.append(a)
     return unverified
 

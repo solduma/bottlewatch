@@ -70,15 +70,21 @@ def _coerce_float(raw: Any) -> float | None:
         return None
 
 
+# Observed publication lag: data for month-2 is sometimes partial; month-3
+# is reliably complete. `_latest_month_window` subtracts this and
+# `_released_at_for_period` adds it back, so they MUST share one constant —
+# if they drift, backfilled `released_at` values are wrong and the
+# point-in-time recompute gate silently leaks future data.
+_PUBLICATION_LAG_MONTHS = 3
+
+
 def _latest_month_window(today: date) -> tuple[str, str]:
     """Return a (start, end) string pair in YYYY-MM covering the latest
-    month EIA actually has data for. Observed on 2026-06-03: the latest
-    period with rows is 2026-03, so we walk back three months.
+    month EIA actually has data for, walking back `_PUBLICATION_LAG_MONTHS`.
+    Observed on 2026-06-03: the latest period with rows is 2026-03.
     """
     year, month = today.year, today.month
-    # Three-month lag: month-2 (e.g. 2026-04) is sometimes partial;
-    # month-3 (2026-03) is reliably complete.
-    month -= 3
+    month -= _PUBLICATION_LAG_MONTHS
     while month <= 0:
         month += 12
         year -= 1
@@ -87,12 +93,12 @@ def _latest_month_window(today: date) -> tuple[str, str]:
 
 def _released_at_for_period(period: str) -> datetime:
     """Publication date for a YYYY-MM data period: the period plus the
-    modeled 3-month lag (the inverse of `_latest_month_window`). Derived
-    from the period, not `today`, so a backfilled run is point-in-time
-    correct rather than stamped with the fetch time.
+    modeled publication lag (the exact inverse of `_latest_month_window`).
+    Derived from the period, not `today`, so a backfilled run is
+    point-in-time correct rather than stamped with the fetch time.
     """
     year, month = (int(x) for x in period.split("-"))
-    month += 3
+    month += _PUBLICATION_LAG_MONTHS
     while month > 12:
         month -= 12
         year += 1

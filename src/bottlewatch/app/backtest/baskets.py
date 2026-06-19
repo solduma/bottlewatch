@@ -50,7 +50,12 @@ class Basket:
     segments: list[str]
     tickers: list[TickerBasketEntry]
     equal_weight_return: float | None
-    coverage: float  # fraction of selected tickers with prices
+    # Fraction of HELD tickers (after the as-of listing gate) with a
+    # computable forward return. Not-yet-listed names are excluded from the
+    # basket upstream, so this measures price-completeness among names we
+    # actually hold — it does NOT reflect tickers dropped for not trading
+    # at eval_date (that survivorship is in the membership gate, not here).
+    coverage: float
     net_return: float | None = None
     volatility: float | None = None
     max_drawdown: float | None = None

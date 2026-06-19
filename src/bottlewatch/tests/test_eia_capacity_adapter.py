@@ -114,6 +114,16 @@ def test_released_at_is_period_plus_three_month_lag() -> None:
     assert _released_at_for_period("2025-12") == datetime(2026, 3, 1)
 
 
+def test_window_and_released_at_are_exact_inverses() -> None:
+    # Guard against the two functions drifting apart (review #5): for any
+    # `today`, releasing the window's period must land on the first of the
+    # month that `today` falls in. month-1 normalizes to day 1.
+    for today in (date(2026, 6, 3), date(2026, 1, 15), date(2026, 3, 1), date(2025, 12, 31)):
+        period, _ = _latest_month_window(today)
+        released = _released_at_for_period(period)
+        assert released == datetime(today.year, today.month, 1)
+
+
 def test_emitted_signals_carry_released_at(settings: Settings) -> None:
     adapter = EIAV2CapacityAdapter(settings)
     per_state = {state: [100.0, 200.0] for state in _STATES}
