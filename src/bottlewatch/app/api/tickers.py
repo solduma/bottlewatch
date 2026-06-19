@@ -244,11 +244,17 @@ def get_ticker(request: Request, ticker: str) -> TickerDetail:
                 select(Thesis.ticker, func.count(Thesis.id)).where(Thesis.ticker == ticker).group_by(Thesis.ticker)
             ).all()
         )
+        # Near-horizon score/momentum for all of the ticker's segments in one
+        # query (was a SELECT per segment — an N+1).
+        score_rows = session.execute(
+            select(Score.segment, Score.score, Score.momentum).where(
+                Score.segment.in_(list(segment_map)), Score.horizon == "near"
+            )
+        ).all()
+        score_by_segment = {seg: (score, momentum) for seg, score, momentum in score_rows}
         for seg, info in segment_map.items():
             regime, conf = regimes.get(seg, (None, None))
-            row = session.execute(
-                select(Score).where(Score.segment == seg, Score.horizon == "near")
-            ).scalar_one_or_none()
+            score_near, momentum_near = score_by_segment.get(seg, (None, None))
             segments_out.append(
                 {
                     "segment": seg,
@@ -256,8 +262,8 @@ def get_ticker(request: Request, ticker: str) -> TickerDetail:
                     "subsegment": info["subsegment"],
                     "exposure_pct": info["exposure_pct"],
                     "regime_near": regime,
-                    "score_near": row.score if row else None,
-                    "momentum_near": row.momentum if row else None,
+                    "score_near": score_near,
+                    "momentum_near": momentum_near,
                     "thesis_count": thesis_counts.get(ticker, 0),
                 }
             )

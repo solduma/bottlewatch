@@ -14,11 +14,44 @@ from __future__ import annotations
 from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, HTTPException, Query, Request
+from pydantic import BaseModel
 
 from bottlewatch.app.api.segments import SegmentScore
 
 
 router = APIRouter(tags=["scores"])
+
+
+class ScoreHistoryPoint(BaseModel):
+    """One (computed_at, B, B', regime) point in a score-history series."""
+
+    computed_at: datetime
+    b: float | None
+    momentum: float | None
+    regime: str | None
+
+
+class ScoreHistory(BaseModel):
+    """Single-segment score history (the `?segment=` path)."""
+
+    segment: str
+    horizon: str
+    points: list[ScoreHistoryPoint]
+
+
+class ScoreHistorySeries(BaseModel):
+    """One segment's series inside a batched response."""
+
+    segment: str
+    points: list[ScoreHistoryPoint]
+
+
+class ScoreHistoryBatched(BaseModel):
+    """Batched score history (the `?segments=a,b,c` path)."""
+
+    horizon: str
+    months: int
+    series: list[ScoreHistorySeries]
 
 
 @router.get("/scores/regime", response_model=list[SegmentScore])
@@ -70,7 +103,7 @@ def _history_rows_for(factory, segment: str, horizon: str, cutoff: datetime) -> 
     ]
 
 
-@router.get("/scores/history", response_model=dict)
+@router.get("/scores/history", response_model=ScoreHistory | ScoreHistoryBatched)
 def get_scores_history(
     request: Request,
     segment: str | None = Query(
@@ -83,7 +116,7 @@ def get_scores_history(
     ),
     horizon: str = Query(..., description="Horizon: near | med | long."),
     months: int = Query(default=6, ge=1, le=36, description="Months of history to return."),
-) -> dict:
+) -> ScoreHistory | ScoreHistoryBatched:
     if horizon not in ("near", "med", "long"):
         raise HTTPException(status_code=400, detail=f"unknown horizon: {horizon!r}")
     if segment is not None and segments is not None:
@@ -101,13 +134,17 @@ def get_scores_history(
         slugs = [s.strip() for s in segments.split(",") if s.strip()]
         if not slugs:
             raise HTTPException(status_code=400, detail="`segments` must list at least one segment")
-        return {
-            "horizon": horizon,
-            "months": months,
-            "series": [
-                {"segment": slug, "points": _history_rows_for(factory, slug, horizon, cutoff)} for slug in slugs
+        return ScoreHistoryBatched(
+            horizon=horizon,
+            months=months,
+            series=[
+                ScoreHistorySeries(
+                    segment=slug,
+                    points=[ScoreHistoryPoint(**p) for p in _history_rows_for(factory, slug, horizon, cutoff)],
+                )
+                for slug in slugs
             ],
-        }
+        )
 
     # Single-segment path: backward-compat for /tickers/[ticker] and
     # any external consumer. `segment` is required here; if it's
@@ -119,8 +156,8 @@ def get_scores_history(
             status_code=400,
             detail="`segment` (single) or `segments` (batched) is required",
         )
-    return {
-        "segment": segment,
-        "horizon": horizon,
-        "points": _history_rows_for(factory, segment, horizon, cutoff),
-    }
+    return ScoreHistory(
+        segment=segment,
+        horizon=horizon,
+        points=[ScoreHistoryPoint(**p) for p in _history_rows_for(factory, segment, horizon, cutoff)],
+    )
