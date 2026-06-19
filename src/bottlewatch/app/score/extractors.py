@@ -11,13 +11,21 @@ concentration index, so it returns `float | None` directly.
 
 from __future__ import annotations
 
-from collections import defaultdict
+import logging
 from dataclasses import dataclass
 from datetime import date
 from typing import Any, Iterable, Protocol
 
 from bottlewatch.app.score.capex_ledger import Ledger, load_ledger, series_for_segment
 from bottlewatch.app.score.ontology_segments import SEGMENT_TO_ROLE_CLASS
+
+_LOGGER = logging.getLogger(__name__)
+
+# Max gap allowed between a region's latest peak-load observation and its
+# latest capacity observation when forming the utilization ratio. Capacity
+# changes slowly and is published with a multi-month lag, so a stale-but-recent
+# capacity is acceptable; beyond this the pairing is too stale to trust.
+_ISO_MAX_PEAK_CAPACITY_GAP_DAYS = 400
 
 
 # Segments whose demand_signal is driven by the manual hyperscaler AI capex ledger.
@@ -342,11 +350,16 @@ def _semi_lead_time_growth(signals: list[SignalLike]) -> float | None:
 def _iso_capacity_tightness(signals: list[SignalLike]) -> float | None:
     """Raw ISO/RTO peak-load-to-capacity ratio as primary capacity tightness.
 
-    Per-region utilization is peak load / capacity, clamped to 1.0.
-    The segment-level score is the mean utilization across regions.
-    Returns None if no region has both required signals.
+    Per-region utilization is peak load / capacity, clamped to 1.0; the
+    segment-level score is the mean across regions. Peak load (published
+    monthly) and capacity (published with a multi-month lag) almost never
+    share an observation date, so the latest peak and the latest capacity
+    are selected INDEPENDENTLY per region and paired — provided they are
+    within `_ISO_MAX_PEAK_CAPACITY_GAP_DAYS`. Returns None if no region
+    yields a usable, sufficiently-recent pair.
     """
-    by_region_month: dict[tuple[str | None, date], dict[str, float]] = defaultdict(dict)
+    # Latest (date, value) per (region, signal_name).
+    latest: dict[tuple[str | None, str], tuple[date, float]] = {}
     for s in signals:
         if s.value_num is None:
             continue
@@ -354,23 +367,32 @@ def _iso_capacity_tightness(signals: list[SignalLike]) -> float | None:
             continue
         d = _to_date(s.observed_at)
         region = getattr(s, "geography", None)
-        by_region_month[(region, d)][s.signal_name] = s.value_num
+        key = (region, s.signal_name)
+        existing = latest.get(key)
+        if existing is None or d > existing[0]:
+            latest[key] = (d, s.value_num)
 
-    if not by_region_month:
-        return None
-
-    latest_by_region: dict[str | None, date] = {}
-    for region, d in by_region_month:
-        if region not in latest_by_region or d > latest_by_region[region]:
-            latest_by_region[region] = d
-
+    regions = {region for region, _ in latest}
     ratios: list[float] = []
-    for region, latest_d in latest_by_region.items():
-        vals = by_region_month[(region, latest_d)]
-        cap = vals.get("iso_capacity_mw")
-        peak = vals.get("iso_peak_load_mw")
-        if cap is not None and cap > 0 and peak is not None:
-            ratios.append(min(peak / cap, 1.0))
+    for region in regions:
+        peak_entry = latest.get((region, "iso_peak_load_mw"))
+        cap_entry = latest.get((region, "iso_capacity_mw"))
+        if peak_entry is None or cap_entry is None:
+            continue
+        peak_d, peak = peak_entry
+        cap_d, cap = cap_entry
+        if cap <= 0:
+            continue
+        if abs((peak_d - cap_d).days) > _ISO_MAX_PEAK_CAPACITY_GAP_DAYS:
+            _LOGGER.warning(
+                "ISO region %s: peak (%s) and capacity (%s) are %d days apart; skipping",
+                region,
+                peak_d,
+                cap_d,
+                abs((peak_d - cap_d).days),
+            )
+            continue
+        ratios.append(min(peak / cap, 1.0))
 
     if not ratios:
         return None
